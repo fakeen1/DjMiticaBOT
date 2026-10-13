@@ -1,0 +1,314 @@
+/**
+ * @module commands/eval
+ * @description Owner-only command to evaluate arbitrary JavaScript code and display the result.
+ */
+
+import { CommandBuilder } from "../src/commands/index.mjs";
+import { EmbedBuilder } from "@fluxerjs/core";
+import { getGlobalColor } from "../src/ui/index.mjs";
+import { logger } from "../src/core/Logger.mjs";
+import { inspect } from "node:util";
+import { ERROR_COLOR, EMOJI_REMOVE_TIMEOUT } from "../src/utils/UI.mjs";
+
+/** @private @type {string[]} Property name substrings that indicate sensitive/secret data. */
+const RESTRICTED = [
+  "token",
+  "config",
+  "key",
+  "clientsecret",
+  "clientid",
+  "password",
+  "secret",
+  "authorization",
+  "mysql",
+  "lavalink",
+  "_nl",
+  "credential",
+  "apikey",
+  "webhook",
+];
+
+/** @private @type {number} Maximum recursion depth when scanning for sensitive keys. */
+const SCAN_DEPTH = 6;
+
+/**
+ * @private
+ * Recursively check whether an object contains keys matching RESTRICTED substrings.
+ * @param {*} obj - The object to scan.
+ * @param {number} [level=0] - Current recursion depth.
+ * @param {WeakSet} [visited=new WeakSet()] - Already-visited objects to prevent cycles.
+ * @returns {boolean} True if any sensitive key is found.
+ */
+function hasSensitive(obj, level = 0, visited = new WeakSet()) {
+  if (level >= SCAN_DEPTH || typeof obj !== "object" || obj === null) return false;
+  if (visited.has(obj)) return false;
+  visited.add(obj);
+  for (const key in obj) {
+    if (RESTRICTED.some(r => key.toLowerCase().includes(r))) return true;
+    if (typeof obj[key] === "object" && hasSensitive(obj[key], level + 1, visited)) return true;
+  }
+  return false;
+}
+
+/**
+ * @private
+ * Recursively redact sensitive keys in an object, replacing values with "[REDACTED]".
+ * @param {*} obj - The object to clean.
+ * @param {number} [level=0] - Current recursion depth.
+ * @param {WeakSet} [visited=new WeakSet()] - Already-visited objects to prevent cycles.
+ * @returns {*} The cleaned object (original reference if no modifications, new object otherwise).
+ */
+function removeSensitive(obj, level = 0, visited = new WeakSet()) {
+  if (level >= SCAN_DEPTH || typeof obj !== "object" || obj === null) return obj;
+  if (visited.has(obj)) return "[Circular]";
+  visited.add(obj);
+
+  const isArray = Array.isArray(obj);
+  const newObj = isArray ? [...obj] : { ...obj };
+  let modified = false;
+
+  for (const key in newObj) {
+    const isSensitive = !isArray && RESTRICTED.some(r => key.toLowerCase().includes(r));
+
+    if (isSensitive) {
+      newObj[key] = "[REDACTED]";
+      modified = true;
+    } else if (typeof newObj[key] === "object" && newObj[key] !== null) {
+      const cleaned = removeSensitive(newObj[key], level + 1, visited);
+      if (cleaned !== newObj[key]) {
+        newObj[key] = cleaned;
+        modified = true;
+      }
+    }
+  }
+  return modified ? newObj : obj;
+}
+
+/**
+ * @private
+ * @async
+ * Sanitize a value for safe display: await promises, redact sensitive keys,
+ * inspect with node:util, and escape markup characters.
+ * @param {*} value - The raw eval result.
+ * @returns {Promise<string>} The sanitized output string.
+ */
+async function clean(value) {
+  if (value instanceof Promise) value = await value;
+
+  if (typeof value === "object" && value !== null) {
+    if (hasSensitive(value)) {
+      value = removeSensitive(value);
+    }
+  }
+
+  let output;
+  try {
+    output = typeof value === "string" ? value : inspect(value, { depth: 4, compact: false, maxArrayLength: 50, maxStringLength: 500, breakLength: 80 });
+  } catch (err) {
+    output = `[Inspection Error]: ${err.message}`;
+  }
+
+  return output
+      .replace(/`/g, "`\u200b")
+      .replace(/@/g, "@\u200b") || "undefined";
+}
+
+/**
+ * @private
+ * Determine whether a code string is a single expression (vs. statements).
+ * Used to decide whether to wrap in a return statement.
+ * @param {string} code - The code to analyze.
+ * @returns {boolean} True if the code appears to be a single expression.
+ */
+function isSingleExpression(code) {
+  const trimmed = code.trim();
+
+  if (!trimmed) return false;
+
+  if (/^(if|for|while|do|switch|try|catch|finally|with)\s*[\({]/.test(trimmed)) return false;
+
+  if (/^\s*(const|let|var|function\s|class\s)/.test(trimmed)) return false;
+
+  const stripped = trimmed
+      .replace(/'(?:[^'\\]|\\.)*'/g, '""')
+      .replace(/"(?:[^"\\]|\\.)*"/g, '""')
+      .replace(/`(?:[^`\\]|\\.)*`/g, '""');
+  if (stripped.includes(";")) return false;
+
+  const withoutChains = trimmed.replace(/\.\s*\n/g, ".");
+  if (withoutChains.includes("\n")) return false;
+
+  return true;
+}
+
+/**
+ * @private
+ * @async
+ * Execute a JavaScript expression/statement in a sandboxed async context.
+ * @param {string} expression - The code to evaluate.
+ * @param {object} context - The `this` context for the eval.
+ * @returns {Promise<{output: string, isError: boolean, type: string, elapsed: number}>} Eval result.
+ */
+async function runEval(expression, context) {
+  const start = Date.now();
+  let result, isError = false, type = "undefined";
+
+  try {
+    const code = isSingleExpression(expression)
+        ? `return (${expression});`
+        : expression;
+
+    const AsyncFunction = Object.getPrototypeOf(async function() {}).constructor;
+    result = await new AsyncFunction("process", "require", "module", "global", "globalThis", "__dirname", "__filename", code).call(context);
+    type = result === null ? "null" : typeof result;
+  } catch (e) {
+    result = e;
+    isError = true;
+    type = "error";
+  }
+
+  const elapsed = Date.now() - start;
+  const output = await clean(result);
+
+  return { output, isError, type, elapsed };
+}
+
+/** @type {CommandBuilder} @description Command definition for the eval command (owner-only). */
+export const command = new CommandBuilder()
+    .setName("eval")
+    .setDescription("Evaluates JavaScript code (Owner Only).")
+    .setRequirement(r => r.setOwnerOnly(true))
+    .setCategory("util")
+    .addTextOption(o =>
+        o.setName("expression")
+            .setDescription("The JavaScript expression to evaluate")
+            .setRequired(true)
+    );
+
+/**
+ * @async
+ * Run handler for the eval command.
+ * Evaluates the provided JavaScript expression, sanitizes the output,
+ * and displays it in a paginated embed with reaction navigation.
+ * @param {object} msg - The command message wrapper.
+ * @param {object} data - Parsed command data containing the expression option.
+ * @returns {Promise<void>}
+ */
+export async function run(msg, data) {
+  const expression = data.get("expression").value;
+
+  const context = Object.assign({
+    message: msg?.message,
+    msg,
+    guilds:   this.client?.guilds,
+    channels: this.client?.channels,
+    users:    this.client?.users,
+    players:  this.players,
+    settings: this.settingsMgr,
+  }, this);
+
+  const { output, isError, type, elapsed } = await runEval(expression, context);
+
+  const chunkSize = 3800;
+  const chunks = [];
+  for (let i = 0; i < output.length; i += chunkSize) {
+    chunks.push(output.slice(i, i + chunkSize));
+  }
+
+  const totalPages = chunks.length;
+  let currentPage = 0;
+
+  /**
+   * @private
+   * Build the embed payload for a specific page of the eval output.
+   * @param {number} pageIdx - Zero-based page index.
+   * @param {boolean} [expired=false] - Whether the reaction controls have expired.
+   * @returns {object} Embed payload for message reply/edit.
+   */
+  const buildPageContent = (pageIdx, expired = false) => {
+    const title = isError
+        ? this.t(msg, "responses.eval.resultTitleError")
+        : this.t(msg, "responses.eval.resultTitleSuccess");
+
+    const typeLabel = this.t(msg, "responses.eval.typeLabel");
+    const timeLabel = this.t(msg, "responses.eval.timeLabel");
+    const desc = `**${typeLabel}** \`${type}\` • **${timeLabel}** \`${elapsed}ms\`\n\`\`\`js\n${chunks[pageIdx]}\n\`\`\``.slice(0, 4096);
+
+    let footerText = this.t(msg, "responses.eval.pageLabel", { page: pageIdx + 1, total: totalPages });
+    if (expired) footerText = this.t(msg, "responses.eval.controlsExpired");
+    else if (totalPages > 1) footerText += " " + this.t(msg, "responses.eval.navigateHint");
+    else footerText += " " + this.t(msg, "responses.eval.deleteHint");
+
+    const embed = new EmbedBuilder()
+        .setColor(isError ? ERROR_COLOR : getGlobalColor())
+        .setTitle(title)
+        .setDescription(desc)
+        .setFooter({ text: footerText })
+    ;
+
+    return { embeds: [embed] };
+  };
+
+  const replyMsg = await msg.reply(buildPageContent(0));
+  if (!replyMsg?.message) return;
+
+  const navEmojis = totalPages > 1 ? ["⬅️", "➡️", "❌"] : ["❌"];
+  let unobserve = null;
+  let emojiTimeout = null;
+
+  for (const emoji of navEmojis) {
+    await replyMsg.message.react(emoji).catch(() => {});
+  }
+
+  /**
+   * @private
+   * Remove all navigation reactions from the eval reply message.
+   * @returns {Promise<void>}
+   */
+  const clearReactions = async () => {
+    try {
+      await replyMsg.message.removeAllReactions();
+    } catch (e) {
+      for (const emoji of navEmojis) {
+        try {
+          await replyMsg.message.removeReaction(emoji);
+        } catch(e) { logger.warn("[Eval] Error:", e?.message); }
+      }
+    }
+  };
+
+  /**
+   * @private
+   * Reset the emoji removal timeout timer for the eval session.
+   * @returns {void}
+   */
+  const resetTimer = () => {
+    clearTimeout(emojiTimeout);
+    emojiTimeout = setTimeout(async () => {
+      if (unobserve) unobserve();
+      await clearReactions();
+      await replyMsg.edit(buildPageContent(currentPage, true)).catch(() => {});
+    }, EMOJI_REMOVE_TIMEOUT);
+  };
+
+  unobserve = replyMsg.onReaction(navEmojis, async (e) => {
+    if (e.emoji_id === "❌") {
+      clearTimeout(emojiTimeout);
+      if (unobserve) unobserve();
+      await replyMsg.message.delete().catch(() => {});
+      return;
+    }
+
+    resetTimer();
+
+    if (e.emoji_id === "⬅️") {
+      currentPage = currentPage > 0 ? currentPage - 1 : totalPages - 1;
+    } else if (e.emoji_id === "➡️") {
+      currentPage = currentPage < totalPages - 1 ? currentPage + 1 : 0;
+    }
+
+    await replyMsg.edit(buildPageContent(currentPage)).catch(() => {});
+  });
+
+  resetTimer();
+}

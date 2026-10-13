@@ -1,0 +1,219 @@
+/**
+ * @module dashboard/RedisHandler
+ * @description Redis pub/sub handler for the dashboard. Maintains a main publisher client
+ * and a subscriber client. Receives JSON requests on the "request" channel,
+ * dispatches them to a user-supplied handler, and publishes results on "response".
+ */
+
+import { createClient } from "redis";
+import { logger } from "../core/Logger.mjs";
+
+/**
+ * Default reconnection strategy for Redis sockets.
+ * redis@5 calls the strategy as `strategy(retries, cause)` where `retries` is a
+ * plain NUMBER of reconnect attempts made so far — NOT an options object.
+ * The previous version read cumulative-time / attempt-count properties off
+ * that number, which produced NaN; NaN passes redis@5's `typeof !== "number"`
+ * gate and collapses `setTimeout(NaN)` to a ~1ms hot-retry loop (log storm).
+ * Strategy now: linear ramp 0.5s -> 5s, then a steady 15s retry pulse. It
+ * never exhausts, so the dashboard auto-recovers whenever Redis returns.
+ * @param {number} retries - Reconnect attempts made so far (redis@5 argument).
+ * @returns {number} Delay in ms before the next reconnect attempt.
+ */
+const DEFAULT_RETRY_STRATEGY = (retries) => {
+  if (!Number.isFinite(retries)) return 15_000;
+  return retries < 10 ? Math.min(retries * 500, 5_000) : 15_000;
+};
+
+/**
+ * @class
+ * @description Manages dual Redis connections (publisher + subscriber) for real-time
+ * dashboard communication via pub/sub.
+ */
+export class RedisHandler {
+  /** @type {string} Platform prefix used for Redis channel names. */
+  platform = "fluxer";
+
+  /** @type {import('redis').RedisClientType|null} The main (publisher) Redis client. */
+  client = null;
+  /** @type {import('redis').RedisClientType|null} The subscriber Redis client. */
+  subscriber = null;
+  /** @private @type {boolean} Whether the handler has been destroyed. */
+  _destroyed = false;
+
+  /** @private @type {{main: number, subscriber: number}} Consecutive socket errors since the last successful connect, per client. */
+  _errorStreaks = { main: 0, subscriber: 0 };
+
+  /**
+   * Create a new RedisHandler and immediately begin connecting.
+   * @param {object} [opts={}] - Redis connection options (passed to `createClient`).
+   * @param {string} [opts.platform] - Platform prefix for channels.
+   */
+  constructor(opts = {}) {
+    this.platform = opts.platform ?? "fluxer";
+
+    const { platform: _platform, ...clientOpts } = { ...opts };
+    clientOpts.socket = {
+      connectTimeout: 5_000,
+      ...(clientOpts.socket ?? {}),
+      reconnectStrategy: DEFAULT_RETRY_STRATEGY,
+    };
+
+    this.client = createClient(clientOpts);
+    this.client.on("error", (err) => {
+      logger.warn("[Redis/Main] Error:", err.message);
+      this._noteErrorStreak("main");
+    });
+    this.client.on("ready", () => { this._errorStreaks.main = 0; });
+
+    this.subscriber = this.client.duplicate();
+    this.subscriber.on("error", (err) => {
+      logger.warn("[Redis/Subscriber] Error:", err.message);
+      this._noteErrorStreak("subscriber");
+    });
+    this.subscriber.on("ready", () => { this._errorStreaks.subscriber = 0; });
+
+    this._connect();
+  }
+
+  /**
+   * After enough consecutive failures on one client, log a single actionable
+   * diagnostic instead of letting the identical connection-error line repeat
+   * forever. Resets whenever that client reaches "ready".
+   * @private
+   * @param {"main"|"subscriber"} which
+   */
+  _noteErrorStreak(which) {
+    this._errorStreaks[which] = (this._errorStreaks[which] ?? 0) + 1;
+    if (this._errorStreaks[which] === 8) {
+      const label = which === "main" ? "Main" : "Subscriber";
+      logger.error(
+        `[Redis/${label}] Still failing to connect after repeated attempts — this looks like a ` +
+        "network-reachability problem, not an app bug: confirm the host in config.json -> dashboard.redis.url " +
+        "is reachable from inside the bot's container. If Redis runs in the same docker-compose stack, point " +
+        "this at the service name (e.g. redis://redis:6379) instead of a bare external IP."
+      );
+    }
+  }
+
+  /**
+   * Connect both the publisher and subscriber clients, then subscribe
+   * to the "request" and "info" channels and start the ping interval.
+   * @private
+   * @async
+   */
+  async _connect() {
+    this.client.connect()
+      .then(() => {
+        if (this._destroyed) return;
+        logger.redis("[Redis/Main] Connected");
+        this.readyMessage();
+      })
+      .catch((e) => {
+        logger.error("[Redis/Main] Initial connection failed:", e.message);
+      });
+
+    this.subscriber.connect()
+      .then(() => {
+        if (this._destroyed) return;
+        logger.redis("[Redis/Subscriber] Connected");
+
+        this.subscriber.subscribe("request", async (m) => {
+          if (this._destroyed) return;
+          try {
+            const payload = JSON.parse(m);
+            if (payload.platform !== this.platform) return;
+            if (typeof this.handleRequest !== "function") return;
+            const result = await this.handleRequest(payload.content);
+            this.send("response", JSON.stringify({
+              id: payload.id,
+              content: result,
+            }));
+          } catch (e) {
+            logger.error("[Redis/Subscriber] Request handler error:", e.message);
+          }
+        });
+
+        this.subscriber.subscribe("info", (m) => {
+          if (this._destroyed) return;
+          try {
+            const data = JSON.parse(m);
+            if (data.platform !== "backend") return;
+            if (data.type !== "requestConnected") return;
+            this.readyMessage();
+          } catch (e) {
+            logger.warn("[Redis/Subscriber] Info handler error:", e.message);
+          }
+        });
+        this._pingInterval = setInterval(() => {
+          this.send(this.platform + ":ping", "" + Date.now());
+        }, 10000);
+      })
+      .catch((e) => {
+        logger.error("[Redis/Subscriber] Initial connection failed:", e.message);
+      });
+  }
+
+  /**
+   * Send a "connected" info message to the dashboard after a 5-second debounce.
+   * @returns {void}
+   */
+  readyMessage() {
+    if (this._destroyed) return;
+    if (this._readyTimer) clearTimeout(this._readyTimer);
+    this._readyTimer = setTimeout(() => {
+      this._readyTimer = null;
+      if (this._destroyed) return;
+      this.send("info", JSON.stringify({
+        platform: this.platform,
+        type: "connected",
+      }));
+    }, 5000);
+  }
+
+  /**
+   * Publish a message to a Redis channel.
+   * No-op if the handler is destroyed or the client is not ready.
+   * @param {string} channel - The Redis channel to publish to.
+   * @param {string} message - The message string to send.
+   * @returns {Promise<number>} Number of subscribers that received the message.
+   */
+  send(channel, message) {
+    if (this._destroyed || !this.client?.isReady) return Promise.resolve(0);
+    return this.client.publish(channel, message).catch((e) => {
+      logger.warn("[Redis/Main] Publish error:", e.message);
+      return 0;
+    });
+  }
+
+  /** @type {Function|null} The current request handler function. */
+  handleRequest;
+
+  /**
+   * Set the handler function invoked for incoming "request" payloads.
+   * @param {Function} handler - Async function `(data) => result`.
+   */
+  setRequestHandler(handler) {
+    this.handleRequest = handler;
+  }
+
+  /**
+   * Gracefully close both Redis connections and stop all internal timers.
+   * @async
+   * @returns {Promise<void>}
+   */
+  async destroy() {
+    this._destroyed = true;
+    if (this._pingInterval) { clearInterval(this._pingInterval); this._pingInterval = null; }
+    if (this._readyTimer) { clearTimeout(this._readyTimer); this._readyTimer = null; }
+    try {
+      if (this.subscriber?.isReady) await this.subscriber.quit();
+      else this.subscriber?.disconnect();
+    } catch(e) { logger.warn("[Redis/Subscriber] Quit error:", e?.message); }
+    try {
+      if (this.client?.isReady) await this.client.quit();
+      else this.client?.disconnect();
+    } catch(e) { logger.warn("[Redis/Main] Quit error:", e?.message); }
+    logger.redis("[Redis] Connections closed gracefully");
+  }
+}

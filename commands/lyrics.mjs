@@ -1,0 +1,224 @@
+/**
+ * @module commands/lyrics
+ * @description Display synced or unsynced lyrics for the currently playing track from NodeLink.
+ */
+
+import { CommandBuilder } from "../src/commands/index.mjs";
+import { logger } from "../src/core/Logger.mjs";
+import { EmbedBuilder } from "@fluxerjs/core";
+import { getGlobalColor } from "../src/ui/index.mjs";
+import { Utils } from "../src/utils/Utils.mjs";
+import { EMOJI_REMOVE_TIMEOUT } from "../src/utils/UI.mjs";
+
+/** @type {CommandBuilder} @description Command definition for the lyrics command. */
+export const command = new CommandBuilder()
+    .setName("lyrics")
+    .setDescription("Display synced lyrics from NodeLink", "commands.lyrics")
+    .addAliases("lyric", "ly")
+    .setCategory("music");
+
+/** @private @type {string[]} Loading animation frames. */
+const LOADING_FRAMES     = ["◐", "◓", "◑", "◒"];
+/** @private @type {number} Session timeout in milliseconds (3 minutes). */
+const SESSION_MS           = 180_000;
+
+/**
+ * @async
+ * Run handler for the lyrics command.
+ * Fetches lyrics for the currently playing track and displays them with
+ * paginated embeds and reaction-based navigation.
+ * @param {object} message - The command message wrapper.
+ * @returns {Promise<void>}
+ */
+export async function run(message) {
+  const p = await this.getPlayer(message, false, false, false);
+  if (!p) return;
+
+  const current = p.queue.getCurrent();
+  if (!current) {
+    const embed = new EmbedBuilder().setColor(getGlobalColor()).setDescription(this.t(message, "responses.lyrics.nothingPlaying"));
+    return message.reply({ embeds: [embed] });
+  }
+
+  let frame = 0;
+  const loadingMsg = await message.reply({ embeds: [
+    new EmbedBuilder().setColor(getGlobalColor())
+      .setDescription(`${LOADING_FRAMES[0]} ` + this.t(message, "responses.lyrics.searching", { title: Utils.truncate(current.title, 40) }))
+
+  ] });
+
+  const loadingInterval = setInterval(() => {
+    frame = (frame + 1) % LOADING_FRAMES.length;
+    loadingMsg.edit({ embeds: [
+      new EmbedBuilder().setColor(getGlobalColor())
+      .setDescription(`${LOADING_FRAMES[frame]} ` + this.t(message, "responses.lyrics.searching", { title: Utils.truncate(current.title, 40) }))
+
+    ] }).catch(() => {});
+  }, 800);
+
+  try {
+    const result = await p.lyrics();
+
+    clearInterval(loadingInterval);
+
+    if (!result || !result.text) {
+      return loadingMsg.edit({ embeds: [
+        new EmbedBuilder().setColor(getGlobalColor())
+          .setDescription(
+            this.t(message, "responses.lyrics.noLyrics", { title: Utils.truncate(current.title, 40) })
+          )
+      ] });
+    }
+
+    try { await loadingMsg.message.delete(); } catch(e) { logger.warn("[Lyrics] Error:", e?.message); }
+
+    const syncIndicator = result.synced ? this.t(message, "responses.lyrics.syncedBadge") : "";
+    const displayTitle  = Utils.cleanTitle(current.title);
+    const artist        = current.artists?.[0]?.name || current.author?.name || "Unknown Artist";
+    const lines         = result.text.split("\n").filter(l => l.trim());
+    const totalLines    = lines.length;
+
+    const LINES_PER_PAGE = 25;
+    const MAX_DESC       = 4096;
+    let totalPages       = Math.ceil(totalLines / LINES_PER_PAGE);
+
+    const pages = [];
+    for (let i = 0; i < totalLines; i += LINES_PER_PAGE) {
+      pages.push(lines.slice(i, i + LINES_PER_PAGE).join("\n"));
+    }
+
+    const CODE_WRAP = 13;
+    {
+      const reshaped = [];
+      for (const pageText of pages) {
+        const headerLine = `by *${artist}*${syncIndicator}`;
+        const overhead   = headerLine.length + 1 + 1 + CODE_WRAP;
+        const budget     = MAX_DESC - overhead;
+        if (pageText.length <= budget) {
+          reshaped.push(pageText);
+        } else {
+          const pageLines = pageText.split("\n");
+          let chunk = "";
+          for (const ln of pageLines) {
+            if (chunk.length + ln.length + 1 > budget) {
+              if (chunk) reshaped.push(chunk);
+              chunk = ln;
+            } else {
+              chunk += (chunk ? "\n" : "") + ln;
+            }
+          }
+          if (chunk) reshaped.push(chunk);
+        }
+      }
+      pages.length = 0;
+      pages.push(...reshaped);
+      totalPages = pages.length;
+    }
+
+    if (totalPages === 1) {
+      const headerLine = `by *${artist}*${syncIndicator}`;
+      const descBody   = pages[0];
+      const singleDesc = [headerLine, "", "```", descBody, "```"].join("\n");
+
+      const singleEmbed = new EmbedBuilder()
+        .setColor(getGlobalColor())
+        .setTitle(`🎵 ${Utils.truncate(displayTitle, 50)}`)
+        .setDescription(singleDesc.slice(0, MAX_DESC))
+        .setFooter({ text: this.t(message, "responses.lyrics.sourceFooter", { source: result.source, lines: totalLines }) });
+      if (current.thumbnail) singleEmbed.setThumbnail(current.thumbnail);
+      return message.reply({ embeds: [singleEmbed] });
+    }
+
+    let currentPage      = 0;
+    let emojiRemoveTimeout;
+
+    /**
+     * @private
+     * Build the embed payload for a specific lyrics page.
+     * @param {number} pageIdx - Zero-based page index.
+     * @param {boolean} [expired=false] - Whether navigation controls have expired.
+     * @returns {object} Embed payload for message reply/edit.
+     */
+    const buildContent = (pageIdx, expired = false) => {
+      const headerLine = `by *${artist}*${syncIndicator} • Page ${pageIdx + 1}/${totalPages}`;
+      const descBody   = pages[pageIdx];
+      const desc       = [headerLine, "", "```", descBody, "```"].join("\n");
+
+      const b = new EmbedBuilder()
+        .setColor(getGlobalColor())
+        .setTitle(`🎵 ${Utils.truncate(displayTitle, 50)}`)
+        .setDescription(desc.slice(0, MAX_DESC))
+        .setFooter({ text: expired
+          ? this.t(message, "responses.lyrics.controlsExpired", { lines: totalLines })
+          : this.t(message, "responses.lyrics.sourceFooter", { source: result.source, lines: totalLines }) });
+      if (current.thumbnail) b.setThumbnail(current.thumbnail);
+      return { embeds: [b] };
+    };
+
+    const msg = await message.reply(buildContent(0));
+    if (!msg?.message) return;
+
+    const emojis = ["⬅️", "➡️"];
+    for (const emoji of emojis) {
+      await msg.message.react(emoji).catch(() => {});
+    }
+
+    /**
+     * @private
+     * Remove all navigation reactions from the lyrics message.
+     * @returns {Promise<void>}
+     */
+    const clearReactions = async () => {
+      try {
+        await msg.message.removeAllReactions();
+      } catch {
+        for (const emoji of emojis) {
+          await msg.message.removeReaction(emoji).catch(() => {});
+        }
+      }
+    };
+
+    /**
+     * @private
+     * Reset the emoji removal timeout timer for the lyrics session.
+     * @returns {void}
+     */
+    const resetEmojiTimer = () => {
+      clearTimeout(emojiRemoveTimeout);
+      emojiRemoveTimeout = setTimeout(async () => {
+        await clearReactions();
+        msg.edit(buildContent(currentPage, true)).catch(() => {});
+      }, EMOJI_REMOVE_TIMEOUT);
+    };
+
+    const unobserve = msg.onReaction(emojis, async (e) => {
+      resetEmojiTimer();
+      if (e.emoji_id === "⬅️") {
+        currentPage = currentPage > 0 ? currentPage - 1 : totalPages - 1;
+      } else if (e.emoji_id === "➡️") {
+        currentPage = currentPage < totalPages - 1 ? currentPage + 1 : 0;
+      }
+      msg.edit(buildContent(currentPage)).catch(() => {});
+    });
+
+    resetEmojiTimer();
+
+    setTimeout(() => {
+      clearTimeout(emojiRemoveTimeout);
+      unobserve();
+      const closedHeader = `by *${artist}*${syncIndicator} • Page ${currentPage + 1}/${totalPages}`;
+      const closedDesc   = [closedHeader, "", "```", pages[currentPage], "```"].join("\n");
+      const closedEmbed = new EmbedBuilder()
+        .setColor(getGlobalColor())
+        .setTitle(`🎵 ${Utils.truncate(displayTitle, 50)}`)
+        .setDescription(closedDesc.slice(0, MAX_DESC))
+        .setFooter({ text: this.t(message, "responses.lyrics.sessionClosed", { lines: totalLines }) });
+      if (current.thumbnail) closedEmbed.setThumbnail(current.thumbnail);
+      msg.edit({ embeds: [closedEmbed] }).catch(() => {});
+    }, SESSION_MS);
+  } catch (err) {
+    clearInterval(loadingInterval);
+    logger.error("[Lyrics Command] Error:", err);
+    loadingMsg.edit({ embeds: [new EmbedBuilder().setColor(getGlobalColor()).setDescription(this.t(message, "responses.lyrics.error", { error: Utils.truncate(err.message, 100) }))] }).catch(() => {});
+  }
+}

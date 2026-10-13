@@ -1,0 +1,830 @@
+{
+  "cmdBuilder": {
+    "requirement": {
+      "permission": "ليس لديك الصلاحيات المطلوبة لتنفيذ هذا الأمر!"
+    },
+    "subcommand": {
+      "invalid": "أمر فرعي غير صالح. جرّب أحد الخيارات التالية: `$previousCmd <$cmdlist>`"
+    },
+    "option": {
+      "invalidChoice": "قيمة غير صالحة '{{$currValue}}'. يجب أن يكون الخيار `{{$optionName}}` أحد الخيارات التالية:\n{{$choices}}\nالشكل: `$previousCmd <{{$type}}>`",
+      "invalidChannel": "قيمة غير صالحة '{{$currValue}}'. يجب أن يكون الخيار `{{$optionName}}` إشارة قناة أو معرف أو اسم.\nالشكل: `$previousCmd <{{$type}}>`",
+      "invalidType": "قيمة غير صالحة '{{$currValue}}'. يجب أن يكون الخيار `{{$optionName}}` من النوع `{{$type}}`.\nالشكل: `$previousCmd <{{$type}}>`"
+    }
+  },
+  "cmdHandler": {
+    "command": {
+      "invalid": "أمر غير معروف {{command}}!",
+      "suggestion": "هل كنت تقصد {{command}}؟ (اكتب {{acceptCommand}} لتنفيذه)"
+    },
+    "help": {
+      "pageStructure": "الأوامر المتاحة (صفحة $currPage/$maxPage): \n\n$content\n\nاكتب `$prefix$helpCmd <أمر>` لمعرفة المزيد. يمكنك أيضًا تضمين الأوامر الفرعية.\nمثال: `$prefix$helpCmd settings get`\n\nنصيحة: استخدم الأسهم أسفل هذه الرسالة لتقليل الصفحات، أو حدد رقم الصفحة المطلوب باستخدام `$prefix$helpCmd <رقم الصفحة>`",
+      "unknownCommand": "❌ أمر غير معروف `{{command}}`. استخدم `{{prefix}}help` للتصفح.",
+      "availableCommands": "الأوامر المتاحة{{$page}}: ",
+      "runHelp": "\nاكتب `$prefix$helpCmd <أمر>` لمعرفة المزيد. يمكنك أيضًا تضمين الأوامر الفرعية.\nمثال: `$prefix$helpCmd أمر اسم_الأمر_الفرعي`",
+      "pageTip": "\n\nنصيحة: استخدم `$prefix$helpCmd <رقم الصفحة>` لتقليب الصفحات",
+      "ellipsis": ". [...]",
+      "usage": "الاستخدام: ",
+      "examples": "مثال/أمثلة: ",
+      "aliases": "الأسماء البديلة: ",
+      "subcommands": "الأوامر الفرعية: ",
+      "arguments": "الوسائط: ",
+      "allowedValues": "القيم المسموحة: ",
+      "aliasesLabel": "الأسماء البديلة: ",
+      "requirements": "المتطلبات: ",
+      "permission": "الصلاحية `{{$permission}}`",
+      "optionCount": "{{$count}} خيار/خيارات"
+    },
+    "invalidFlag": "علامة غير صالحة `$invalidFlag`. لا تتطابق مع أي خيار لهذا الأمر.\n`$previousCmd $invalidFlag`",
+    "page": {
+      "invalid": "{{number}} ليس رقم صفحة صالح!"
+    },
+    "permissions": {
+      "message": "يرجى منحي إذن {{permission}} في {{channel}} أو تواصل مع مسؤول الخادم. لا أستطيع العمل بدون هذا الإذن."
+    },
+    "textWrapError": "سلسلة مشوهة `{{$value}}`: يوجد علامة اقتباس إغلاق مفقودة (`{{$quote}}`) بعد السلسلة المطلوبة."
+  },
+  "commands": {
+    "clear": "أزل جميع الأغاني من قائمة الانتظار.",
+    "debug": "أمر تصحيح للأغراض المتنوعة.",
+    "eval": "تنفيذ كود جافاسكريبت (للمالك فقط).",
+    "filter": "افتح أداة اختيار الفلاتر التفاعلية — تفاعل مع رمز تعبيري لتطبيق تأثير صوتي.",
+    "forceleave": "اجعل Dj Mitica يغادر قناة حتى لو لم تكن فيها.",
+    "invite": "اعرض صفحة Dj Mitica على GitHub لتشغيل نسختك الخاصة من البوت.",
+    "join": "اجعل البوت ينضم إلى قناتك الصوتية، أو حدد قناة معينة.",
+    "leave": "اجعل البوت يغادر قناة صوتية. حدد قناة أو اتركها فارغة للقناة الحالية.",
+    "list": "اعرض قائمة الأغاني في قائمة انتظار قناتك الصوتية الحالية.",
+    "loop": "تفعيل/تعطيل تكرار قائمة الانتظار/الأغنية.",
+    "lyrics": "عرض كلمات الأغنية المتزامنة من NodeLink.",
+    "np": "اطلب اسم ورابط الأغنية التي تعمل حالياً.",
+    "pause": "إيقاف التشغيل مؤقتاً في قناتك الصوتية.",
+    "ping": "تحقّق من زمن استجابة البوت وحالة اتصاله.",
+    "play": "شغّل أغنية أو قائمة تشغيل من رابط أو استعلام بحث.\nيدعم يوتيوب وسبوتيفاي وساوندكلاود ودييزر وآبل ميوزيك وتايدال وبيلي بيلي والمزيد.\nالبحث الافتراضي: YouTube Music. استخدم `-p <المزود>` أو بادئة مضمنة مثل `sp: blinding lights`.",
+    "player": "أنشئ لوحة تحكم تشغيل تفاعلية مع تقدم مباشر.",
+    "playnext": "مثل $prefixplay لكنه يضيف النتيجة إلى أعلى قائمة الانتظار.",
+    "radio": "شغّل محطة إذاعية. استخدم `$prefixradio list` لتصفح جميع المحطات.",
+    "reload": "إعادة تحميل الأوامر. اتركه فارغاً لعرض جميع الأهداف.",
+    "remove": "أزل أغنية محددة من قائمة الانتظار.",
+    "resume": "استئناف التشغيل في قناتك الصوتية.",
+    "search": "اعرض نتائج البحث عن استعلام واختر واحدة لتشغيلها.\nيدعم جميع المزودين — استخدم بادئة مضمنة مثل `sp: أغنية` أو `-p dz`.",
+    "servers": "احصل على قائمة بالخوادم الموجود فيها البوت.",
+    "settings": "تغيير/عرض الإعدادات في الخادم الحالي.",
+    "shuffle": "أعد ترتيب قائمة الانتظار بشكل عشوائي.",
+    "skip": "تخطي الأغنية التي يتم تشغيلها حالياً.",
+    "stats": "عرض إحصائيات عن البوت مثل وقت التشغيل.",
+    "support": "احصل على المساعدة بخصوص Dj Mitica أو أبلغ عن خطأ أو اقترح ميزة.",
+    "test": "يوضح عدد الأشخاص الموجودين في كل قناة صوتية.",
+    "thumbnail": "اطلب الصورة المصغرة للأغنية التي يتم تشغيلها حالياً.",
+    "volume": "عرض أو تغيير مستوى الصوت الحالي.",
+    "volumedefault": "عرض أو تعيين مستوى الصوت الافتراضي للخادم. (يتطلب إدارة الخادم للتعيين)",
+    "lastfm": "اربط حساب Last.fm الخاص بك، أو بدّل السكرابل، أو اعرض ملفك الشخصي.",
+    "vote": "اعرض معلومات التصويت أو تحقق من الناخبين لسيرفرك/بوتك على FluxerList",
+    "seek": "انتقل إلى موضع محدد في المقطع الذي يعمل حالياً.",
+    "move": "انقل مقطعاً من موضع إلى آخر في قائمة الانتظار.",
+    "autoplay": "بدّل التشغيل التلقائي — شغّل مقاطع مشابهة تلقائياً عند انتهاء القائمة.",
+    "trackopt": "عيّن أوقات بداية/نهاية مخصصة للمقاطع. يدعم الأسماء المستعارة — احفظ عمليات قص متعددة لكل مقطع."
+  },
+  "options": {
+    "debug": {
+      "target": "الهدف الذي يجب فحصه."
+    },
+    "eval": {
+      "expression": "تعبير جافاسكريبت للتنفيذ"
+    },
+    "filter": {
+      "name": "اسم الفلتر"
+    },
+    "forceleave": {
+      "channelId": "القناة التي يجب مغادرتها."
+    },
+    "join": {
+      "channel": "إشارة أو معرف أو اسم قناة صوتية للانضمام. الافتراضي: قناتك الحالية."
+    },
+    "loop": {
+      "type": "يحدد ما يجب تبديل تكراره."
+    },
+    "play": {
+      "query": "استعلام بحث أو رابط أو استعلام مع بادئة مزود مثل `sp: اسم الأغنية`.",
+      "provider": "مزود البحث. الافتراضي: YouTube Music. أو استخدم بادئة مضمنة: sp:, dz:, am:, yt:, sc: إلخ."
+    },
+    "playnext": {
+      "query": "استعلام بحث أو رابط أو استعلام مع بادئة مزود مثل `sp: اسم الأغنية`.",
+      "provider": "مزود البحث. الافتراضي: YouTube Music."
+    },
+    "radio": {
+      "station": "اسم المحطة، أو 'list' للتصفح، أو اتركه فارغاً للمحطة الافتراضية."
+    },
+    "reload": {
+      "target": "اسم أمر/وحدة، أو: all | commands | src | audio"
+    },
+    "remove": {
+      "index": "موضع الأغنية في قائمة الانتظار. يمكنك عرض الأرقام باستخدام أمر 'list'."
+    },
+    "search": {
+      "provider": "مزود البحث. الافتراضي: YouTube Music.",
+      "query": "الاستعلام للبحث عنه، أو استعلام مع بادئة مزود مثل `sp: اسم الأغنية`."
+    },
+    "settings": {
+      "get": {
+        "setting": "اعرض القيمة الحالية لإعداد."
+      },
+      "set": {
+        "setting": "اسم الإعداد الذي تريد تغييره.",
+        "value": "القيمة الجديدة."
+      },
+      "reset": {
+        "setting": "الإعداد الذي تريد إعادة تعيينه."
+      },
+      "help": {
+        "setting": "اتركه فارغاً لعرض جميع الإعدادات المتاحة."
+      }
+    },
+    "volume": {
+      "volume": "مستوى الصوت الجديد بالنسبة المئوية (مثلاً `30` أو `100`). قد يؤدي تجاوز 100% إلى فقدان الجودة."
+    },
+    "volumedefault": {
+      "volume": "مستوى صوت جديد % (0-200) لحفظه كقيمة افتراضية للخادم. اتركه فارغاً لعرض القيمة الحالية."
+    },
+    "lastfm": {
+      "action": "الإجراء المطلوب: link، confirm، unlink، np، profile، loved، top، recent، artists، love، unlove، scrobble",
+      "token": "رمز المصادقة من Last.fm (يُستخدم مع إجراء 'confirm')"
+    },
+    "vote": {
+      "action": "الإجراء المطلوب: info، check، voters",
+      "type": "نوع المورد: سيرفر أو بوت"
+    },
+    "seek": {
+      "position": "الموضع للانتقال إليه (مثلاً 1:30، 90، أو 1:30:00 للساعات)"
+    },
+    "move": {
+      "from": "الموضع الحالي للمقطع في قائمة الانتظار (يبدأ من 1).",
+      "to": "الموضع المستهدف لنقل المقطع إليه (يبدأ من 1)."
+    },
+    "trackopt": {
+      "times": "وقت البداية والنهاية الاختياري، مثلاً '0:30' أو '0:30 3:45'"
+    }
+  },
+  "pagination": {
+    "embed": {
+      "sclosedContent": "{{content}}\nالجلسة مغلقة — تغيير الصفحات **لن يعمل** من هنا.",
+      "sclosedTitle": "الجلسة مغلقة"
+    },
+    "error": {
+      "perms": {
+        "messages": "لا أستطيع إرسال رسائل في {{channel}}. يرجى التواصل مع مسؤول الخادم ومنحي إذن \"SendMessage\".",
+        "reactions": "أحتاج إلى إذن التفاعلات للعمل. يرجى التواصل مع مسؤول الخادم لحل هذه المشكلة."
+      }
+    }
+  },
+  "subcommands": {
+    "settings": {
+      "get": "اعرض قيمة إعداد محدد أو إعدادات الخادم.",
+      "set": "عيّن قيمة إعداد محدد.",
+      "reset": "أعد إعداد إلى قيمته الافتراضية.",
+      "help": "اعرض المساعدة لنظام الإعدادات، أو اشرح إعداداً محدداً."
+    }
+  },
+  "voice": {
+    "join": {
+      "cancelled": "تم الإلغاء!",
+      "error": {
+        "dc": "يبدو أننا لسنا في نفس القناة الصوتية.",
+        "invalid": "قناة صوتية غير صالحة. يرجى المحاولة مرة أخرى والتحقق من الأحرف الكبيرة! (`x` للإلغاء)",
+        "perms": "حدث خطأ ما. لم أتمكن من الانضمام إلى {{channel}}. هل لديّ الأذونات المطلوبة؟"
+      },
+      "warning": {
+        "nc": "يبدو أنك غير متصل بـ {{channel}}. هل نسيت الانضمام؟"
+      }
+    }
+  },
+  "responses": {
+    "_common": {
+      "nothingPlaying": "❌ لا يوجد شيء يعمل حالياً!",
+      "serverOnlyForMusic": "🎵 الموسيقى تحتاج إلى **قناة صوتية داخل سيرفر** — لا أستطيع الانضمام إلى الصوت في الرسائل الخاصة. استخدم الأمر داخل سيرفر بدلاً من ذلك!",
+      "noVoiceChannel": "⚠️ يرجى الانضمام إلى قناة صوتية أولاً.",
+      "noVoiceStrict": "⚠️ يجب عليك الانضمام إلى قناة صوتية لاستخدام هذا الأمر.",
+      "alreadyInChannel": "⚠️ أنا أعزف بالفعل في {{channels}}. انضم إلى تلك القناة أو استخدم `{{prefix}}play` لبدء الموسيقى في قناتك.",
+      "busyPlayingInOtherVoiceChannel": "🎵 **أنا بالفعل أشغّل الموسيقى في {{channels}}!**\n🎧 **انضم إلى تلك القناة** للاستماع معي.\n⏳ تريدني في قناتك بدلاً من ذلك؟ دع قائمة الانتظار تنتهي، أو امسحها باستخدام `{{prefix}}clear`، ثم استخدم `{{prefix}}join` مرة أخرى.\n🔧 يمكن لمشرفي السيرفر تجاوز هذا في أي وقت باستخدام `{{prefix}}forceleave`.",
+      "busyStayingInOtherVoiceChannel": "🤖 **أنا متوقف في {{channels}} في وضع 24/7.**\n🎧 انضم إلى تلك القناة لتكون معي.\n🔧 لإحضاري إلى قناتك بدلاً من ذلك، أوقف وضع 24/7 هناك باستخدام `{{prefix}}247 off`، أو اطلب من مشرف السيرفر تشغيل `{{prefix}}forceleave`.",
+      "notInVoice": "أنا لست في قناة صوتية.",
+      "queueEmpty": "📭 قائمة الانتظار فارغة. استخدم `{{prefix}}play` لإضافة أغاني!",
+      "queueEnded": "🎵 قائمة الانتظار انتهت — لا يوجد شيء لتشغيله. أضف المزيد من الأغاني باستخدام `{{prefix}}play`!",
+      "queueRestored": "🔁 استعادة بعد إعادة التشغيل — تم إرجاع **{{count}}** من الأغاني إلى قائمة الانتظار وإعادة الاتصال بالقناة الصوتية. يتم المتابعة من حيث توقف.",
+      "notConnected": "يبدو أننا لسنا في نفس القناة الصوتية.",
+      "controlsExpired": "⌛ انتهت صلاحية عناصر التحكم",
+      "sessionEnded": "انتهت الجلسة",
+      "navigateHint": "💡 ⬅️ ➡️ تصفح",
+      "voiceSelectionPrompt": "يرجى اختيار أحد القنوات التالية بالنقر على التفاعلات أدناه",
+      "voiceSelectionHint": "أرسل رسالة بالقناة الصوتية! (ذكر/معرف/اسم)\nأرسل 'x' للإلغاء.",
+      "voiceSelectionTimedOut": "⏱️ انتهت مهلة اختيار القناة.",
+      "voiceConnectionLost": "❌ فقد الاتصال الصوتي. يرجى إعادة الانضمام.",
+      "couldNotGetStream": "❌ تعذر الحصول على رابط البث لـ **{{title}}** — يتم التخطي.",
+      "errorStreaming": "❌ خطأ في بث **{{title}}** — يتم التخطي.",
+      "successfullyLeft": "✅ تم المغادرة بنجاح",
+      "voiceSelectionInvalid": "قناة صوتية غير صالحة. حاول مرة أخرى أو اكتب `x`.",
+      "voiceChannelRequired": "❌ يرجى الانضمام إلى **قناة صوتية** أولاً قبل استخدام هذا الأمر!",
+      "joinPermissionError": "❌ ليس لدي إذن للانضمام إلى <#{{channel}}>. يرجى إعطائي إذن **الاتصال** في ذلك القناة.",
+      "joinFailedPermissions": "❌ فشل الانضمام إلى القناة الصوتية — أذونات مفقودة. يرجى التأكد من أن لدي أذونات **الاتصال** و**التحدث**.",
+      "joinFailedGeneric": "❌ فشل الانضمام إلى القناة الصوتية. يرجى المحاولة مرة أخرى.",
+      "joinFailedNotFound": "❌ لم يتم العثور على تلك القناة الصوتية."
+    },
+    "clear": {
+      "cleared": "🗑️ تم مسح قائمة الانتظار."
+    },
+    "debug": {
+      "voiceTitle": "🔧 تصحيح الصوت",
+      "summary": "📊 **الملخص**",
+      "pageLabel": "صفحة {{page}}/{{total}}",
+      "navigateHint": "استخدم ⬅️➡️ للتنقل"
+    },
+    "eval": {
+      "resultTitle": "نتيجة التقييم",
+      "resultTitleError": "❌ نتيجة التقييم",
+      "resultTitleSuccess": "✅ نتيجة التقييم",
+      "typeLabel": "النوع:",
+      "timeLabel": "الوقت:",
+      "pageLabel": "صفحة {{page}}/{{total}}",
+      "navigateHint": "• ⬅️ ➡️ تصفح • ❌ حذف",
+      "deleteHint": "• ❌ حذف",
+      "controlsExpired": "⌛ انتهت صلاحية عناصر التحكم"
+    },
+    "filter": {
+      "pickerTitle": "🎛️ أداة اختيار الفلاتر الصوتية",
+      "nothingPlaying": "❌ لا يوجد شيء يعمل حالياً.",
+      "nothingPlayingInline": "*لا يوجد شيء يعمل*",
+      "applyFailed": "❌ فشل تطبيق **{{filter}}`: `{{reason}}`\n\nتأكد من أن عقدة NodeLink لديك بها الفلاتر مفعّلة.",
+      "applied": "{{emoji}} **{{label}}** تم التطبيق!",
+      "removed": "{{emoji}} **{{label}}** تمت إزالته.",
+      "cleared": "🔇 تم مسح الفلاتر — تمت استعادة الصوت الأصلي.",
+      "pendingCleared": "تم مسح الفلتر. سيتم استخدام الصوت الأصلي في المقطع الصوتي القادم القابل للتشغيل.",
+      "pendingApplied": "تم حفظ {{label}}. سيتم تطبيقه في المقطع الصوتي القادم.",
+      "pendingRemoved": "تمت إزالة {{label}}. المقطع الصوتي القادم سيستخدم الفلاتر المحدّثة.",
+      "noFilterActive": "🔇 لا يوجد فلتر نشط.",
+      "filtersActive": "✅ فلاتر نشطة: **{{filters}}**.",
+      "reactToToggle": "💡 تفاعل مرة أخرى للتبديل، أو ❌ للإغلاق.",
+      "sessionTimedOut": "⌛ انتهت مهلة الجلسة.",
+      "pickerClosed": "👋 تم إغلاق أداة اختيار الفلاتر.",
+      "footer": "صفحة {{page}}/{{total}} • تفاعل مع رمز تعبيري للفلتر للتبديل",
+      "activeLabel": "**← نشط**",
+      "closeHint": "❌ إغلاق"
+    },
+    "forceleave": {
+      "channelNotFound": "❌ القناة غير موجودة.",
+      "wrongServer": "❌ يجب تنفيذ هذا الأمر في نفس الخادم الذي توجد فيه القناة الصوتية.",
+      "playerNotFound": "❌ المشغّل غير موجود.",
+      "playerNotInit": "❌ المشغّل غير مهيأ."
+    },
+    "invite": {
+      "title": "احصل على Dj Mitica",
+      "description": "يُستضاف Dj Mitica ذاتيًا: يمكن لأي شخص تشغيل نسخته الخاصة على خادم Fluxer الخاص به.\n\nالشيفرة ودليل التثبيت على [GitHub](https://github.com/fakeen1/djmitica)."
+    },
+    "join": {
+      "channelNotFound": "لم أتمكن من العثور على القناة `{{channel}}`\nاستخدم أمر المساعدة لمعرفة المزيد. (`$prefixhelp join`)",
+      "alreadyJoined": "منضم بالفعل إلى <#{{channel}}>.",
+      "audioNodeConnecting": "⚠️ عقدة الصوت لا تزال تتصل — يرجى المحاولة مرة أخرى بعد بضع ثوانٍ.",
+      "joining": "⏳ جارٍ الانضمام إلى القناة...",
+      "joined": "✅ تم الانضمام بنجاح إلى <#{{channel}}>",
+      "joinFailed": "❌ فشل الانضمام: {{error}}",
+      "noVoiceChannel": "❌ أنت لست في قناة صوتية. يرجى الانضمام إلى واحدة أولاً، أو حدد قناة: `{{prefix}}join <#قناة>`",
+      "voiceChannelNotFound": "❌ لم أتمكن من العثور على تلك القناة الصوتية. جرّب استخدام إشارة مثل `<#معرف_قناة>` أو اسم القناة الدقيق.",
+      "autoLeaveInactive": "غادرت القناة <#{{channel}}> بسبب عدم النشاط.",
+      "autoLeaveInactive247": "غادرت القناة <#{{channel}}> بسبب عدم النشاط.\nإذا كنت تريدني أن أبقى في الصوت، استخدم `{{prefix}}247 on/auto`\nاستخدم `{{prefix}}247` لعرض جميع القنوات المحفوظة وإدارتها.",
+      "joinFailedPerms": "❌ ليس لدي إذن للانضمام إلى <#{{channel}}>. يرجى التأكد من أن لدي إذن **الاتصال**.",
+      "voiceChannelUnknown": "قناة صوتية غير معروفة"
+    },
+    "leave": {
+      "noVoiceChannel": "⚠️ يرجى الانضمام إلى قناة صوتية أولاً، أو حدد واحدة: `{{prefix}}leave <#channel>`",
+      "notInVoice": "أنا لست في قناة صوتية.",
+      "joinChannel": "⚠️ يرجى الانضمام إلى {{channel}} لاستخدام هذا الأمر.",
+      "multipleChannels": "⚠️ أنا أعزف في قنوات متعددة! يرجى الانضمام إلى إحداها:\n{{channels}}",
+      "specifyChannel": "⚠️ أنت لست في قناة صوتية. أنا أعزف في:\n{{channels}}\n\nاستخدم `{{prefix}}leave <#channel>` لمغادرة قناة محددة.",
+      "noPlayerInChannel": "⚠️ أنا لا أعزف في <#{{channel}}>. أنا في:\n{{channels}}",
+      "playerNotInit": "المشغّل غير مهيأ.",
+      "left": "✅ تم المغادرة بنجاح",
+      "leftRejoin247": "✅ تم المغادرة بنجاح — سأعيد الانضمام إلى <#{{channel}}> خلال بضع ثوانٍ.\nلتعطيل وضع 24/7 بشكل دائم، استخدم `{{prefix}}247 off`.",
+      "left247On": "✅ تم المغادرة بنجاح.\nوضع 24/7 **مفعّل** — لن يعود البوت تلقائياً. استخدم `{{prefix}}play` لإعادته، أو `{{prefix}}247 off` لتعطيله بالكامل.\nاستخدم `{{prefix}}247` لعرض جميع القنوات المحفوظة.",
+      "autoRejoinHint": "⚠️ وضع 24/7 مفعّل (تلقائي) — سأعيد الانضمام إلى <#{{channel}}> خلال بضع ثوانٍ.\nلتتمكن من إزالتي بشكل دائم، عطّل وضع 24/7 أولاً: `{{prefix}}247 off`"
+    },
+    "list": {
+      "empty": "📭 قائمة الانتظار فارغة. استخدم `{{prefix}}play` لإضافة أغاني!",
+      "emptyInline": "_قائمة الانتظار فارغة._",
+      "nowPlaying": "🎵 **يعمل حالياً**",
+      "header": "📋 **{{count}} مقطع في قائمة الانتظار** • ⏱️ `{{time}}`",
+      "upNext": " ▶",
+      "queueTitle": "🎧 قائمة الانتظار"
+    },
+    "queue": {
+      "empty": "قائمة الانتظار فارغة.",
+      "indexOutOfBounds": "الفهرس خارج النطاق",
+      "removed": "تمت إزالة **{{title}}** من قائمة الانتظار بنجاح.",
+      "sourceOutOfBounds": "فهرس المصدر خارج النطاق",
+      "targetOutOfBounds": "فهرس الهدف خارج النطاق",
+      "alreadyInPosition": "المقطع موجود بالفعل في هذا الموضع",
+      "moved": "تم نقل **{{title}}** من الموضع {{from}} إلى {{to}}."
+    },
+    "loop": {
+      "invalidChoice": "'{{choice}}' غير صالح. استخدم `song` أو `queue`",
+      "songActivated": "🔂 تم تفعيل تكرار الأغنية",
+      "songDisabled": "➡️ تم تعطيل تكرار الأغنية",
+      "queueActivated": "🔁 تم تفعيل تكرار القائمة",
+      "queueDisabled": "➡️ تم تعطيل تكرار القائمة"
+    },
+    "lyrics": {
+      "nothingPlaying": "❌ لا يوجد شيء يعمل حالياً.",
+      "searching": "البحث عن كلمات الأغنية لـ **{{title}}**...",
+      "noLyrics": "❌ لا تتوفر كلمات لأغنية **{{title}}**.\n\n💡 إضافة كلمات الأغاني في NodeLink قد لا تحتوي على هذا المقطع. جرّب أغنية شائعة!",
+      "error": "❌ خطأ: {{error}}",
+      "syncedBadge": " ⏱️ متزامن",
+      "nodeLinkFooter": "NodeLink • {{lines}} سطر",
+      "sourceFooter": "{{source}} • {{lines}} سطر",
+      "controlsExpired": "⌛ انتهت صلاحية عناصر التحكم • NodeLink • {{lines}} سطر",
+      "sessionClosed": "تم إغلاق الجلسة • NodeLink • {{lines}} سطر"
+    },
+    "np": {
+      "loading": "⏳ جارٍ التحميل...",
+      "nothingPlaying": "لا يوجد شيء يعمل حالياً.",
+      "nowPlayingIn": "🔊 **يعمل حالياً في:** <#{{channel}}>",
+      "playing": "🎵 يعمل: **[{{title}}]({{url}})** ({{elapsed}}/{{duration}})",
+      "volume": "مستوى الصوت: {{volume}}%",
+      "queueLoop": "تكرار القائمة: **{{state}}**",
+      "songLoop": "تكرار الأغنية: **{{state}}**",
+      "streaming": "📻 بث مباشر **[{{title}}]({{url}})**",
+      "playingBy": "يعمل **[{{title}}]({{url}})** لـ [{{artist}}]({{artistUrl}})"
+    },
+    "pause": {
+      "nothingPlaying": "❌ لا يوجد شيء يعمل حالياً!",
+      "alreadyPaused": "❌ متوقف بالفعل!",
+      "paused": "⏸️ تم الإيقاف المؤقت"
+    },
+    "ping": {
+      "title": "🏓  Pong!",
+      "measuring": "🏓  جارٍ قياس البينغ...",
+      "roundtrip": "📶  **زمن الاستجابة**",
+      "gateway": "🌐  **البوابة**",
+      "node": "🎧  **NodeLink**"
+    },
+    "play": {
+      "searching": "🔍 جارٍ البحث...",
+      "loading": "جارٍ التحميل...",
+      "loadingFailed": "**فشل تحميل هذا المقطع.**",
+      "added": "تمت إضافة [{{title}}]({{url}}) إلى قائمة الانتظار بنجاح.",
+      "addedPlaylist": "تمت إضافة **{{count}}** أغنية إلى قائمة الانتظار بنجاح.",
+      "nowPlaying": "🎵 يعمل الآن [{{title}}]({{url}}) لـ {{author}} في <#{{channel}}>",
+      "noResults": "**لم يتم العثور على نتائج لـ '{{query}}'.**",
+      "searchFailed": "**فشل البحث. يرجى المحاولة مرة أخرى.**",
+      "noData": "لم يتم تحميل المقطع — لم يتم إرجاع بيانات.",
+      "loadFailed": "فشل تحميل المقطع.",
+      "unexpectedResult": "نتيجة غير متوقعة من محمّل المقاطع.",
+      "loadError": "حدث خطأ أثناء تحميل المقطع.",
+      "searchingProvider": "جارٍ البحث في {{provider}}...",
+      "bilibiliResolving": "📺 جارٍ تحليل فيديو Bilibili...",
+      "bilibiliNoAudio": "❌ لا يوجد صوت قابل للتشغيل لـ **{{title}}** — قد يكون الفيديو مقفلًا جغرافيًا أو مدفوعًا أو محذوفًا.",
+      "bilibiliError": "❌ Bilibili: {{message}}",
+      "bilibiliDisabled": "❌ تشغيل Bilibili معطل (config.json → bilibili.enabled)."
+    },
+    "playnext": {
+      "searching": "🔍 جارٍ البحث..."
+    },
+    "player": {
+      "title": "🎧 عناصر التحكم بالمشغّل",
+      "inactiveTitle": "🎧 المشغّل (غير نشط)",
+      "nowPlayingLabel": "يعمل حالياً",
+      "volumeLabel": "🔊 مستوى الصوت: `{{volume}}%`",
+      "queueLabel": "📋 قائمة الانتظار: `{{count}}` مقطع",
+      "loopOff": "التكرار: ❌ معطّل",
+      "loopSong": "التكرار: 🎂 الأغنية",
+      "loopQueue": "التكرار: 🔁 القائمة",
+      "filterOff": "الفلتر: 🔇 معطّل",
+      "filterActive": "الفلتر: {{emoji}} **{{label}}**",
+      "filterStacked": "الفلتر: 🔥 **{{label}}**",
+      "reactHint": "💡 *تفاعل للتحكم بالتشغيل*",
+      "sessionExpires": "⏱️ تنتهي الجلسة بعد {{minutes}} دقيقة من عدم النشاط",
+      "requestedBy": "طلب بواسطة {{username}} • عناصر التحكم نشطة",
+      "controlsDisabled": "⌛ عناصر التحكم معطّلة (تفاعل لإعادة التفعيل)",
+      "sessionClosed": "تم إغلاق الجلسة{{reason}}",
+      "closedByUser": "👋 تم إغلاق عناصر التحكم",
+      "startedPlaying": "▶️ بدأ التشغيل",
+      "resumed": "▶️ تم الاستئناف",
+      "pausedState": "⏸️ متوقف مؤقتاً",
+      "stopped": "⏹️ متوقف",
+      "stoppedCleared": "⏹️ تم الإيقاف والمسح",
+      "shuffled": "🔀 تم خلط القائمة",
+      "added": "➕ تمت الإضافة: {{title}}",
+      "volumeChanged": "🔊 مستوى الصوت: {{volume}}%",
+      "filtersCleared": "🔇 تم مسح الفلاتر",
+      "filterApplied": "{{emoji}} الفلتر: **{{label}}** تم تطبيقه",
+      "filterStackedApplied": "🔥 الفلاتر: **{{label}}** تم تطبيقها",
+      "songLoopEnabled": "🔂 تم تفعيل تكرار الأغنية",
+      "queueLoopEnabled": "🔁 تم تفعيل تكرار القائمة",
+      "loopDisabled": "❌ تم تعطيل التكرار",
+      "alreadyPlaying": "▶️ يعمل بالفعل",
+      "startingPlayback": "▶️ بدء التشغيل",
+      "previousNotImplemented": "⏮️ المقطع السابق (غير متوفر)",
+      "openingFilterPicker": "🎛️ جارٍ فتح أداة اختيار الفلاتر — تحقق من قائمة الفلاتر أعلاه أو استخدم أمر `filter`.",
+      "filterError": "⚠️ خطأ في الفلتر: {{error}}",
+      "fetchingLyrics": "📜 جارٍ جلب الكلمات...",
+      "noLyricsFound": "❌ لم يتم العثور على كلمات في NodeLink",
+      "lyricsDisplayed": "تم عرض الكلمات ({{lines}} سطر، {{pages}} صفحة)",
+      "lyricsError": "⚠️ خطأ في الكلمات: {{error}}",
+      "previousNotAvailable": "⏮️ المقطع السابق غير متاح بعد.",
+      "errorGeneric": "⚠️ خطأ: {{error}}"
+    },
+    "radio": {
+      "noStations": "❌ لا توجد محطات إذاعية مُعدّة.",
+      "stationsTitle": "📻 **المحطات الإذاعية (صفحة {{page}}/{{total}})**",
+      "timedOut": "📻 انتهت مهلة اختيار الإذاعة.",
+      "cancelled": "❌ تم إلغاء اختيار الإذاعة.",
+      "unknownStation": "❌ محطة غير معروفة `{{station}}`. المتاحة: {{stations}}\n\nاستخدم `$prefixradio list` للتصفح.",
+      "nowPlaying": "📻 بث مباشر _{{title}}_ لـ [{{author}}]({{url}}) في <#{{channel}}>",
+      "skipHint": "_استخدم `$prefixskip` لإيقاف الإذاعة، أو `$prefixradio list` لتبديل المحطات._",
+      "prevNext": "⬅️ السابق   ➡️ التالي   ❌ إلغاء"
+    },
+    "reload": {
+      "indexNoReload": "❌ لا يمكن إعادة تحميل `index.mjs` — قم بإعادة تشغيل كاملة.",
+      "unknownCommand": "❌ أمر غير معروف `{{name}}`",
+      "noFileTracked": "❌ لا يوجد ملف مُتتبع لـ `{{name}}`",
+      "noBuilder": "❌ لم يتم إرجاع منشئ من `{{name}}`",
+      "reloaded": "✅ `{{name}}`",
+      "moduleError": "❌ `{{label}}`: {{error}}",
+      "unknownTarget": "❌ هدف غير معروف `{{target}}`.\nشغّل `$prefixreload` بدون وسائط لعرض جميع الأهداف القابلة لإعادة التحميل.",
+      "availableTargetsTitle": "🔄 إعادة التحميل — الأهداف المتاحة",
+      "runHint": "شغّل `$prefixreload <هدف>` أو استخدم كلمة دفعية:",
+      "batchKeywords": "`all` · `commands`",
+      "resultsHeader": "✅ **{{ok}}** تمت إعادة التحميل · ❌ **{{bad}}** فشل"
+    },
+    "remove": {
+      "indexOutOfBounds": "الفهرس خارج النطاق",
+      "removed": "تمت إزالة **{{title}}** من قائمة الانتظار بنجاح."
+    },
+    "resume": {
+      "nothingPlaying": "❌ لا يوجد شيء يعمل حالياً!",
+      "notPaused": "❌ غير متوقف!",
+      "resumed": "▶️ تم الاستئناف"
+    },
+    "search": {
+      "loadingResults": "⏳ جارٍ تحميل النتائج...",
+      "searching": "جارٍ البحث في {{provider}}...",
+      "noResults": "❌ لم يتم العثور على نتائج.",
+      "resultsTitle": "{{provider}} — نتائج البحث",
+      "reactHint": "تفاعل مع رقم لإضافة إلى قائمة الانتظار • ❌ للإلغاء • مهلة 30 ثانية",
+      "cancelled": "❌ تم الإلغاء.",
+      "added": "✅ تمت إضافة [{{title}}]({{url}}) إلى قائمة الانتظار!",
+      "timedOut": "⏰ انتهت مهلة البحث.",
+      "sessionClosed": "تم إغلاق الجلسة"
+    },
+    "servers": {
+      "noServers": "_لم يتم العثور على خوادم._",
+      "title": "🌐 الخوادم ({{count}})",
+      "pageTitle": "🌐 الخوادم ({{count}}) - صفحة {{page}}/{{total}}",
+      "listComplete": "اكتملت القائمة"
+    },
+    "settings": {
+      "unknownSetting": "❌ إعداد غير معروف `{{setting}}`.",
+      "availableSettings": "المتاحة: `{{settings}}`",
+      "setSuccess": "✅ **{{label}}** تم تعيينه إلى {{value}}",
+      "resetSuccess": "🔄 `{{setting}}` تم إعادة تعيينه إلى القيمة الافتراضية: {{value}}",
+      "mustBeBool": "❌ `{{setting}}` يجب أن يكون قيمة منطقية.\nالمقبولة: `true`، `false`، `on`، `off`، `enable`، `disable`",
+      "volumeRange": "❌ يجب أن يكون مستوى الصوت رقماً بين **1** و **200**.",
+      "voteSkipThresholdRange": "❌ يجب أن يكون حد التصويت للتخطي رقماً بين **{{min}}** و **{{max}}**.",
+      "invalidLocale": "❌ `{{locale}}` ليست لغة مدعومة.\nاللغات المتاحة: {{locales}}",
+      "prefixLength": "❌ يجب أن يكون البادئة بين **1** و **5** أحرف.",
+      "prefixSpaces": "❌ لا يمكن أن تحتوي البادئة على مسافات.",
+      "invalid247": "❌ قيمة غير صالحة `{{value}}` لوضع 24/7.\n\n**الخيارات الصالحة:**\n• `on` — البقاء متصلاً بشكل دائم، بدون إعادة انضمام تلقائية بعد `{{prefix}}leave`\n• `auto` — البقاء متصلاً وإعادة الانضمام تلقائياً بعد `{{prefix}}leave` أو قطع الاتصال\n• `off` — المغادرة بعد عدم النشاط\n\nلكل قناة وضعها الخاص. استخدم `{{prefix}}247` لرؤية جميع القنوات المحفوظة.",
+      "noServer": "❌ لم أتمكن من تحديد خادمك.",
+      "noVoice247": "❌ أنت لست في قناة صوتية. انضم إلى واحدة أولاً، ثم شغّل `{{prefix}}247 {{mode}}` مرة أخرى.\n\n💡 لكل قناة إعداد وضع 24/7 الخاص بها.",
+      "247Disabled": "✅ وضع 24/7 **معطّل** لـ <#{{channel}}>. غادر البوت.\n💡 استخدم `{{prefix}}247` لرؤية القنوات المحفوظة المتبقية.",
+      "247DisabledAll": "✅ وضع 24/7 **معطّل** لجميع القنوات في هذا الخادم.\nسيغادر البوت الصوت بعد عدم النشاط.",
+      "247Set": "✅ تم تعيين وضع 24/7 إلى **{{mode}}** لـ <#{{channel}}>.\n{{summary}}\n\n💡 استخدم `{{prefix}}247` لعرض جميع القنوات المحفوظة.",
+      "247Joined": "✅ تم تعيين وضع 24/7 إلى **{{mode}}** لـ <#{{channel}}>. انضم البوت!\n{{summary}}\n\n💡 استخدم `{{prefix}}247` لعرض جميع القنوات المحفوظة.",
+      "247JoinFailed": "⚠️ تم حفظ وضع 24/7 لـ <#{{channel}}>، لكن فشل الانضمام: {{error}}\n{{summary}}\n\nجرّب `{{prefix}}join` أو `{{prefix}}play` لاحقاً، أو `{{prefix}}247 off` للإزالة.",
+      "247Status": "♾️ **وضع 24/7**: {{status}}\n\nاستخدم `{{prefix}}247 on` أو `{{prefix}}247 auto` للتفعيل — `{{prefix}}247 off` للتعطيل.",
+      "helpTitle": "⚙️ مساعدة الإعدادات",
+      "helpAvailable": "**الإعدادات المتاحة:** {{settings}}",
+      "helpSubcommands": "**الأوامر الفرعية:**\n• `{{prefix}}settings get` — عرض جميع القيم الحالية\n• `{{prefix}}settings get <إعداد>` — عرض إعداد واحد\n• `{{prefix}}settings set <إعداد> <قيمة>` — تغيير إعداد\n• `{{prefix}}settings reset <إعداد>` — استعادة القيمة الافتراضية\n• `{{prefix}}settings help <إعداد>` — وصف إعداد",
+      "helpShortcuts": "**الاختصارات:** `{{prefix}}prefix`، `{{prefix}}247`، `{{prefix}}voteskip`، `{{prefix}}voteskiplimit`",
+      "serverTitle": "⚙️ إعدادات الخادم",
+      "serverHeader": "الخادم: **{{name}}**",
+      "shortcutsHint": "الاختصارات: `{{prefix}}247`، `{{prefix}}prefix`، `{{prefix}}voteskip`، `{{prefix}}voteskiplimit`\nاستخدم `{{prefix}}settings help <إعداد>` لمعرفة المزيد عن أي إعداد.",
+      "enabled": "✅ مفعّل",
+      "disabled": "❌ معطّل",
+      "label247": "وضع 24/7",
+      "labelPrefix": "البادئة",
+      "labelSongAnnouncements": "إعلانات الأغاني",
+      "labelPfp": "نمط صورة البوت",
+      "labelLocale": "اللغة",
+      "labelVolume": "مستوى الصوت الافتراضي",
+      "labelVoteSkip": "التصويت للتخطي",
+      "labelVoteSkipThreshold": "حد التصويت للتخطي",
+      "labelAnnouncementChannel": "قناة الإعلانات",
+      "labelRestrictVolume": "تقييد مستوى الصوت",
+      "labelAutojoinChannel": "قناة الانضمام التلقائي",
+      "noDescription": "لا يوجد وصف متاح.",
+      "validValues": "**القيم الصالحة:** {{values}}",
+      "validRange": "**النطاق الصالح:** {{min}}–{{max}}",
+      "currentValue": "**القيمة الحالية:**",
+      "defaultValue": "**الافتراضي:**",
+      "settingTitle": "⚙️ {{setting}}",
+      "savedChannel": "تم حفظ القناة: <#{{channel}}>",
+      "savedChannels": "القنوات المحفوظة ({{count}}): {{channels}}",
+      "statusDisabled": "❌ معطّل",
+      "savedChannelsNone": "القنوات المحفوظة: لا يوجد",
+      "modeAuto": "🔄 تلقائي",
+      "modeOn": "✅ تشغيل",
+      "modeOff": "❌ إيقاف",
+      "channelsLabel": "{{count}} قناة",
+      "channelsLabelPlural": "{{count}} قنوات",
+      "thisServer": "هذا الخادم",
+      "247Panel": {
+        "title": "♾️ وضع 24/7",
+        "noChannelsSaved": "لا توجد قنوات صوتية محفوظة.",
+        "gettingStarted": "البدء",
+        "gettingStartedValue": "• `{{prefix}}247 on` — البقاء بشكل دائم\n• `{{prefix}}247 auto` — البقاء + إعادة الانضمام تلقائياً بعد قطع الاتصال",
+        "footer": "{{prefix}}247 على | {{prefix}}247 تلقائي | {{prefix}}247 إيقاف",
+        "channelsSaved_one": "قناة {{count}} محفوظة",
+        "channelsSaved_other": "{{count}} قنوات محفوظة",
+        "summaryOn": "✅ {{count}} مفعّل",
+        "summaryAuto": "🔄 {{count}} تلقائي",
+        "modeOn": "✅ مفعّل",
+        "modeAuto": "🔄 تلقائي",
+        "modeOff": "❌ معطّل",
+        "enabledTitle": "♾️ 24/7 {{mode}}",
+        "enabledDescription": "{{channel}} ← **{{mode}}** — {{summary}}",
+        "enabledFooter": "{{prefix}}247 off لتعطيل قناة",
+        "savedChannels": "القنوات المحفوظة",
+        "currentMarker": " ←",
+        "disabledTitle": "♾️ 24/7 معطّل",
+        "noChannelsSavedField": "لا توجد قنوات محفوظة",
+        "allChannelsRemoved": "تمت إزالة جميع قنوات 24/7. سيغادر البوت الصوت بعد عدم النشاط.",
+        "channelRemoved": "<#{{channel}}> تمت إزالتها",
+        "channelsRemaining_one": "قناة {{count}} متبقية",
+        "channelsRemaining_other": "{{count}} قنوات متبقية",
+        "reenableFooter": "{{prefix}}247 on | {{prefix}}247 auto لإعادة التفعيل",
+        "allChannelsLabel": "❌ جميع القنوات",
+        "allChannelsDisabled": "وضع 24/7 **معطّل** لجميع القنوات في هذا الخادم.\nسيغادر البوت الصوت بعد عدم النشاط.",
+        "noChannelsSavedShort": "لا توجد قنوات محفوظة",
+        "joinFailed": "⚠️ تم حفظ 24/7 {{mode}}، لكن فشل الانضمام إلى <#{{channel}}>.\nخطأ: `{{error}}`\n\nجرّب `{{prefix}}join` أو `{{prefix}}play` لاحقاً.",
+        "statusConnected": "🟢 متصل",
+        "statusReconnecting": "🟡 يعيد الاتصال",
+        "statusOffline": "🔴 غير متصل",
+        "autoRecoveryLine": "♻️ الاسترداد التلقائي مُفعّل — يتم فحص القنوات المحفوظة كل {{seconds}} ثانية",
+        "autoRecoveryDisabledLine": "♻️ الاسترداد التلقائي في وضع الاستعداد",
+        "enabledLine": "✅ وضع 24/7 **مُفعّل** — يبقى البوت متصلاً ويعود تلقائياً إذا انقطع الاتصال.",
+        "disabledHint": "انضم إلى قناة صوتية واستخدم `{{prefix}}247` للتفعيل.",
+        "footerLine": "{{prefix}}247 · تبديل · {{prefix}}247 off · تعطيل الكل",
+        "confirmEnabled": "✅ تم تفعيل 24/7 في {{channel}} — سيبقى البوت متصلاً وسيعود تلقائياً إذا انقطع الاتصال.",
+        "confirmDisabled": "❌ تم تعطيل 24/7 في {{channel}} — سيغادر البوت القناة عند الخمول.",
+        "confirmDisabledAll": "❌ تم تعطيل 24/7 لجميع القنوات في هذا الخادم — سيغادر البوت القنوات عند الخمول.",
+        "disabledLine": "❌ وضع 24/7 **مُعطّل**",
+        "activeChannels_one": "✅ 24/7 نشط في {{count}} قناة:",
+        "activeChannels_other": "✅ 24/7 نشط في {{count}} قناة:"
+      },
+      "max247Channels": "يمكنك حفظ ما يصل إلى {{max}} قنوات صوتية 24/7 في خادم واحد. استخدم `{{prefix}}247 off` في إحدى القنوات المحفوظة أولاً."
+    },
+    "shuffle": {
+      "emptyQueue": "لا يوجد شيء لخلطه في قائمة الانتظار.",
+      "shuffled": "🔀 تم خلط قائمة الانتظار"
+    },
+    "skip": {
+      "nothingPlaying": "❌ لا يوجد شيء يعمل حالياً!",
+      "skipped": "⏭️ تم التخطي",
+      "skippedTrack": "⏭️ تم تخطي [{{title}}]({{url}})",
+      "skippedToPosition": "⏭️ تم التخطي إلى الموضع {{position}}",
+      "voteAdded": "🗳️ التصويت للتخطي: **{{votes}}/{{needed}}**. نفّذ الأمر مرة أخرى لإضافة صوتك!",
+      "alreadyVoted": "🗳️ لقد صوّت بالفعل للتخطي! **{{votes}}/{{needed}}** صوت حتى الآن."
+    },
+    "stats": {
+      "title": "بوت Dj Mitica الموسيقي",
+      "servers": "📂  **الخوادم**",
+      "users": "👥  **المستخدمون**",
+      "players": "🎧  **المشغّلات**",
+      "scrobbles": "🎵  **اسكروبلات**",
+      "linkedUsers": "🔗  **حسابات Last.fm**",
+      "ping": "🏓  **البينغ**",
+      "gateway": "🌐  **البوابة**",
+      "uptime": "⏱️  **وقت التشغيل**",
+      "build": "🔧  **الإصدار**",
+      "lastRestart": "🪛  **آخر إعادة تشغيل**",
+      "supportKofi": "⭐ [أضف نجمة على GitHub](https://github.com/fakeen1/djmitica)",
+      "community": "💬 [أبلغ عن خطأ أو اقترح ميزة](https://github.com/fakeen1/djmitica/issues)"
+    },
+    "support": {
+      "title": "💬 الدعم",
+      "description": "لأي شيء يتعلق بـ Dj Mitica، افتح بلاغًا على GitHub:\n[github.com/fakeen1/djmitica](https://github.com/fakeen1/djmitica/issues)\n\nللأسئلة حول نسخة البوت في هذا الخادم، تواصل مع مالك الخادم."
+    },
+    "test": {
+      "notInServer": "❌ يجب استخدامه في خادم.",
+      "noOneInVoice": "لا يوجد أحد في الصوت.",
+      "title": "🎙️ أعضاء القناة الصوتية",
+      "channelEntry": "🔊 **{{name}}**: {{count}} عضو"
+    },
+    "thumbnail": {
+      "nothingPlaying": "لا يوجد شيء يعمل حالياً.",
+      "noThumbnail": "لا تتوفر صورة مصغرة.",
+      "thumbnail": "الصورة المصغرة لـ [{{title}}]({{url}}):"
+    },
+    "volume": {
+      "current": "🔊 مستوى الصوت الحالي: `{{volume}}%`",
+      "outOfRange": "❌ يجب أن يكون مستوى الصوت بين `0` و `{{max}}%`.",
+      "changed": "🔊 تم تغيير مستوى الصوت إلى `{{volume}}%` لهذه الجلسة.",
+      "setPending": "تم تعيين مستوى الصوت إلى `{{volume}}%` — سيتم تطبيقه عند الاتصال."
+    },
+    "volumedefault": {
+      "title": "🔊 إعدادات الصوت",
+      "serverDefault": "• الافتراضي للخادم: `{{volume}}%`",
+      "currentVolume": "• مستوى صوت المشغّل الحالي: `{{volume}}%`",
+      "changeHint": "لتغيير الافتراضي، استخدم: `{{prefix}}volumedefault <0-{{max}}>`",
+      "noPermission": "⚠️ تحتاج إذن **إدارة الخادم** لتغيير الافتراضي.",
+      "noPermissionSet": "❌ تحتاج إذن **إدارة الخادم** لتعيين مستوى الصوت الافتراضي للخادم.",
+      "outOfRange": "❌ يجب أن يكون مستوى الصوت بين `0` و `{{max}}%`.",
+      "saved": "🔊 تم حفظ مستوى الصوت الافتراضي للخادم كـ `{{volume}}%`."
+    },
+    "gateway": {
+      "missingPermsFallback": "⚠️ تنقصني صلاحيات أحتاجها للعمل بشكل صحيح! المفقودة: **{{perms}}**. يرجى طلب مسؤول الخادم منح هذه الصلاحيات في إعدادات الخادم ← الأدوار."
+    },
+    "lastfm": {
+      "notConfigured": "❌ تكامل Last.fm غير مُعدّ على هذا البوت. اطلب من مالك البوت إضافة مفتاح Last.fm API إلى الإعدادات.",
+      "notLinked": "❌ ليس لديك حساب Last.fm مرتبط. استخدم `{{prefix}}lastfm link` للبدء.",
+      "linked": "✅ تم ربط حساب Last.fm **[{{username}}](https://last.fm/user/{{username}})**! السكرابل مفعّل بشكل افتراضي.",
+      "alreadyLinked": "✅ لديك بالفعل **{{username}}** مرتبط! استخدم `{{prefix}}lastfm unlink` لفصل الاتصال، أو `{{prefix}}lastfm scrobble` لتبديل السكرابل.",
+      "unlinked": "✅ تم فصل حساب Last.fm **{{username}}**.",
+      "scrobbleEnabled": "✅ السكرابل **مفعّل** — الأغاني التي تستمع إليها سيتم تسجيلها في **{{username}}**.",
+      "scrobbleDisabled": "⏸️ السكرابل **معطّل** — لن يتم تسجيل الأغاني. حسابك لا يزال مرتبطاً.",
+      "authDM": "📧 تحقق من رسائلك الخاصة للحصول على رابط تفويض Last.fm! بعد الموافقة، شغّل `{{prefix}}lastfm confirm <token>` هنا.",
+      "authDMFailed": "⚠️ لم أتمكن من إرسال رسالة خاصة. [انقر هنا للتفويض على Last.fm]({{url}})، ثم شغّل `{{prefix}}lastfm confirm <token>`.",
+      "confirmUsage": "❌ الاستخدام: `{{prefix}}lastfm confirm <token>` — أدخل الرمز من رسالة التفويض.",
+      "confirmFailed": "❌ فشل الحصول على الجلسة: {{error}}\nتأكد من أنك وافقت على الرمز على Last.fm أولاً.",
+      "tokenFailed": "❌ فشل الحصول على رمز المصادقة: {{error}}",
+      "noLoved": "❤️ لا توجد مقاطع محبوبة لـ **{{username}}**.",
+      "noTop": "📊 لا توجد مقاطع أعلى لـ **{{username}}**.",
+      "noRecent": "🕐 لا توجد مقاطع حديثة لـ **{{username}}**.",
+      "lovedTitle": "❤️ المقاطع المحبوبة — {{username}}",
+      "topTitle": "📊 أعلى المقاطع — {{username}}",
+      "recentTitle": "🕐 المقاطع الحديثة — {{username}}",
+      "nowPlaying": "🎵 يعمل حالياً على Last.fm",
+      "lastPlayed": "🕐 آخر ما تم تشغيله على Last.fm",
+      "profileTitle": "ملف Last.fm الشخصي: {{username}}",
+      "profileScrobbles": "🎵 **{{playcount}}** سكرابل",
+      "profileRegistered": "👤 مسجّل: {{date}}",
+      "profileLink": "🔗 [فتح الملف الشخصي]({{url}})",
+      "noArtists": "🎤 لا توجد فنون أعلى لـ **{{username}}**.",
+      "artistsTitle": "🎤 أعلى الفنانين — {{username}}",
+      "lovedTrack": "❤️ تم حب **{{name}}** لـ **{{artist}}** على Last.fm!",
+      "unlovedTrack": "💔 تم إزالة الحب عن **{{name}}** لـ **{{artist}}** على Last.fm.",
+      "loveFailed": "❌ فشل حب المقطع: {{error}}",
+      "unloveFailed": "❌ فشل إزالة حب المقطع: {{error}}",
+      "nothingPlayingLove": "❌ لا يوجد شيء يعمل حالياً. شغّل أغنية أولاً لحبها!",
+      "fetchFailed": "❌ فشل جلب البيانات من Last.fm: {{error}}",
+      "authLinkTitle": "🎵 اربط حساب Last.fm الخاص بك",
+      "authLinkBody": "انقر على الرابط أدناه لتفويض Dj Mitica على Last.fm:\n\n**[تفويض على Last.fm]({{url}})**\n\nبعد النقر على \"نعم، السماح بالوصول\"، ارجع وشغّل:\n`{{prefix}}lastfm confirm {{token}}`\n\n_ينتهي هذا الرابط خلال 60 دقيقة._",
+      "npTrackInfo": "**{{name}}** لـ **{{artist}}**\n[فتح على Last.fm]({{url}})",
+      "npFooter": "Last.fm: {{username}}",
+      "profileScrobbleStatus": "🔄 السكرابل: {{status}}",
+      "profileScrobbleEnabled": "✅ مفعّل",
+      "profileScrobbleDisabled": "⏸️ معطّل",
+      "profileScrobbleFooter": "استخدم {{prefix}}lastfm scrobble لتبديل السكرابل",
+      "noPlaylists": "📋 لا توجد قوائم تشغيل لـ **{{username}}**.",
+      "playlistsTitle": "📋 قوائم التشغيل — {{username}}",
+      "playlistsFooter": "💡 استخدم {{prefix}}lastfm play playlist <رقم> لتشغيل واحدة!",
+      "nothingPlayingUnlove": "❌ لا يوجد شيء يعمل حالياً. شغّل أغنية أولاً لإزالة الحب!",
+      "nothingPlayingNoArtist": "❌ لا يوجد شيء يعمل حالياً ولم يتم تحديد فنان. شغّل أغنية أو حدد اسم فنان.",
+      "whoknowsChecking": "🔍 جارٍ التحقق ممن يستمع إلى **{{artist}}** في هذا الخادم...",
+      "whoknowsNobody": "👤 لا أحد في هذا الخادم استمع إلى **{{artist}}** على Last.fm.",
+      "whoknowsTitle": "👤 من يعرف {{artist}}؟",
+      "whoknowsFooter": "{{count}} مستمع · إجمالي {{totalPlays}} تشغيل",
+      "whoknowsTrackChecking": "🔍 جارٍ التحقق ممن يعرف **{{track}}** لـ **{{artist}}** في هذا الخادم...",
+      "whoknowsTrackNobody": "👤 لا أحد في هذا الخادم استمع إلى **{{track}}** لـ **{{artist}}** على Last.fm.",
+      "whoknowsTrackTitle": "👤 من يعرف {{track}}؟",
+      "whoknowsTrackFooter": "{{count}} مستمع · إجمالي {{totalPlays}} تشغيل · بواسطة {{artist}}",
+      "whoknowsAlbumChecking": "🔍 جارٍ التحقق ممن يعرف **{{album}}**...",
+      "whoknowsAlbumNobody": "👤 لا أحد في هذا الخادم استمع إلى **{{album}}** على Last.fm.",
+      "whoknowsAlbumTitle": "👤 من يعرف {{album}}؟",
+      "leaderboardEmpty": "🎵 لا توجد سكرابلات مسجلة بعد. اربط حساب Last.fm الخاص بك باستخدام `{{prefix}}lastfm link` وابدأ الاستماع!",
+      "leaderboardControlsExpired": "⌛ انتهت صلاحية عناصر التحكم",
+      "leaderboardTitleServer": "🎵 لوحة متصدري السكرابل للسيرفر",
+      "leaderboardTitleGlobal": "🎵 لوحة متصدري السكرابل (عالمية)",
+      "leaderboardScrobbles": "سكرابل",
+      "leaderboardYou": "← أنت",
+      "leaderboardFooterSync": "💡 تتم مزامنة الأعداد مباشرة من Last.fm (ذاكرة مؤقتة ~10 دقائق) · `{{prefix}}lastfm profile` لمزامنة أعدادك يدويًا",
+      "trackListFooter": "💡 استخدم `{{prefix}}lastfm play loved` لتشغيل هذه المسارات!",
+      "plays": "تشغيل",
+      "leaderboardPageFooter": "صفحة {{current}}/{{total}} • استخدم ◀️▶️ للتنقل",
+      "artistsFooter": "💡 استخدم `{{prefix}}lastfm play top` لتشغيل أكثر مساراتك استماعاً!",
+      "noArtistSpecified": "❌ لم يتم تحديد فنان. شغّل أغنية أو حدد اسم فنان.",
+      "artistNotFound": "❌ الفنان **{{artist}}** غير موجود على Last.fm.",
+      "noAlbumSpecified": "❌ لم يتم تحديد ألبوم. شغّل أغنية أو حدد اسم ألبوم.",
+      "albumNotFound": "❌ الألبوم **{{album}}** غير موجود على Last.fm.",
+      "noTrackSpecified": "❌ لم يتم تحديد مقطع. شغّل أغنية أو حدد اسم مقطع.",
+      "trackNotFound": "❌ المقطع **{{track}}** لـ **{{artist}}** غير موجود على Last.fm.",
+      "noTopAlbums": "💿 لا توجد ألبومات أعلى لـ **{{username}}**.",
+      "topAlbumsTitle": "💿 ألبومات أعلى{{period}} — {{username}}",
+      "topAlbumsFooter": "💡 استخدم `{{prefix}}lastfm play albums` لتشغيل ألبوماتك الأكثر استماعاً!",
+      "noTopTags": "🏷️ لا توجد وسوم أعلى لـ **{{username}}**.",
+      "topTagsTitle": "🏷️ وسوم أعلى — {{username}}",
+      "topTagsFooter": "💡 استخدم `{{prefix}}lastfm tag <اسم>` لعرض معلومات عن وسم!",
+      "tagProvideName": "❌ حدد اسم وسم عبر خيار الرمز. مثال: `{{prefix}}lastfm tag rock`",
+      "tagNotFound": "❌ الوسم **{{tag}}** غير موجود على Last.fm.",
+      "compareSpecifyUser": "❌ حدد مستخدماً آخر للمقارنة به. مثال: `{{prefix}}lastfm compare -user @user`",
+      "compareUserNotLinked": "❌ تعذر مقارنة الملفات الشخصية. تأكد من أن كلا المستخدمين مرتبطان.",
+      "compareFailed": "❌ تعذر مقارنة الملفات الشخصية. تأكد من أن كلا المستخدمين مرتبطان.",
+      "compareTitle": "🤝 مقارنة الذوق",
+      "coverNothingPlaying": "❌ لا يوجد شيء يعمل حالياً. شغّل أغنية للحصول على غلاف الألبوم!",
+      "coverNotFound": "🖼️ لم يتم العثور على غلاف ألبوم لـ **{{track}}** لـ **{{artist}}**.",
+      "coverTitle": "🖼️ {{album}}",
+      "coverFooter": "{{track}} لـ {{artist}}",
+      "refreshFailed": "❌ تعذر الوصول إلى الخادم.",
+      "refreshSuccess": "✅ تم تحديث قائمة الأعضاء! تم العثور على **{{count}}** عضواً.",
+      "affinityNeedUsers": "👥 تحتاج إلى مستخدمين مرتبطين على الأقل في هذا الخادم للتحقق من التقارب.",
+      "affinityChecking": "🔍 جارٍ التحقق من التقارب الموسيقي بين أعضاء الخادم...",
+      "affinityNoCommon": "👥 لا توجد فنانون مشتركون بين أي أعضاء الخادم.",
+      "affinityTitle": "👥 تقارب موسيقي",
+      "affinityFooter": "تم فحص {{count}} من الأعضاء",
+      "crownsChecking": "👑 جارٍ التحقق من ألقاب الفنانين الخاصة بك...",
+      "crownsNone": "👑 لا تمتلك أي ألقاب فنانين في هذا الخادم. استمر في الاستماع!",
+      "crownsTitle": "👑 ألقاب الفنانين — {{username}}",
+      "crownsFooter": "يمتلك {{count}} تاجاً",
+      "noArtistTags": "🏷️ لا توجد وسوم للفنان **{{artist}}**.",
+      "artistTagsTitle": "🏷️ وسوم أعلى لـ {{artist}}",
+      "listeners": "مستمع",
+      "leaderboardYourRank": "📍 ترتيبك: **#{{rank}}** ({{count}} سكرابل)"
+    },
+    "messages": {
+      "missingCriticalPermsTitle": "صلاحيات مفقودة — البوت لا يستطيع العمل بشكل صحيح",
+      "missingCriticalPermsDesc": "ينقص البوت **صلاحيات حرجة** يحتاجها للعمل. يرجى طلب مسؤول الخادم منحها.",
+      "missingOptionalPermsTitle": "صلاحيات اختيارية مفقودة",
+      "missingOptionalPermsDesc": "بعض الميزات قد لا تعمل بدون هذه الصلاحيات، لكن البوت لا يزال يستطيع تشغيل الموسيقى.",
+      "permFooter": "أعد دعوة البوت بالصلاحيات الصحيحة باستخدام رابط الدعوة، أو عدّل دور البوت في إعدادات الخادم ← الأدوار.",
+      "needPermsFallback": "أحتاج الصلاحيات التالية: **{{perms}}**. يرجى طلب مسؤول الخادم منحها."
+    },
+    "vote": {
+      "notConfigured": "❌ تكامل FluxerList غير مُعدّ على هذا البوت. اطلب من مالك البوت إضافة مفتاح FluxerList API إلى الإعدادات.",
+      "noResourceId": "❌ لا يوجد معرف {{type}} مُعدّ. قدّمه عبر `{{prefix}}vote check {{type}} <id-or-slug>` أو عيّنه في config.json.",
+      "infoTitle": "تصويت FluxerList",
+      "infoDescription": "صوّت لهذا البوت/السيرفر على [FluxerList]({{siteUrl}})!\n\nFluxerList هي منصة لعرض السيرفرات والبوتات حيث يمكن للمستخدمين التصويت للمساعدة في نمو المجتمع.\n\n**الأوامر:**\n`{{prefix}}vote info` — اعرض هذه المعلومات ورابط التصويت\n`{{prefix}}vote info server` — اعرض رابط التصويت لسيرفر\n`{{prefix}}vote check` — تحقق من حالة تصويتك\n`{{prefix}}vote voters` — اعرض قائمة الناخبين (للمالك فقط)",
+      "voteTitle": "صوّت على FluxerList",
+      "supportDesc": "ادعم هذا {{type}} بالتصويت على FluxerList!",
+      "voteLink": "**[صوّت واعرض الملف الشخصي]({{url}})**",
+      "findLink": "زر [FluxerList]({{siteUrl}}) للعثور على هذا {{type}} والتصويت له.",
+      "helpGrow": "أصواتك تساعد هذا {{type}} على النمو والوصول لمزيد من المستخدمين.",
+      "fetchVotersFailed": "❌ فشل جلب الناخبين: {{error}}",
+      "noVotersYet": "لم يصوّت أحد لهذا {{type}} بعد. شارك رابط التصويت للبدء!",
+      "serverVoters": "ناخبو السيرفر",
+      "botVoters": "ناخبو البوت",
+      "noVotersOnPage": "لم يتم العثور على ناخبين في هذه الصفحة.",
+      "controlsExpired": "انتهت صلاحية التحكم",
+      "pageInfo": "صفحة {{page}}/{{totalPages}} من {{total}} ناخب • استخدم ◀️▶️ للتنقل",
+      "voterTotal": "{{total}} ناخب(ناخبين) إجمالاً",
+      "defaultCommandsTitle": "**أوامر تصويت FluxerList:**",
+      "defaultCommandsList": "`{{prefix}}vote` — اعرض معلومات التصويت والرابط\n`{{prefix}}vote info` — اعرض معلومات التصويت ورابط التصويت\n`{{prefix}}vote check` — تحقق من حالة تصويتك\n`{{prefix}}vote voters` — اعرض قائمة الناخبين (للمالك فقط)",
+      "optionsTitle": "**الخيارات:**",
+      "optionsList": "`{{prefix}}vote check server` — تحقق من حالة تصويتك لسيرفر\n`{{prefix}}vote check bot` — تحقق من حالة تصويتك لبوت",
+      "votedDate": "صوّت {{date}}",
+      "unknownUser": "مستخدم#{{id}}",
+      "unknownDate": "غير معروف",
+      "checkYes": "✅ لديك **تصويت نشط** لهذا {{type}} — شكرًا لك!",
+      "checkNo": "❌ لم تصوّت لهذا {{type}} بعد (أو انتهت صلاحية تصويتك).\n**[صوّت الآن!]({{url}})**",
+      "checkUnknown": "⚠️ تعذّر التحقق من حالة تصويتك الآن — حاول مجددًا بعد دقيقة."
+    },
+    "seek": {
+      "nothingPlaying": "❌ لا يوجد شيء يعمل حالياً!",
+      "paused": "❌ لا يمكن الانتقال أثناء الإيقاف المؤقت. استأنف أولاً.",
+      "live": "❌ هذا بث مباشر أو راديو — لا يمكن الانتقال إلى موضع محدد.",
+      "invalidFormat": "❌ تنسيق موضع غير صالح. استخدم `mm:ss` أو `hh:mm:ss` أو ثوانٍ (مثلاً `1:30`، `90`).",
+      "exceedsDuration": "❌ موضع الانتقال يتجاوز مدة المقطع (**{{duration}}**).",
+      "seeked": "⏩ تم الانتقال إلى **{{position}}**",
+      "notSupported": "❌ الانتقال غير مدعوم من عقدة الصوت الحالية.",
+      "failed": "❌ فشل الانتقال: {{error}}"
+    },
+    "autoplay": {
+      "enabled": "🔁 التشغيل التلقائي **مفعّل** — سيتم إضافة مقاطع مشابهة تلقائياً عند انتهاء القائمة.",
+      "disabled": "➡️ التشغيل التلقائي **معطّل** — سيتوقف البوت عند انتهاء القائمة."
+    },
+    "trackopt": {
+      "notAvailable": "❌ ميزة خيارات المقطع غير متاحة.",
+      "nothingPlaying": "❌ لا يوجد شيء يعمل حالياً!",
+      "invalidFormat": "❌ تنسيق وقت غير صالح. استخدم `mm:ss` أو `hh:mm:ss` أو ثوانٍ.",
+      "invalidEndAfterStart": "❌ يجب أن يكون وقت النهاية بعد وقت البدء.",
+      "startExceedsDuration": "❌ وقت البداية يتجاوز مدة المسار (**{{duration}}**).",
+      "endExceedsDuration": "❌ وقت النهاية يتجاوز مدة المسار (**{{duration}}**).",
+      "saved": "✅ تم حفظ خيارات المسار لـ **{{title}}**{{aliasLabel}}\\n▶️ البداية: **{{start}}** | ⏹️ النهاية: **{{end}}**\\n\\nسيتم تطبيق هذا تلقائيًا عند تشغيل هذا المسار في القناة التي أنت فيها.",
+      "savedAlias": "✅ تم حفظ خيارات المسار لـ **{{title}}** [{{alias}}]\\n▶️ البداية: **{{start}}** | ⏹️ النهاية: **{{end}}**\\n\\nاستخدم `{{prefix}}trackopt play {{alias}}` لتطبيق هذا التقصير أثناء تشغيل المسار.",
+      "saveFailed": "❌ فشل حفظ خيارات المسار.",
+      "notSet": "لم يتم تعيين أوقات مخصصة لـ **{{title}}**.",
+      "current": "📎 خيارات المسار لـ **{{title}}** ({{count}})",
+      "currentEntry": "• **{{alias}}** — {{start}} → {{end}}{{autoTag}}",
+      "removed": "🗑️ تم حذف خيارات المسار لـ **{{title}}**.",
+      "removedAlias": "🗑️ تم حذف الاسم المستعار **{{alias}}** لـ **{{title}}**.",
+      "removedAll": "🗑️ تم حذف جميع خيارات المسار لـ **{{title}}**.",
+      "notFound": "لم يتم العثور على أوقات مخصصة لـ **{{title}}**.",
+      "aliasNotFound": "❌ لم يتم العثور على الاسم المستعار **{{alias}}** لـ **{{title}}**.\\nأسماءك المستعارة: {{names}}",
+      "applied": "✂️ تم تطبيق الاسم المستعار **{{alias}}** — {{start}} → {{end}}",
+      "applyFailed": "❌ فشل تطبيق الاسم المستعار: {{error}}",
+      "mustBePlaying": "❌ يجب أن يكون المشغل يعمل بنشاط لتطبيق اسم مستعار.",
+      "invalidAlias": "❌ اسم مستعار غير صالح. استخدم الحروف، الأرقام، الشرطات، أو الشراطات السفلية.",
+      "provideAlias": "❌ قدم اسم مستعار. الاستخدام: `{{prefix}}trackopt play <alias>`",
+      "listEmpty": "📭 ليس لديك خيارات مسار محفوظة. استخدم `{{prefix}}trackopt set <start> [end]` لإضافة واحدة!",
+      "listTitle": "📋 **خيارات المسار الخاصة بك** ({{count}})",
+      "listEntry": "• **{{title}}** — {{start}} → {{end}}",
+      "listHint": "استخدم `{{prefix}}trackopt play <alias>` لتطبيق تقصير مسمى، أو `{{prefix}}trackopt remove [alias]` لحذف واحد."
+    }
+  }
+}

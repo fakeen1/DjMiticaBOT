@@ -1,0 +1,20 @@
+# Secrets and local configuration - never commit these
+config.json
+docker/config.json
+.env
+docker/.env
+
+# Dependencies and runtime files
+node_modules/
+storage/stats-cache.json
+storage/locales/user/
+*.log
+logs/
+
+# Backups and editor/OS files
+*.bak
+*.bak2
+.DS_Store
+Thumbs.db
+.idea
+.vscode

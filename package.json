@@ -1,0 +1,34 @@
+{
+  "name": "djmitica",
+  "version": "1.0.0",
+  "description": "Dj Mitica: self-hosted music bot for Fluxer with voice commands, crossfade and a web control panel.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fakeen1/djmitica.git"
+  },
+  "homepage": "https://github.com/fakeen1/djmitica",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "dependencies": {
+    "@fluxerjs/core": "^3.2.0",
+    "@fluxerjs/sharding": "^3.0.0",
+    "@fluxerjs/util": "^3.1.0",
+    "@fluxerjs/voice": "^3.1.0",
+    "bcryptjs": "^3.0.3",
+    "ffprobe-static": "^3.1.0",
+    "lavalink-client": "^2.11.0",
+    "mysql2": "^3.9.0",
+    "opusscript": "^0.0.8",
+    "prism-media": "^1.3.5",
+    "redis": "^5.12.1"
+  },
+  "scripts": {
+    "dev": "node --inspect index.mjs --trace-warnings",
+    "start": "node index.mjs",
+    "shard": "node shard.mjs",
+    "migrate": "node settings/migrate.mjs"
+  }
+}

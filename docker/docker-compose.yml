@@ -1,0 +1,105 @@
+services:
+  bot:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: djmitica-bot
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      nodelink:
+        condition: service_healthy
+    volumes:
+      - ./config.json:/app/config.json
+      - ../storage:/app/storage
+    environment:
+      - TZ=${TZ:-UTC}
+    ports:
+      # Web control panel (http://<host>:8090). Set web.password in config.json to enable it.
+      - "${WEB_PORT:-8090}:8080"
+    networks:
+      - djmitica-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: djmitica-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-djmitica_root_pw}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-djmitica}
+      MYSQL_USER: ${MYSQL_USER:-djmitica}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-djmitica_pw}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-djmitica_root_pw}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - djmitica-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: djmitica-redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - djmitica-net
+
+  nodelink:
+    build:
+      context: https://github.com/PerformanC/NodeLink.git#dev
+      dockerfile: Dockerfile
+    container_name: djmitica-nodelink
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ:-UTC}
+      - NODELINK_SERVER_HOST=0.0.0.0
+      - NODELINK_SERVER_PORT=3000
+      - NODELINK_SERVER_PASSWORD=youshallnotpass
+      - NODELINK_API_ENABLELOADSTREAMENDPOINT=true
+      - NODELINK_API_ENABLETRACKSTREAMENDPOINT=true
+    ports:
+      # Only reachable from this machine; the bot talks to NodeLink over the Docker network.
+      - "127.0.0.1:${NODELINK_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').connect(3000,'127.0.0.1').on('connect',function(){process.exit(0)}).on('error',function(){process.exit(1)})"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 90s
+    networks:
+      - djmitica-net
+
+  # Speech recognition for voice commands (Whisper on CPU). Optional:
+  # start it with `docker compose --profile voice up -d` and set voiceCommands.enabled in config.json.
+  whisper:
+    profiles: ["voice"]
+    image: onerahmet/openai-whisper-asr-webservice:latest
+    container_name: djmitica-whisper
+    restart: unless-stopped
+    environment:
+      - ASR_ENGINE=faster_whisper
+      - ASR_MODEL=${WHISPER_MODEL:-base.en}
+      - ASR_DEVICE=cpu
+    volumes:
+      - whisper_cache:/root/.cache
+    networks:
+      - djmitica-net
+
+volumes:
+  mysql_data:
+  whisper_cache:
+
+networks:
+  djmitica-net:
+    driver: bridge

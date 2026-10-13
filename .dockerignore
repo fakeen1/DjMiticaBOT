@@ -1,0 +1,12 @@
+node_modules
+.git
+.github
+.gitignore
+*.md
+!README.md
+download/
+*.zip
+*.bak
+config.json
+docker/config.json
+docker/.env

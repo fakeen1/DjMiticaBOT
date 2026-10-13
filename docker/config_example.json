@@ -1,0 +1,92 @@
+{
+  "token": "YOUR_BOT_TOKEN_HERE",
+  "prefix": "%",
+  "embedColor": "0xe9196c",
+  "owners": [],
+  "mysql": {
+    "host": "mysql",
+    "port": 3306,
+    "user": "djmitica",
+    "password": "djmitica_pw",
+    "database": "djmitica"
+  },
+  "nodelink": {
+    "host": "nodelink",
+    "port": 3000,
+    "password": "youshallnotpass",
+    "requestTimeout": 60000
+  },
+  "lastfm": {
+    "apiKey": "",
+    "apiSecret": "",
+    "scrobbleThreshold": 0.5,
+    "scrobbleMinMs": 240000
+  },
+  "dashboard": {
+    "enabled": false,
+    "redis": {
+      "url": "redis://redis:6379"
+    }
+  },
+  "logging": {
+    "enabled": true,
+    "warn": true,
+    "player": true,
+    "inactivity": false,
+    "aloneCheck": false,
+    "voice247": true,
+    "voiceState": false,
+    "voice": false,
+    "mediaplayer": false,
+    "commands": true,
+    "guild": true,
+    "recovery": true,
+    "settings": true,
+    "lavalink": true,
+    "dashboard": false,
+    "redis": false
+  },
+  "timers": {
+    "inactivityTimeout": 180000,
+    "aloneCheckInterval": 30000,
+    "aloneCheckDebounce": 500,
+    "rejoin247Delay": 3000,
+    "leave247RejoinDelay": 5000,
+    "intentionalLeaveTTL": 10000
+  },
+  "presenceInterval": 30000,
+  "presenceContents": [],
+  "fluxer.js": {
+    "timeout": 15000,
+    "retries": 3,
+    "instance-Comment": "Using a self-hosted Fluxer instance? Add an 'instance' object here with your domain's URLs (api, gateway, media, ...). See README -> Self-hosted Fluxer instance. Leave it out to use the official fluxer.app."
+  },
+  "audio": {
+    "allowLoadstream": true,
+    "crossfadeSeconds": 6,
+    "skipCrossfadeSeconds": 3
+  },
+  "voiceCommands": {
+    "Comment": "Voice commands: the bot listens in the voice channel and runs commands said after the wake word (e.g. 'DJ, skip'). Needs the whisper container: docker compose --profile voice up -d. The Whisper models are English-only, so use English command names.",
+    "enabled": false,
+    "whisperUrl": "http://whisper:9000",
+    "language": "en",
+    "wakeWord": "dj",
+    "requireWakeWord": true,
+    "echo": true,
+    "allowedUsers": [],
+    "energyThreshold": 700,
+    "silenceMs": 900,
+    "minSpeechMs": 250,
+    "maxSpeechMs": 12000,
+    "debug": false
+  },
+  "web": {
+    "Comment": "Built-in web control panel (player, queue, search, settings, status, logs). Disabled until you set a password. Served on port 8080 inside the container (8090 on the host by default).",
+    "enabled": true,
+    "port": 8080,
+    "password": "",
+    "trustProxy": true,
+    "sessionDays": 30
+  }
+}
