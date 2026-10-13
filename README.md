@@ -10,6 +10,10 @@
 </p>
 
 <p align="center">
+  <a href="https://revolut.me/cristiz7ac"><img src="https://img.shields.io/badge/Donate-Revolut%20%40cristiz7ac-0075EB?style=for-the-badge&logo=revolut&logoColor=white" alt="Donate with Revolut"></a>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
   <img src="https://img.shields.io/badge/Node.js-%3E%3D22.13.0-339933.svg" alt="Node.js">
   <img src="https://img.shields.io/badge/ESM-Modules-yellow.svg" alt="ESM">
@@ -43,6 +47,7 @@
 - [The Layered Codebase](#the-layered-codebase)
 - [Localization](#localization)
 - [npm Scripts](#npm-scripts)
+- [Support the Project](#support-the-project)
 - [Credits & License](#credits--license)
 
 ---
@@ -837,6 +842,20 @@ To add a new language, place a JSON file in `storage/locales/bot/` following the
 | `npm run shard` | `node shard.mjs` | Start under the sharding supervisor (optional) |
 | `npm run dev` | `node --inspect index.mjs --trace-warnings` | Start with Node.js inspector |
 | `npm run migrate` | `node settings/migrate.mjs` | Clone/repair the remote settings table |
+
+---
+
+## Support the Project
+
+Dj Mitica is free and always will be. If it makes your server better and you'd like to say thanks, you can buy me a coffee on Revolut — every donation helps cover the time and the hosting.
+
+<p align="center">
+  <a href="https://revolut.me/cristiz7ac"><img src="https://img.shields.io/badge/Donate-Revolut%20%40cristiz7ac-0075EB?style=for-the-badge&logo=revolut&logoColor=white" alt="Donate with Revolut"></a>
+</p>
+
+Revolut tag: **@cristiz7ac** · [revolut.me/cristiz7ac](https://revolut.me/cristiz7ac)
+
+Not in the mood to donate? A ⭐ on GitHub helps too.
 
 ---
 
