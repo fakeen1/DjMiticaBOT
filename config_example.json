@@ -167,12 +167,19 @@
     "maxSpeechMs": 12000,
     "debug": false
   },
+  "invite": {
+    "Comment": "Optional. %invite builds the add-to-server link automatically (your Fluxer web app + the bot ID + the needed permissions). Set url to replace the whole link, or clientId / permissions to override just those parts.",
+    "url": "",
+    "clientId": "",
+    "permissions": ""
+  },
   "web": {
-    "Comment": "Built-in web control panel (player, queue, search, settings, status, logs). Disabled until you set a password. Served on port 8080 inside the container (8090 on the host by default).",
+    "Comment": "Built-in web control panel (player, queue, search, settings, status, logs). Disabled until you set a password. language: 'en' (default) or 'ro' for a Romanian panel. Served on port 8080 inside the container (8090 on the host by default).",
     "enabled": true,
     "port": 8080,
     "password": "",
     "trustProxy": true,
-    "sessionDays": 30
+    "sessionDays": 30,
+    "language": "en"
   }
 }

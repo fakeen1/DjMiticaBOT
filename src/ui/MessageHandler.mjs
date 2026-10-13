@@ -8,7 +8,7 @@
 import { Client, Events, EmbedBuilder, PermissionFlags, ErrorCodes } from "@fluxerjs/core";
 import * as FluxerCore from "@fluxerjs/core";
 
-// Mesaje fara sunet/notificare (flag SuppressNotifications). Pune false ca sa dezactivezi.
+// Send bot messages silently (SuppressNotifications flag). Set to false to disable.
 const SILENT_MESSAGES = true;
 const SILENT_FLAG = Number(FluxerCore.MessageFlagsBitField?.Flags?.SuppressNotifications ?? 4096);
 function quiet(p) {

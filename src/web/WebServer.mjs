@@ -1,19 +1,21 @@
 /**
  * @module src/web/WebServer
- * @description Interfata web proprie a botului Dj Mitica: server HTTP fara dependente
- * externe, servit direct din procesul botului.
+ * @description Dj Mitica's own web control panel: an HTTP server with no external
+ * dependencies, served straight from the bot process.
  *
- *  - Login cu parola (config.json -> web.password), sesiune in cookie semnat HMAC.
- *  - Limitare incercari de login (anti brute-force), protectie CSRF (SameSite + header).
- *  - API JSON: stare, player (pauza/skip/volum/seek/loop/autoplay/coada), cautare,
- *    intrare/iesire din canal, setari audio si de server, status, loguri.
- *  - Evenimente live (Server-Sent Events): stare player + loguri.
- *  - Frontend static din src/web/public (cai relative => merge si sub /djmitica/ in spatele
- *    unui reverse proxy).
+ *  - Password login (config.json -> web.password), session in an HMAC-signed cookie.
+ *  - Login attempt limiting (anti brute-force), CSRF protection (SameSite + header).
+ *  - JSON API: state, player (pause/skip/volume/seek/loop/autoplay/queue), search,
+ *    join/leave channel, audio and server settings, status, logs.
+ *  - Live events (Server-Sent Events): player state + logs.
+ *  - Static frontend from src/web/public (relative paths => also works under /djmitica/
+ *    behind a reverse proxy).
+ *  - Panel language: English by default, Romanian with web.language = "ro"
+ *    (changeable from the panel: Settings -> Web panel).
  *
  * Config (config.json -> web):
- *   { "enabled": true, "port": 8080, "password": "...", "sessionSecret": "(generat)",
- *     "trustProxy": true, "sessionDays": 30 }
+ *   { "enabled": true, "port": 8080, "password": "...", "sessionSecret": "(generated)",
+ *     "trustProxy": true, "sessionDays": 30, "language": "en" }
  */
 
 import http from "node:http";
@@ -25,7 +27,8 @@ import { logger } from "../core/Logger.mjs";
 import { cleanId, Utils } from "../utils/Utils.mjs";
 import { configureAudio, getAudioSettings } from "../music/audio/AudioSettings.mjs";
 import { PROVIDERS, PROVIDER_NAMES } from "../music/providers.mjs";
-import { configView, validateChanges, applyToConfig, applyLive } from "./ConfigSchema.mjs";
+import { configView, validateChanges, applyToConfig, applyLive, panelLanguage } from "./ConfigSchema.mjs";
+import { buildInviteUrl } from "../utils/Invite.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, "public");
@@ -46,7 +49,7 @@ const MIME = {
   ".webmanifest": "application/manifest+json",
 };
 
-/* ----------------------------------------------------------------- loguri */
+/* ------------------------------------------------------------------- logs */
 
 const ANSI = /\x1b\[[0-9;]*m/g;
 function redact(s) {
@@ -56,7 +59,7 @@ function redact(s) {
     .replace(/eyJ[A-Za-z0-9._-]{20,}/g, "eyJ***");
 }
 
-/** Captureaza tot ce scrie botul in consola, ca sa-l arate in pagina. */
+/** Captures everything the bot writes to the console, to show it in the page. */
 class LogBuffer {
   lines = [];
   seq = 0;
@@ -69,7 +72,7 @@ class LogBuffer {
       const orig = console[level].bind(console);
       console[level] = (...args) => {
         orig(...args);
-        try { this.push(level, args); } catch (_) { /* nu bloca logarea */ }
+        try { this.push(level, args); } catch (_) { /* never block logging */ }
       };
     }
     return this;
@@ -96,10 +99,10 @@ class LogBuffer {
   }
 }
 
-// Captura logurilor porneste odata cu incarcarea modulului (prinde si pornirea botului).
+// Log capture starts when the module is loaded (so it also catches the bot's startup).
 const LOGS = new LogBuffer().install();
 
-/* ------------------------------------------------------------- utilitare */
+/* --------------------------------------------------------------- helpers */
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -119,7 +122,7 @@ function serializeTrack(t) {
   if (!t) return null;
   const isRadio = t.type === "radio";
   return {
-    title: t.title ?? "Necunoscut",
+    title: t.title ?? null,
     author: t.author?.name ?? t.artist ?? null,
     url: isRadio ? (t.author?.url ?? null) : (t.spotifyUrl || t.url || null),
     thumbnail: t.thumbnail ?? (t.videoId ? `https://i.ytimg.com/vi/${t.videoId}/hqdefault.jpg` : null),
@@ -136,6 +139,70 @@ function listValues(store) {
   if (Array.isArray(store)) return store;
   return Object.values(store);
 }
+
+/* ---------------------------------------------------------------- texts */
+
+/** Server-side messages of the panel (English default, Romanian with web.language = "ro"). */
+const TXT = {
+  en: {
+    internal: "Internal error", unauth: "Not logged in", csrf: "Request rejected (CSRF)", route: "Unknown route",
+    tooMany: (m) => `Too many attempts. Try again in ${m} min.`, wrongPass: "Wrong password",
+    voiceChannel: "Voice channel", user: "User",
+    noChanges: "No changes.", saved: "Settings saved.", savedNotWritten: "Settings applied, but they could not be written to config.json.",
+    restartNote: " Some of them take effect after the bot restarts.", restarting: "The bot is restarting…",
+    audioSaved: "Audio settings saved.", audioNotWritten: "Audio settings applied, but they could not be saved to config.json.",
+    invalid: "Invalid values", unknownServer: "Unknown server", volRange: "The default volume must be between 1 and 200",
+    voteRange: "The vote threshold must be between 2 and 50", prefixBad: "The prefix must be 1–5 characters, without spaces",
+    unknownLang: "Unknown language", fail247: "Could not change 24/7 mode: ", serverSaved: "Server settings saved.",
+    searchLong: "Search text too long", nodeNotReady: "The audio node is not ready", searchFailed: "Search failed: ",
+    noChannel: "Missing channel", alreadyIn: "The bot is already in this channel.", channelNotFound: "Voice channel not found",
+    joinFailed: "Could not join the channel.", joined: (n) => `Joined ${n}.`, channel: "channel",
+    notInChannel: "The bot is not in this channel", stopped: "Playback stopped and queue cleared.",
+    volRange2: "Volume must be between 0 and 200", nothing: "Nothing is playing", badPos: "Invalid position",
+    seekFailed: "Could not seek to the chosen position", seeked: "Position changed.",
+    loopSong: "Repeating the song", loopQueue: "Repeating the queue", loopOff: "Repeat is off",
+    apOn: "Autoplay on", apOff: "Autoplay off", apNA: "Autoplay unavailable: ", cleared: "Queue cleared.",
+    noChange: "No change.", startingPicked: "Starting the chosen song.", missingSong: "Missing song",
+    textLong: "Text too long", badAddr: "Invalid address", added: "Added.", left: "The bot left the channel.",
+    action: "Unknown action",
+  },
+  ro: {
+    internal: "Eroare internă", unauth: "Neautentificat", csrf: "Cerere respinsă (CSRF)", route: "Rută necunoscută",
+    tooMany: (m) => `Prea multe încercări. Mai încearcă peste ${m} min.`, wrongPass: "Parolă greșită",
+    voiceChannel: "Canal de voce", user: "Utilizator",
+    noChanges: "Nicio modificare.", saved: "Setările au fost salvate.", savedNotWritten: "Setările s-au aplicat, dar nu au putut fi scrise în config.json.",
+    restartNote: " Unele intră în vigoare după repornirea botului.", restarting: "Botul repornește…",
+    audioSaved: "Setările audio au fost salvate.", audioNotWritten: "Setările audio s-au aplicat, dar nu au putut fi salvate în config.json.",
+    invalid: "Valori invalide", unknownServer: "Server necunoscut", volRange: "Volumul implicit trebuie să fie între 1 și 200",
+    voteRange: "Pragul de vot trebuie să fie între 2 și 50", prefixBad: "Prefixul trebuie să aibă 1–5 caractere, fără spații",
+    unknownLang: "Limbă necunoscută", fail247: "Nu am putut schimba modul 24/7: ", serverSaved: "Setările serverului au fost salvate.",
+    searchLong: "Căutare prea lungă", nodeNotReady: "Nodul audio nu e pregătit", searchFailed: "Căutarea a eșuat: ",
+    noChannel: "Lipsește canalul", alreadyIn: "Botul este deja în acest canal.", channelNotFound: "Canalul de voce nu a fost găsit",
+    joinFailed: "Nu am putut intra în canal.", joined: (n) => `Am intrat în ${n}.`, channel: "canal",
+    notInChannel: "Botul nu este în acest canal", stopped: "Redarea a fost oprită și coada golită.",
+    volRange2: "Volumul trebuie să fie între 0 și 200", nothing: "Nu cântă nimic", badPos: "Poziție invalidă",
+    seekFailed: "Nu am putut sări la poziția aleasă", seeked: "Poziție schimbată.",
+    loopSong: "Repetă melodia", loopQueue: "Repetă coada", loopOff: "Repetarea e oprită",
+    apOn: "Autoplay pornit", apOff: "Autoplay oprit", apNA: "Autoplay indisponibil: ", cleared: "Coada a fost golită.",
+    noChange: "Nicio schimbare.", startingPicked: "Pornesc melodia aleasă.", missingSong: "Lipsește melodia",
+    textLong: "Text prea lung", badAddr: "Adresă invalidă", added: "Adăugat.", left: "Botul a ieșit din canal.",
+    action: "Acțiune necunoscută",
+  },
+};
+
+/** Romanian versions of the bot's own (English) player replies, shown as toasts. */
+const PLAYER_RO = [
+  [/^Paused$/i, "Pauză."], [/^Resumed$/i, "Redarea continuă."], [/^Skipped$/i, "Am trecut la următoarea melodie."],
+  [/^Already paused!?$/i, "Este deja pe pauză."], [/^Not paused!?$/i, "Nu este pe pauză."],
+  [/^There's nothing playing.*$/i, "Nu cântă nimic acum."], [/^Shuffled queue$/i, "Coada a fost amestecată."],
+  [/^There is nothing to shuffle.*$/i, "Coada e goală."],
+  [/^Volume (?:changed|set) to (\d+)%.*$/i, "Volum: $1%."],
+  [/^Moved (.+) from position \d+ to (\d+)\.$/i, "Am mutat „$1” pe poziția $2."],
+  [/^Successfully removed (.+) from the queue\.$/i, "Am scos „$1” din coadă."],
+  [/^Position (\d+) out of range.*$/i, "Poziția $1 nu există în coadă."],
+  [/^Successfully added (\d+) songs to the queue\.$/i, "Am adăugat $1 melodii în coadă."],
+  [/^Successfully added (.+) to the queue\.$/i, "Am adăugat: $1"],
+];
 
 /* ------------------------------------------------------------------ server */
 
@@ -156,28 +223,37 @@ export class WebServer {
   get client() { return this.djmitica.client; }
   get players() { return this.djmitica.players; }
 
-  /* ------------------------------------------------------------ pornire */
+  /** Current panel language ("en" | "ro"). */
+  get lang() { return panelLanguage(this.djmitica.config); }
+
+  /** Panel message in the current language. */
+  t(key, ...args) {
+    const v = (TXT[this.lang] ?? TXT.en)[key] ?? TXT.en[key] ?? key;
+    return typeof v === "function" ? v(...args) : v;
+  }
+
+  /* ---------------------------------------------------------------- start */
 
   start() {
     if (this.cfg.enabled === false || !this.djmitica.config?.web) {
-      logger.info("[Web] Interfata web dezactivata (config.json -> web.enabled).");
+      logger.info("[Web] Web panel disabled (config.json -> web.enabled).");
       return this;
     }
     this._ensureSecrets();
     if (!this.cfg.password) {
-      logger.warn("[Web] Nu este setata o parola (config.json -> web.password). Interfata web NU porneste.");
+      logger.warn("[Web] No password set (config.json -> web.password). The web panel will NOT start.");
       return this;
     }
     this.server = http.createServer((req, res) => {
       this._handle(req, res).catch((e) => {
-        logger.warn("[Web] Eroare request:", e?.message);
-        if (!res.headersSent) this._json(res, 500, { error: "Eroare internă" });
+        logger.warn("[Web] Request error:", e?.message);
+        if (!res.headersSent) this._json(res, 500, { error: this.t("internal") });
         else try { res.end(); } catch (_) {}
       });
     });
     this.server.on("error", (e) => logger.error("[Web] Server error:", e?.message));
     const port = Number(this.cfg.port) || 8080;
-    this.server.listen(port, "0.0.0.0", () => logger.info(`[Web] Interfata web porneste pe portul ${port}.`));
+    this.server.listen(port, "0.0.0.0", () => logger.info(`[Web] Web panel listening on port ${port}.`));
 
     this.logs.listeners.add((entry) => this._broadcast("log", entry));
     this._tick = setInterval(() => this._pushState(), 1000);
@@ -196,19 +272,19 @@ export class WebServer {
   _saveConfig(mutator) {
     try {
       const c = readJsonFile(CONFIG_PATH);
-      if (!c) throw new Error("config.json nu poate fi citit");
+      if (!c) throw new Error("cannot read config.json");
       mutator(c);
       mutator(this.djmitica.config);
       fs.writeFileSync(CONFIG_PATH, JSON.stringify(c, null, 2) + "\n");
       return true;
     } catch (e) {
-      logger.warn("[Web] Nu pot salva config.json:", e?.message);
+      logger.warn("[Web] Cannot save config.json:", e?.message);
       try { mutator(this.djmitica.config); } catch (_) {}
       return false;
     }
   }
 
-  /* --------------------------------------------------------- securitate */
+  /* ------------------------------------------------------------- security */
 
   _ip(req) {
     if (this.cfg.trustProxy) {
@@ -276,7 +352,7 @@ export class WebServer {
       let size = 0; const chunks = [];
       req.on("data", (c) => {
         size += c.length;
-        if (size > MAX_BODY) { reject(new Error("Body prea mare")); req.destroy(); return; }
+        if (size > MAX_BODY) { reject(new Error("Body too large")); req.destroy(); return; }
         chunks.push(c);
       });
       req.on("end", () => {
@@ -294,7 +370,7 @@ export class WebServer {
     if (!file.startsWith(PUBLIC_DIR)) { res.writeHead(403); return res.end(); }
     fs.readFile(file, (err, data) => {
       if (err) {
-        // SPA: orice ruta necunoscuta -> index.html
+        // SPA: any unknown route -> index.html
         if (!path.extname(rel)) return this._serveStatic(req, res, "/");
         res.writeHead(404, this._headers({ "Content-Type": "text/plain" }));
         return res.end("Not found");
@@ -318,20 +394,20 @@ export class WebServer {
 
     const method = req.method ?? "GET";
 
-    // --- autentificare
+    // --- authentication
     if (p === "/api/login" && method === "POST") return this._login(req, res);
     if (p === "/api/logout" && method === "POST") {
       res.writeHead(200, this._headers({ "Set-Cookie": `${COOKIE}=; Max-Age=0${this._cookieAttrs(req)}`, "Content-Type": "application/json" }));
       return res.end("{}");
     }
-    if (p === "/api/session") return this._json(res, 200, { authenticated: this._validSession(req) });
+    if (p === "/api/session") return this._json(res, 200, { authenticated: this._validSession(req), language: this.lang });
 
-    if (!this._validSession(req)) return this._json(res, 401, { error: "Neautentificat" });
+    if (!this._validSession(req)) return this._json(res, 401, { error: this.t("unauth") });
     if (method !== "GET" && req.headers["x-requested-with"] !== "djmitica-web") {
-      return this._json(res, 403, { error: "Cerere respinsă (CSRF)" });
+      return this._json(res, 403, { error: this.t("csrf") });
     }
 
-    // --- rute
+    // --- routes
     if (p === "/api/events" && method === "GET") return this._events(req, res);
     if (p === "/api/state" && method === "GET") return this._json(res, 200, this.state());
     if (p === "/api/status" && method === "GET") return this._json(res, 200, await this.status());
@@ -347,7 +423,7 @@ export class WebServer {
     const m = p.match(/^\/api\/player\/(\d+)\/([a-z]+)$/);
     if (m && method === "POST") return this._playerAction(res, m[1], m[2], await this._body(req));
 
-    return this._json(res, 404, { error: "Rută necunoscută" });
+    return this._json(res, 404, { error: this.t("route") });
   }
 
   async _login(req, res) {
@@ -355,7 +431,7 @@ export class WebServer {
     const now = Date.now();
     const f = this.loginFails.get(ip);
     if (f && f.until > now) {
-      return this._json(res, 429, { error: `Prea multe încercări. Mai încearcă peste ${Math.ceil((f.until - now) / 60000)} min.` });
+      return this._json(res, 429, { error: this.t("tooMany", Math.ceil((f.until - now) / 60000)) });
     }
     const body = await this._body(req);
     await sleep(300 + Math.random() * 200);
@@ -364,8 +440,8 @@ export class WebServer {
       rec.count++;
       if (rec.count >= 5) { rec.until = now + 15 * 60_000; rec.count = 0; }
       this.loginFails.set(ip, rec);
-      logger.warn(`[Web] Parola gresita de la ${ip}`);
-      return this._json(res, 401, { error: "Parolă greșită" });
+      logger.warn(`[Web] Wrong password from ${ip}`);
+      return this._json(res, 401, { error: this.t("wrongPass") });
     }
     this.loginFails.delete(ip);
     const tok = this._makeSession();
@@ -375,7 +451,7 @@ export class WebServer {
       "Set-Cookie": `${COOKIE}=${encodeURIComponent(tok)}; Max-Age=${maxAge}${this._cookieAttrs(req)}`,
     }));
     res.end(JSON.stringify({ ok: true }));
-    logger.info(`[Web] Autentificare reusita de la ${ip}`);
+    logger.info(`[Web] Successful login from ${ip}`);
   }
 
   /* ------------------------------------------------------------ live (SSE) */
@@ -404,14 +480,14 @@ export class WebServer {
     if (!this.sse.size) return;
     let json;
     try { json = JSON.stringify(this.state()); } catch (e) { return; }
-    // pozitia curge in browser; trimitem doar cand se schimba altceva
+    // the position advances in the browser; only push when something else changes
     const key = json.replace(/"positionMs":\d+/g, "").replace(/"now":\d+/, "");
     if (key === this._lastStateJson) return;
     this._lastStateJson = key;
     this._broadcast("state", json);
   }
 
-  /* ---------------------------------------------------------------- stare */
+  /* ---------------------------------------------------------------- state */
 
   _mediaBase() {
     const inst = this.djmitica.config?.["fluxer.js"]?.instance;
@@ -430,7 +506,7 @@ export class WebServer {
     const user = member?.user ?? this.client.users?.get?.(userId);
     return {
       id: String(userId),
-      name: member?.nick ?? user?.globalName ?? user?.displayName ?? user?.username ?? "Utilizator",
+      name: member?.nick ?? user?.globalName ?? user?.displayName ?? user?.username ?? this.t("user"),
       avatar: this._avatar(user),
     };
   }
@@ -466,7 +542,7 @@ export class WebServer {
     return {
       channelId,
       guildId,
-      channelName: channel?.name ?? "Canal de voce",
+      channelName: channel?.name ?? this.t("voiceChannel"),
       guildName: guild?.name ?? "Server",
       textChannel: text?.id ? { id: text.id, name: text.name ?? null } : null,
       connected: !!p._voiceConn,
@@ -505,7 +581,7 @@ export class WebServer {
     }
     const me = this.client.user;
     return {
-      bot: me ? { id: String(me.id), name: me.globalName ?? me.username ?? "Dj Mitica", avatar: this._avatar(me) } : null,
+      bot: me ? { id: String(me.id), name: me.globalName ?? me.username ?? "Dj Mitica", avatar: this._avatar(me), invite: buildInviteUrl(this.djmitica) } : null,
       now: Date.now(),
       guilds,
       players: this._playerList().map(([id, p]) => this.serializePlayer(id, p)),
@@ -547,6 +623,7 @@ export class WebServer {
         guilds: listValues(this.client.guilds).length,
         players: this._playerList().length,
         commit: this.djmitica.comHash ?? null,
+        invite: buildInviteUrl(this.djmitica),
       },
       nodelink: { connected: !!lav?.hasConnectedNode?.(), host: info ? `${info.host}:${info.port}` : null, session: info?.sessionId ?? null },
       whisper: await this._whisperStatus(),
@@ -555,7 +632,7 @@ export class WebServer {
     };
   }
 
-  /* -------------------------------------------------------------- setari */
+  /* ------------------------------------------------------------ settings */
 
   settings(guildId) {
     const audio = getAudioSettings();
@@ -602,7 +679,7 @@ export class WebServer {
     if (current.has(channelId) && current.size === 1) return;
     for (const id of current) if (id !== channelId) await mod.disable247(this.djmitica, set, guildId, id);
     const ch = this.client.channels?.get?.(channelId);
-    if (!ch || ch.type !== 2) throw new Error("canal de voce necunoscut");
+    if (!ch || ch.type !== 2) throw new Error("unknown voice channel");
     mod.save247Channels(set, new Set([channelId]));
     if (!this._findPlayer(channelId)) {
       try { await this.djmitica._spawnPlayer?.(guildId, channelId); } catch (_) {}
@@ -612,25 +689,24 @@ export class WebServer {
   async _saveGlobal(req, res, body) {
     const { updates, errors } = validateChanges(this.djmitica.config, body.changes);
     if (errors.length) return this._json(res, 400, { error: errors.join(" ") });
-    if (!updates.length) return this._json(res, 200, { ok: true, message: "Nicio modificare.", restart: [] });
+    if (!updates.length) return this._json(res, 200, { ok: true, message: this.t("noChanges"), restart: [] });
     const saved = this._saveConfig((c) => applyToConfig(c, updates));
     const restart = applyLive(this.djmitica, updates);
     const headers = { "Content-Type": "application/json" };
     if (updates.some(([p]) => p === "web.password")) {
-      // pastreaza autentificarea curenta dupa schimbarea parolei
+      // keep the current login after the password changes
       const maxAge = (Number(this.cfg.sessionDays) || 30) * 86400;
       headers["Set-Cookie"] = `${COOKIE}=${encodeURIComponent(this._makeSession())}; Max-Age=${maxAge}${this._cookieAttrs(req)}`;
     }
-    logger.info(`[Web] Setari globale modificate: ${updates.map(([p]) => p).join(", ")}`);
-    const message = (saved ? "Setările au fost salvate." : "Setările s-au aplicat, dar nu au putut fi scrise în config.json.") +
-      (restart.length ? " Unele intră în vigoare după repornirea botului." : "");
+    logger.info(`[Web] Global settings changed: ${updates.map(([p]) => p).join(", ")}`);
+    const message = this.t(saved ? "saved" : "savedNotWritten") + (restart.length ? this.t("restartNote") : "");
     res.writeHead(200, this._headers(headers));
-    res.end(JSON.stringify({ ok: true, message, restart, sections: configView(this.djmitica.config) }));
+    res.end(JSON.stringify({ ok: true, message, restart, language: this.lang, sections: configView(this.djmitica.config) }));
   }
 
   _restart(res) {
-    logger.warn("[Web] Repornire cerută din panoul web.");
-    this._json(res, 200, { ok: true, message: "Botul repornește…" });
+    logger.warn("[Web] Restart requested from the web panel.");
+    this._json(res, 200, { ok: true, message: this.t("restarting") });
     setTimeout(() => process.exit(0), 800);
   }
 
@@ -645,22 +721,22 @@ export class WebServer {
         skipCrossfadeSeconds: body.audio.skipCrossfadeSeconds != null ? clamp(body.audio.skipCrossfadeSeconds, 10) : cur.skipCrossfadeSeconds,
       };
       if (Number.isNaN(next.crossfadeSeconds) || Number.isNaN(next.skipCrossfadeSeconds)) {
-        return this._json(res, 400, { error: "Valori invalide" });
+        return this._json(res, 400, { error: this.t("invalid") });
       }
       configureAudio(next);
       const saved = this._saveConfig((c) => {
         c.audio = { ...(c.audio ?? {}), crossfadeSeconds: next.crossfadeSeconds, skipCrossfadeSeconds: next.skipCrossfadeSeconds };
       });
-      msgs.push(saved ? "Setările audio au fost salvate." : "Setările audio s-au aplicat, dar nu au putut fi salvate în config.json.");
+      msgs.push(this.t(saved ? "audioSaved" : "audioNotWritten"));
     }
     if (body.server && typeof body.server === "object") {
       const gid = cleanId(body.server.guildId ?? "");
       const s = gid ? this.djmitica.settingsMgr?.getServer?.(gid) : null;
-      if (!s) return this._json(res, 404, { error: "Server necunoscut" });
+      if (!s) return this._json(res, 404, { error: this.t("unknownServer") });
       const b = body.server;
       if (b.volume != null) {
         const v = Math.round(Number(b.volume));
-        if (!(v >= 1 && v <= 200)) return this._json(res, 400, { error: "Volumul implicit trebuie să fie între 1 și 200" });
+        if (!(v >= 1 && v <= 200)) return this._json(res, 400, { error: this.t("volRange") });
         s.set("volume", v);
       }
       if (b.songAnnouncements != null) s.set("songAnnouncements", !!b.songAnnouncements);
@@ -668,40 +744,40 @@ export class WebServer {
       if (b.autoplay != null) s.set("autoplay", !!b.autoplay);
       if (b.voteSkipThreshold != null) {
         const v = Math.round(Number(b.voteSkipThreshold));
-        if (!(v >= 2 && v <= 50)) return this._json(res, 400, { error: "Pragul de vot trebuie să fie între 2 și 50" });
+        if (!(v >= 2 && v <= 50)) return this._json(res, 400, { error: this.t("voteRange") });
         s.set("voteSkipThreshold", v);
       }
       if (b.prefix != null) {
         const pfx = String(b.prefix).trim();
-        if (!pfx || pfx.length > 5 || /\s/.test(pfx)) return this._json(res, 400, { error: "Prefixul trebuie să aibă 1–5 caractere, fără spații" });
+        if (!pfx || pfx.length > 5 || /\s/.test(pfx)) return this._json(res, 400, { error: this.t("prefixBad") });
         s.set("prefix", pfx);
       }
       if (b.locale != null) {
         const loc = String(b.locale);
         const avail = this.djmitica.locale?.availableLocales?.() ?? new Set(["en"]);
-        if (!avail.has(loc)) return this._json(res, 400, { error: "Limbă necunoscută" });
+        if (!avail.has(loc)) return this._json(res, 400, { error: this.t("unknownLang") });
         s.set("locale", loc);
         try { this.djmitica.locale?.invalidateCache?.(gid); } catch (_) {}
       }
       if (b.stay247 != null) {
         try { await this._set247(s, gid, cleanId(String(b.stay247))); }
-        catch (e) { return this._json(res, 500, { error: "Nu am putut schimba modul 24/7: " + (e?.message ?? e) }); }
+        catch (e) { return this._json(res, 500, { error: this.t("fail247") + (e?.message ?? e) }); }
       }
-      msgs.push("Setările serverului au fost salvate.");
+      msgs.push(this.t("serverSaved"));
     }
-    logger.info("[Web] Setari modificate din interfata web.");
+    logger.info("[Web] Settings changed from the web panel.");
     return this._json(res, 200, { ok: true, message: msgs.join(" "), settings: this.settings(body.server?.guildId) });
   }
 
-  /* --------------------------------------------------------------- cautare */
+  /* --------------------------------------------------------------- search */
 
   async _search(res, params) {
     const q = String(params.get("q") ?? "").trim();
     const provider = PROVIDERS[params.get("provider")] ? params.get("provider") : "ytm";
     if (!q) return this._json(res, 200, { results: [] });
-    if (q.length > 300) return this._json(res, 400, { error: "Căutare prea lungă" });
+    if (q.length > 300) return this._json(res, 400, { error: this.t("searchLong") });
     const lav = this.djmitica.lavalink;
-    if (!lav) return this._json(res, 503, { error: "Nodul audio nu e pregătit" });
+    if (!lav) return this._json(res, 503, { error: this.t("nodeNotReady") });
     try {
       await lav.waitForNode({ timeoutMs: 8000 });
       const isUrl = Utils.isValidUrl(q);
@@ -715,11 +791,11 @@ export class WebServer {
       const tracks = (result?.tracks ?? []).slice(0, 15).map(conv).filter(Boolean).map(serializeTrack);
       return this._json(res, 200, { results: tracks, playlist: result?.loadType === "playlist" ? (result?.playlistInfo?.name ?? "Playlist") : null });
     } catch (e) {
-      return this._json(res, 502, { error: "Căutarea a eșuat: " + (e?.message ?? e) });
+      return this._json(res, 502, { error: this.t("searchFailed") + (e?.message ?? e) });
     }
   }
 
-  /* ------------------------------------------------------------- canale */
+  /* ------------------------------------------------------------- channels */
 
   _findPlayer(channelId) {
     const id = cleanId(channelId);
@@ -749,10 +825,10 @@ export class WebServer {
 
   async _join(res, body) {
     const channelId = cleanId(body.channelId ?? "");
-    if (!channelId) return this._json(res, 400, { error: "Lipsește canalul" });
-    if (this._findPlayer(channelId)) return this._json(res, 200, { ok: true, message: "Botul este deja în acest canal." });
+    if (!channelId) return this._json(res, 400, { error: this.t("noChannel") });
+    if (this._findPlayer(channelId)) return this._json(res, 200, { ok: true, message: this.t("alreadyIn") });
     const channel = this.client.channels?.get?.(channelId) ?? await this.client.channels?.fetch?.(channelId).catch(() => null);
-    if (!channel || channel.type !== 2) return this._json(res, 404, { error: "Canalul de voce nu a fost găsit" });
+    if (!channel || channel.type !== 2) return this._json(res, 404, { error: this.t("channelNotFound") });
     const guild = this.client.guilds?.get?.(cleanId(channel.guildId));
     const text = this._pickTextChannel(guild, body.textChannelId);
     let lastMsg = null;
@@ -764,11 +840,11 @@ export class WebServer {
     };
     const p = await this.players.initPlayer(fakeMsg, channelId);
     if (!p) {
-      const txt = typeof lastMsg === "string" ? lastMsg : "Nu am putut intra în canal.";
+      const txt = typeof lastMsg === "string" ? lastMsg : this.t("joinFailed");
       return this._json(res, 500, { error: txt.replace(/[*`<>#]/g, "") });
     }
-    logger.info(`[Web] Botul a intrat in canalul ${channel.name ?? channelId} din interfata web.`);
-    return this._json(res, 200, { ok: true, message: `Am intrat în ${channel.name ?? "canal"}.` });
+    logger.info(`[Web] Bot joined channel ${channel.name ?? channelId} from the web panel.`);
+    return this._json(res, 200, { ok: true, message: this.t("joined", channel.name ?? this.t("channel")) });
   }
 
   async _leave(p) {
@@ -796,20 +872,11 @@ export class WebServer {
 
   async _playerAction(res, channelId, action, body) {
     const p = this._findPlayer(channelId);
-    if (!p) return this._json(res, 404, { error: "Botul nu este în acest canal" });
-    const RO = [
-      [/^Paused$/i, "Pauză."], [/^Resumed$/i, "Redarea continuă."], [/^Skipped$/i, "Am trecut la următoarea melodie."],
-      [/^Already paused!?$/i, "Este deja pe pauză."], [/^Not paused!?$/i, "Nu este pe pauză."],
-      [/^There's nothing playing.*$/i, "Nu cântă nimic acum."], [/^Shuffled queue$/i, "Coada a fost amestecată."],
-      [/^There is nothing to shuffle.*$/i, "Coada e goală."],
-      [/^Volume (?:changed|set) to (\d+)%.*$/i, "Volum: $1%."],
-      [/^Moved (.+) from position \d+ to (\d+)\.$/i, "Am mutat „$1” pe poziția $2."],
-      [/^Successfully removed (.+) from the queue\.$/i, "Am scos „$1” din coadă."],
-      [/^Position (\d+) out of range.*$/i, "Poziția $1 nu există în coadă."],
-    ];
+    if (!p) return this._json(res, 404, { error: this.t("notInChannel") });
     const clean = (s) => {
       let t = String(s ?? "").replace(/:[a-z_]+:/g, "").replace(/[*`]/g, "").trim();
-      for (const [re, ro] of RO) if (re.test(t)) { t = t.replace(re, ro); break; }
+      t = t.replace(/\[([^\]]+)\]\([^)]+\)/g, "$1");
+      if (this.lang === "ro") for (const [re, ro] of PLAYER_RO) if (re.test(t)) { t = t.replace(re, ro); break; }
       return t;
     };
     const ok = (message) => { this._lastStateJson = ""; setTimeout(() => this._pushState(), 50); return this._json(res, 200, { ok: true, message: clean(message) }); };
@@ -824,26 +891,26 @@ export class WebServer {
       case "stop": {
         p.clear();
         if (hasCurrent) p.skip();
-        return ok("Redarea a fost oprită și coada golită.");
+        return ok(this.t("stopped"));
       }
       case "volume": {
         const v = Math.round(Number(body.value));
-        if (!(v >= 0 && v <= 200)) return fail(400, "Volumul trebuie să fie între 0 și 200");
+        if (!(v >= 0 && v <= 200)) return fail(400, this.t("volRange2"));
         return ok(p.setVolume(v / 100));
       }
       case "seek": {
-        if (!hasCurrent) return fail(400, "Nu cântă nimic");
+        if (!hasCurrent) return fail(400, this.t("nothing"));
         const ms = Math.max(0, Math.round(Number(body.ms)));
         const d = trackDurationMs(p.queue.getCurrent());
-        if (!Number.isFinite(ms) || (d && ms >= d)) return fail(400, "Poziție invalidă");
+        if (!Number.isFinite(ms) || (d && ms >= d)) return fail(400, this.t("badPos"));
         const done = await p.seekToPosition(ms);
-        return done === false ? fail(500, "Nu am putut sări la poziția aleasă") : ok("Poziție schimbată.");
+        return done === false ? fail(500, this.t("seekFailed")) : ok(this.t("seeked"));
       }
       case "loop": {
         const mode = String(body.mode ?? "off");
         p.queue.setSongLoop(mode === "song");
         p.queue.setLoop(mode === "queue");
-        return ok(mode === "song" ? "Repetă melodia" : mode === "queue" ? "Repetă coada" : "Repetarea e oprită");
+        return ok(this.t(mode === "song" ? "loopSong" : mode === "queue" ? "loopQueue" : "loopOff"));
       }
       case "autoplay": {
         const want = !!body.enabled;
@@ -859,63 +926,61 @@ export class WebServer {
             p._autoplayHistory = [];
             p._autoplayMixPools?.clear?.();
           }
-          return ok(want ? "Autoplay pornit" : "Autoplay oprit");
+          return ok(this.t(want ? "apOn" : "apOff"));
         } catch (e) {
-          return fail(500, "Autoplay indisponibil: " + e?.message);
+          return fail(500, this.t("apNA") + e?.message);
         }
       }
       case "shuffle": return ok(p.shuffle());
-      case "clear": p.clear(); return ok("Coada a fost golită.");
+      case "clear": p.clear(); return ok(this.t("cleared"));
       case "remove": {
         const i = Math.round(Number(body.index));
-        if (!(i >= 0 && i < p.queue.size())) return fail(400, "Poziție invalidă");
+        if (!(i >= 0 && i < p.queue.size())) return fail(400, this.t("badPos"));
         return ok(p.remove(i));
       }
       case "move": {
         const from = Math.round(Number(body.from)), to = Math.round(Number(body.to));
         const n = p.queue.size();
-        if (!(from >= 0 && from < n && to >= 0 && to < n)) return fail(400, "Poziție invalidă");
-        if (from === to) return ok("Nicio schimbare.");
+        if (!(from >= 0 && from < n && to >= 0 && to < n)) return fail(400, this.t("badPos"));
+        if (from === to) return ok(this.t("noChange"));
         return ok(p.move(from + 1, to + 1));
       }
       case "jump": {
         const i = Math.round(Number(body.index));
-        if (!(i >= 0 && i < p.queue.size())) return fail(400, "Poziție invalidă");
+        if (!(i >= 0 && i < p.queue.size())) return fail(400, this.t("badPos"));
         if (!hasCurrent) {
           p.queue.data.splice(0, i);
           p.playNext().catch(() => {});
-          return ok("Pornesc melodia aleasă.");
+          return ok(this.t("startingPicked"));
         }
         return ok(p.skipTo(i + 1));
       }
       case "add": {
         const query = String(body.query ?? "").trim();
-        if (!query) return fail(400, "Lipsește melodia");
-        if (query.length > 500) return fail(400, "Text prea lung");
-        if (/^(javascript|data|vbscript|file):/i.test(query)) return fail(400, "Adresă invalidă");
+        if (!query) return fail(400, this.t("missingSong"));
+        if (query.length > 500) return fail(400, this.t("textLong"));
+        if (/^(javascript|data|vbscript|file):/i.test(query)) return fail(400, this.t("badAddr"));
         const mode = body.mode === "next" || body.mode === "now" ? body.mode : "end";
         const provider = PROVIDERS[body.provider] ? body.provider : undefined;
         const emitter = p.play(query, mode !== "end", provider);
         const message = await new Promise((resolve) => {
-          let last = "Se cauta...";
+          let last = "Searching...";
           const t = setTimeout(() => resolve(last), 20000);
           emitter?.on?.("message", (m) => {
             last = typeof m === "string" ? m : (m?.embedText ?? last);
-            if (!/^Searching|^Se cauta|Retrying|trying \*\*/i.test(last)) { clearTimeout(t); resolve(last); }
+            if (!/^Searching|^Caut|Retrying|trying \*\*/i.test(last)) { clearTimeout(t); resolve(last); }
           });
-          if (!emitter?.on) { clearTimeout(t); resolve("Adăugat."); }
+          if (!emitter?.on) { clearTimeout(t); resolve(this.t("added")); }
         });
-        if (mode === "now" && hasCurrent && /Successfully added/i.test(message)) p.skip();
-        return ok(clean(message).replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-          .replace(/^Successfully added (\d+) songs to the queue\./i, "Am adăugat $1 melodii în coadă.")
-          .replace(/^Successfully added (.+) to the queue\./i, "Am adăugat: $1"));
+        if (mode === "now" && hasCurrent && /Successfully added|Am adăugat/i.test(message)) p.skip();
+        return ok(message);
       }
       case "leave": {
         await this._leave(p);
-        return ok("Botul a ieșit din canal.");
+        return ok(this.t("left"));
       }
       default:
-        return fail(404, "Acțiune necunoscută");
+        return fail(404, this.t("action"));
     }
   }
 }

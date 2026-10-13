@@ -1,4 +1,4 @@
-/* Dj Mitica: panou web (vanilla JS, fara build). */
+/* Dj Mitica: web control panel (vanilla JS, no build step). */
 "use strict";
 
 (() => {
@@ -19,6 +19,143 @@
   };
   const initials = (n) => esc(String(n ?? "?").trim().slice(0, 1).toUpperCase() || "?");
 
+  /* ---------------------------------------------------------- i18n */
+  // English by default; Romanian when config.json -> web.language = "ro" (Settings -> Web panel).
+  const I18N = {
+    en: {
+      "login.intro": "Enter the panel password to control the bot.", "login.password": "Password", "login.submit": "Open the panel",
+      "top.live": "Live connection", "top.sections": "Sections", "top.logout": "Log out",
+      "tab.player": "Player", "tab.settings": "Settings", "tab.status": "Status",
+      "rail.title": "Voice channels",
+      "add.title": "Add music", "add.placeholder": "Song name, artist or YouTube / Spotify link", "add.search": "Search", "add.source": "Source",
+      "queue.title": "Queue", "queue.shuffle": "Shuffle", "queue.clear": "Clear",
+      "set.sections": "Settings sections", "set.serverTitle": "Server settings", "set.serverDesc": "Applies only to the selected server and takes effect immediately.",
+      "set.restartTitle": "Restart", "set.restartDesc": "Settings marked “after restart” only apply once the bot starts again. A restart takes 10–20 seconds and the music resumes on its own.",
+      "set.restartBtn": "Restart the bot",
+      "set.footer": "The bot token, database and NodeLink connection can only be changed in <code>docker/config.json</code>. A mistake there would stop the bot, including this panel.",
+      "log.title": "Log", "log.filter": "Filter", "log.filterAria": "Filter the log", "log.level": "Level", "log.all": "All",
+      "log.warn": "Warnings and errors", "log.error": "Errors only", "log.follow": "Follow", "log.aria": "Bot log", "log.none": "No lines to show.",
+      "err.expired": "Your session has expired. Please log in again.", "err.code": "Error {0}",
+      "unknown": "Unknown",
+      "g.paused": "Paused", "g.playing": "Playing", "g.connected": "Connected", "g.join": "Join", "g.joining": "Joining…",
+      "g.noVoice": "No voice channels.", "g.noServers": "The bot is not in any server yet.", "g.inviteHint": "Add it to a server with its invite link:",
+      "inv.add": "Add to a server", "inv.copy": "Copy link", "inv.copied": "Invite link copied.", "inv.label": "Invite link",
+      "d.emptyTitle": "The bot is not in a channel", "d.emptyText": "Pick a voice channel from the list and press Join. Then search for a song below.",
+      "d.on": "{0} on {1}", "d.nothing": "Nothing playing", "d.nothingHint": "Search for a song below to start playback.",
+      "d.leave": "Remove the bot from the channel", "d.seek": "Position in the song", "d.play": "Play", "d.pause": "Pause",
+      "d.next": "Next song", "d.stop": "Stop and clear the queue", "d.volume": "Volume",
+      "d.chips": "Repeat and autoplay", "d.loopSong": "Repeat song", "d.loopQueue": "Repeat queue",
+      "d.leaveConfirm": "Remove the bot from the channel? The queue will be lost.",
+      "q.songs": (n) => `${n} ${n === 1 ? "song" : "songs"}`, "q.empty": "The queue is empty. Added songs appear here, in the order they will play.",
+      "q.drag": "Drag to move", "q.playNow": "Play now", "q.up": "Move up", "q.down": "Move down", "q.remove": "Remove from queue",
+      "q.more": (n) => `and ${n} more songs`, "q.shuffled": "The queue was shuffled.", "q.clearConfirm": "Clear the queue? The current song keeps playing.",
+      "s.searching": "Searching for “{0}”…", "s.none": "Nothing found for “{0}”. Try another name or source.",
+      "s.playlist": "Playlist: {0}", "s.shown": "{0} songs shown", "s.addAll": "Add all",
+      "s.nowTitle": "Stops the current song and starts this one", "s.now": "Play now", "s.next": "Next", "s.queue": "Queue it",
+      "s.needPlayer": "To add songs, first put the bot in a voice channel.",
+      "c.default": "default", "c.secretSet": "Set, leave empty to keep it", "c.secretUnset": "Not set", "c.onePerLine": "one per line",
+      "c.off": "Off", "c.afterRestart": "after restart", "c.afterRestartTitle": "Applies after the bot restarts", "c.save": "Save",
+      "nav.server": "Server", "nav.restart": "Restart",
+      "r.changed": "You changed settings that apply after a restart: <strong>{0}</strong>. Restart the bot when you are ready.",
+      "r.confirm": "Restart the bot? The music stops for a few seconds and then resumes.", "r.restarting": "Restarting…",
+      "r.toast": "The bot is restarting. The page will reconnect on its own.",
+      "ss.noServer": "The bot is not in any server.", "ss.notLoaded": "This server's settings are not loaded yet.",
+      "ss.prefix": "Prefix", "ss.prefixHelp": "The characters commands start with in this server (1–5, no spaces).",
+      "ss.lang": "Bot language", "ss.langHelp": "Language of the bot's replies in this server.",
+      "ss.vol": "Default volume", "ss.volHelp": "The volume the bot starts with in this server (1–200%).",
+      "ss.ap": "Autoplay on by default", "ss.apHelp": "When the bot joins a channel, autoplay starts on its own: at the end of the queue it adds similar songs.",
+      "ss.ann": "Announce every song", "ss.annHelp": "Posts a message in chat when a new song starts.",
+      "ss.vote": "Vote to skip", "ss.voteHelp": "With several listeners, skipping needs a majority vote.",
+      "ss.thr": "Voting starts at", "ss.thrHelp": "Number of listeners from which skipping needs a vote (2–50).", "ss.thrAria": "Vote threshold", "ss.people": "people",
+      "ss.247": "24/7 channel", "ss.247Help": "The bot stays in this channel permanently and rejoins on its own if disconnected.",
+      "st.name": "Name", "st.uptime": "Uptime", "st.memory": "Memory", "st.servers": "Servers", "st.players": "Active players",
+      "st.state": "State", "st.connected": "Connected", "st.disconnected": "Disconnected", "st.address": "Address",
+      "st.nodelinkHelp": "Searches and prepares songs for playback.", "st.voice": "Voice commands", "st.disabled": "Disabled",
+      "st.wOk": "Whisper is responding", "st.wBad": "Whisper is not responding", "st.wCheck": "Checking", "st.wake": "Wake word",
+      "st.atEnd": "At the end", "st.onSkip": "On skip", "st.days": "d",
+    },
+    ro: {
+      "login.intro": "Introdu parola panoului ca să controlezi botul.", "login.password": "Parolă", "login.submit": "Intră în panou",
+      "top.live": "Conectare live", "top.sections": "Secțiuni", "top.logout": "Ieși",
+      "tab.player": "Player", "tab.settings": "Setări", "tab.status": "Status",
+      "rail.title": "Canale de voce",
+      "add.title": "Adaugă muzică", "add.placeholder": "Nume melodie, artist sau link YouTube / Spotify", "add.search": "Caută", "add.source": "Sursă",
+      "queue.title": "Coada", "queue.shuffle": "Amestecă", "queue.clear": "Golește",
+      "set.sections": "Secțiuni de setări", "set.serverTitle": "Setările serverului", "set.serverDesc": "Se aplică doar serverului ales și intră în vigoare imediat.",
+      "set.restartTitle": "Repornire", "set.restartDesc": "Setările marcate „după repornire” se aplică doar după ce botul pornește din nou. Repornirea durează 10–20 de secunde, iar muzica se reia singură.",
+      "set.restartBtn": "Repornește botul",
+      "set.footer": "Tokenul botului, baza de date și conexiunea la NodeLink se schimbă doar din <code>docker/config.json</code>. O greșeală acolo ar opri botul, inclusiv acest panou.",
+      "log.title": "Jurnal", "log.filter": "Filtrează", "log.filterAria": "Filtrează jurnalul", "log.level": "Nivel", "log.all": "Toate",
+      "log.warn": "Avertismente și erori", "log.error": "Doar erori", "log.follow": "Urmărește", "log.aria": "Jurnalul botului", "log.none": "Nicio linie de afișat.",
+      "err.expired": "Sesiunea a expirat. Intră din nou.", "err.code": "Eroare {0}",
+      "unknown": "Necunoscut",
+      "g.paused": "Pe pauză", "g.playing": "Cântă", "g.connected": "Conectat", "g.join": "Intră", "g.joining": "Intră…",
+      "g.noVoice": "Niciun canal de voce.", "g.noServers": "Botul nu este încă în niciun server.", "g.inviteHint": "Adaugă-l pe un server cu linkul de invitație:",
+      "inv.add": "Adaugă pe un server", "inv.copy": "Copiază linkul", "inv.copied": "Linkul de invitație a fost copiat.", "inv.label": "Link de invitație",
+      "d.emptyTitle": "Botul nu e în niciun canal", "d.emptyText": "Alege un canal de voce din listă și apasă Intră. Apoi caută o melodie mai jos.",
+      "d.on": "{0} pe {1}", "d.nothing": "Nu cântă nimic", "d.nothingHint": "Caută o melodie mai jos ca să pornească redarea.",
+      "d.leave": "Scoate botul din canal", "d.seek": "Poziție în melodie", "d.play": "Pornește", "d.pause": "Pauză",
+      "d.next": "Următoarea melodie", "d.stop": "Oprește și golește coada", "d.volume": "Volum",
+      "d.chips": "Repetare și autoplay", "d.loopSong": "Repetă melodia", "d.loopQueue": "Repetă coada",
+      "d.leaveConfirm": "Scoți botul din canal? Coada se va pierde.",
+      "q.songs": (n) => `${n} ${n === 1 ? "melodie" : "melodii"}`, "q.empty": "Coada e goală. Melodiile adăugate apar aici, în ordinea în care vor cânta.",
+      "q.drag": "Trage ca să muți", "q.playNow": "Cântă acum", "q.up": "Mută mai sus", "q.down": "Mută mai jos", "q.remove": "Scoate din coadă",
+      "q.more": (n) => `și încă ${n} melodii`, "q.shuffled": "Coada a fost amestecată.", "q.clearConfirm": "Golești coada? Melodia curentă continuă.",
+      "s.searching": "Caut „{0}”…", "s.none": "Nu am găsit nimic pentru „{0}”. Încearcă alt nume sau altă sursă.",
+      "s.playlist": "Playlist: {0}", "s.shown": "{0} melodii afișate", "s.addAll": "Adaugă tot",
+      "s.nowTitle": "Oprește melodia curentă și o pornește pe aceasta", "s.now": "Cântă acum", "s.next": "Următoarea", "s.queue": "În coadă",
+      "s.needPlayer": "Ca să adaugi melodii, întâi pune botul într-un canal de voce.",
+      "c.default": "implicit", "c.secretSet": "Setată, lasă gol ca să rămână", "c.secretUnset": "Nesetată", "c.onePerLine": "câte unul pe linie",
+      "c.off": "Oprit", "c.afterRestart": "după repornire", "c.afterRestartTitle": "Se aplică după repornirea botului", "c.save": "Salvează",
+      "nav.server": "Server", "nav.restart": "Repornire",
+      "r.changed": "Ai schimbat setări care se aplică după repornire: <strong>{0}</strong>. Repornește botul când ești gata.",
+      "r.confirm": "Repornești botul? Muzica se oprește câteva secunde și apoi se reia.", "r.restarting": "Repornește…",
+      "r.toast": "Botul repornește. Pagina se reconectează singură.",
+      "ss.noServer": "Botul nu este în niciun server.", "ss.notLoaded": "Setările acestui server nu sunt încă încărcate.",
+      "ss.prefix": "Prefix", "ss.prefixHelp": "Caracterele cu care încep comenzile în acest server (1–5, fără spații).",
+      "ss.lang": "Limba botului", "ss.langHelp": "Limba răspunsurilor botului în acest server.",
+      "ss.vol": "Volum implicit", "ss.volHelp": "Volumul cu care pornește botul în acest server (1–200%).",
+      "ss.ap": "Autoplay pornit implicit", "ss.apHelp": "Când botul intră într-un canal, pornește singur autoplay: la finalul cozii adaugă melodii asemănătoare.",
+      "ss.ann": "Anunță fiecare melodie", "ss.annHelp": "Trimite un mesaj în chat când începe o melodie nouă.",
+      "ss.vote": "Vot pentru skip", "ss.voteHelp": "Când sunt mai mulți ascultători, skip-ul cere majoritatea voturilor.",
+      "ss.thr": "Votul începe de la", "ss.thrHelp": "Numărul de ascultători de la care skip-ul cere vot (2–50).", "ss.thrAria": "Prag vot", "ss.people": "persoane",
+      "ss.247": "Canal 24/7", "ss.247Help": "Botul stă permanent în acest canal și revine singur dacă e deconectat.",
+      "st.name": "Nume", "st.uptime": "Pornit de", "st.memory": "Memorie", "st.servers": "Servere", "st.players": "Playere active",
+      "st.state": "Stare", "st.connected": "Conectat", "st.disconnected": "Deconectat", "st.address": "Adresă",
+      "st.nodelinkHelp": "Caută și pregătește melodiile pentru redare.", "st.voice": "Comenzi vocale", "st.disabled": "Dezactivate",
+      "st.wOk": "Whisper răspunde", "st.wBad": "Whisper nu răspunde", "st.wCheck": "Se verifică", "st.wake": "Cuvânt de activare",
+      "st.atEnd": "La final", "st.onSkip": "La skip", "st.days": "z",
+    },
+  };
+  let LANG_UI = "en";
+  try { if (localStorage.getItem("djmitica.lang") === "ro") LANG_UI = "ro"; } catch (_) {}
+  const LOCALE = () => (LANG_UI === "ro" ? "ro-RO" : "en-GB");
+  /** Translate a key; {0}, {1}… are replaced by the extra arguments. */
+  function T(key, ...args) {
+    const v = I18N[LANG_UI]?.[key] ?? I18N.en[key] ?? key;
+    if (typeof v === "function") return v(...args);
+    return args.length ? v.replace(/\{(\d+)\}/g, (_, i) => args[Number(i)] ?? "") : v;
+  }
+  /** Translate the static page texts (data-i18n attributes). */
+  function applyI18n() {
+    document.documentElement.lang = LANG_UI;
+    $$("[data-i18n]").forEach((el) => { el.textContent = T(el.dataset.i18n); });
+    $$("[data-i18n-html]").forEach((el) => { el.innerHTML = T(el.dataset.i18nHtml); });
+    $$("[data-i18n-placeholder]").forEach((el) => { el.placeholder = T(el.dataset.i18nPlaceholder); });
+    $$("[data-i18n-aria]").forEach((el) => { el.setAttribute("aria-label", T(el.dataset.i18nAria)); });
+    $$("[data-i18n-title]").forEach((el) => { el.title = T(el.dataset.i18nTitle); });
+  }
+  function setLanguage(lang) {
+    const l = lang === "ro" ? "ro" : "en";
+    try { localStorage.setItem("djmitica.lang", l); } catch (_) {}
+    if (l === LANG_UI) return false;
+    LANG_UI = l;
+    applyI18n();
+    return true;
+  }
+  applyI18n();
+  const title = (t) => t?.title || T("unknown");
+
   const ICON = {
     play: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>',
     pause: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4.5" height="14" rx="1.2"/><rect x="13.5" y="5" width="4.5" height="14" rx="1.2"/></svg>',
@@ -33,7 +170,7 @@
     jump: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M9 6.5v11a1 1 0 0 0 1.5.86l9-5.5a1 1 0 0 0 0-1.72l-9-5.5A1 1 0 0 0 9 6.5z"/><rect x="4" y="6" width="2.5" height="12" rx="1"/></svg>',
   };
 
-  // imagini care nu se incarca (CSP interzice onerror inline)
+  // images that fail to load (the CSP forbids inline onerror)
   document.addEventListener("error", (e) => {
     const img = e.target;
     if (!(img instanceof HTMLImageElement) || !img.dataset.fb) return;
@@ -47,8 +184,8 @@
     const res = await fetch(path, opts);
     let data = {};
     try { data = await res.json(); } catch (_) {}
-    if (res.status === 401 && path !== "api/login") { showLogin(); throw new Error("Sesiunea a expirat. Intră din nou."); }
-    if (!res.ok) throw new Error(data.error || `Eroare ${res.status}`);
+    if (res.status === 401 && path !== "api/login") { showLogin(); throw new Error(T("err.expired")); }
+    if (!res.ok) throw new Error(data.error || T("err.code", res.status));
     return data;
   }
 
@@ -69,7 +206,7 @@
     } catch (e) { toast(e.message, true); return null; }
   }
 
-  /* -------------------------------------------------------- stare */
+  /* -------------------------------------------------------- state */
   const S = {
     state: null,
     receivedAt: 0,
@@ -140,7 +277,7 @@
     es.addEventListener("error", async () => {
       $("#live-dot").classList.remove("on");
       if (es.readyState === EventSource.CLOSED) {
-        try { const s = await api("api/session"); if (!s.authenticated) return showLogin(); } catch (_) {}
+        try { const s = await api("api/session"); if (s.language && setLanguage(s.language)) loadSettings(); if (!s.authenticated) return showLogin(); } catch (_) {}
         setTimeout(connect, 3000);
       }
     });
@@ -150,7 +287,7 @@
     loadLogs();
   }
 
-  // rezerva: daca evenimentele live nu ajung (proxy care le blocheaza), cerem starea periodic
+  // fallback: if live events don't arrive (a proxy blocking them), poll the state
   setInterval(async () => {
     if ($("#app").hidden || document.hidden) return;
     if (S.es && S.es.readyState === EventSource.OPEN && Date.now() - (S.lastSse ?? 0) < 25000) return;
@@ -176,7 +313,7 @@
     fillGuildSelect();
   }
 
-  /* ------------------------------------------------------- canale */
+  /* ----------------------------------------------------- channels */
   function renderGuilds() {
     const st = S.state;
     const players = st.players ?? [];
@@ -186,20 +323,20 @@
         const p = players.find((x) => x.channelId === c.id);
         const people = c.listeners.map((u) => `<span class="avatar" title="${esc(u.name)}">${u.avatar ? `<img src="${esc(u.avatar)}" alt="" data-fb="remove">` : ""}${u.avatar ? "" : initials(u.name)}</span>`).join("");
         const btn = p
-          ? `<span class="badge">${p.paused ? "Pe pauză" : p.current ? "Cântă" : "Conectat"}</span>`
-          : `<button class="btn btn-ghost btn-sm" data-join="${esc(c.id)}" type="button">Intră</button>`;
+          ? `<span class="badge">${p.paused ? T("g.paused") : p.current ? T("g.playing") : T("g.connected")}</span>`
+          : `<button class="btn btn-ghost btn-sm" data-join="${esc(c.id)}" type="button">${T("g.join")}</button>`;
         return `<div class="vc${p ? " has-player" : ""}${p && p.channelId === currentPlayer()?.channelId ? " active" : ""}" ${p ? `data-select="${esc(c.id)}"` : ""}>
           <div class="vc-name" ${p ? 'role="button" tabindex="0"' : ""}>${ICON.voice}<span>${esc(c.name)}</span></div>${btn}
           ${people ? `<div class="people">${people}</div>` : ""}</div>`;
-      }).join("") || `<p class="muted small">Niciun canal de voce.</p>`;
+      }).join("") || `<p class="muted small">${T("g.noVoice")}</p>`;
       return `<div class="guild"><div class="guild-head"><span class="guild-icon">${icon}</span><span>${esc(g.name)}</span></div>${vcs}</div>`;
-    }).join("") || `<p class="muted">Botul nu este în niciun server.</p>`;
+    }).join("") || `<p class="muted">${T("g.noServers")}</p>${st.bot?.invite ? `<p class="muted small">${T("g.inviteHint")}</p>${inviteButtons(st.bot.invite)}` : ""}`;
     $("#guilds").innerHTML = html;
   }
   $("#guilds").addEventListener("click", async (e) => {
     const j = e.target.closest("[data-join]");
     if (j) {
-      j.disabled = true; j.textContent = "Intră…";
+      j.disabled = true; j.textContent = T("g.joining");
       const r = await act("api/join", { channelId: j.dataset.join });
       if (r) { S.selected = j.dataset.join; localStorage.setItem("djmitica.sel", S.selected); }
       j.disabled = false;
@@ -214,15 +351,25 @@
 
   function renderAll() { renderGuilds(); renderDeck(); renderQueue(); }
 
-  /* --------------------------------------------------------- puntea */
+  /* -------------------------------------------------------- invite */
+  const inviteButtons = (url) => `<div class="invite-row">
+      <a class="btn btn-primary btn-sm" href="${esc(url)}" target="_blank" rel="noopener noreferrer">${T("inv.add")}</a>
+      <button class="btn btn-ghost btn-sm" type="button" data-copy-invite="${esc(url)}">${T("inv.copy")}</button></div>`;
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-copy-invite]"); if (!b) return;
+    try { await navigator.clipboard.writeText(b.dataset.copyInvite); toast(T("inv.copied")); }
+    catch (_) { window.prompt(T("inv.label"), b.dataset.copyInvite); }
+  });
+
+  /* ----------------------------------------------------------- deck */
   function renderDeck() {
     if (S.interacting) { S.deckStale = true; return; }
     S.deckStale = false;
     const p = currentPlayer();
     const area = $("#deck-area");
     if (!p) {
-      area.innerHTML = `<div class="panel empty">${ICON.disc}<h2>Botul nu e în niciun canal</h2>
-        <p>Alege un canal de voce din listă și apasă Intră. Apoi caută o melodie mai jos.</p></div>`;
+      area.innerHTML = `<div class="panel empty">${ICON.disc}<h2>${T("d.emptyTitle")}</h2>
+        <p>${T("d.emptyText")}</p></div>`;
       return;
     }
     const c = p.current;
@@ -232,9 +379,9 @@
       area.innerHTML = `<div class="deck">
         <div class="deck-art"><div class="ph">${ICON.disc}</div></div>
         <div class="deck-body">
-          <div class="deck-where">${ICON.voice}<span>${esc(p.channelName)} pe ${esc(p.guildName)}</span></div>
-          <div><div class="deck-title">Nu cântă nimic</div><div class="deck-artist">Caută o melodie mai jos ca să pornească redarea.</div></div>
-          <div class="transport">${chips(p)}<button class="btn btn-ghost btn-sm danger" data-act="leave" type="button">Scoate botul din canal</button></div>
+          <div class="deck-where">${ICON.voice}<span>${esc(T("d.on", p.channelName, p.guildName))}</span></div>
+          <div><div class="deck-title">${T("d.nothing")}</div><div class="deck-artist">${T("d.nothingHint")}</div></div>
+          <div class="transport">${chips(p)}<button class="btn btn-ghost btn-sm danger" data-act="leave" type="button">${T("d.leave")}</button></div>
         </div></div>`;
       return;
     }
@@ -242,32 +389,32 @@
     area.innerHTML = `<div class="deck${p.paused ? " paused" : ""}">
       <div class="deck-art"><div class="ph">${ICON.disc}</div>${art}</div>
       <div class="deck-body">
-        <div class="deck-where">${ICON.voice}<span>${esc(p.channelName)} pe ${esc(p.guildName)}</span><span class="vu" aria-hidden="true">${"<i></i>".repeat(12)}</span></div>
+        <div class="deck-where">${ICON.voice}<span>${esc(T("d.on", p.channelName, p.guildName))}</span><span class="vu" aria-hidden="true">${"<i></i>".repeat(12)}</span></div>
         <div>
-          <div class="deck-title">${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(c.title)}</a>` : esc(c.title)}</div>
+          <div class="deck-title">${c.url ? `<a href="${esc(c.url)}" target="_blank" rel="noopener noreferrer">${esc(title(c))}</a>` : esc(title(c))}</div>
           <div class="deck-artist">${esc(c.author ?? "")}</div>
         </div>
         <div class="progress num">
           <span id="pos">${fmt(p.positionMs)}</span>
-          <input id="seek" type="range" min="0" max="${c.durationMs || 1}" value="${p.positionMs}" step="1000" aria-label="Poziție în melodie" ${c.live || !c.durationMs ? "disabled" : ""}>
+          <input id="seek" type="range" min="0" max="${c.durationMs || 1}" value="${p.positionMs}" step="1000" aria-label="${T("d.seek")}" ${c.live || !c.durationMs ? "disabled" : ""}>
           <span>${c.live ? "LIVE" : fmt(c.durationMs)}</span>
         </div>
         <div class="transport">
-          <button class="icon-btn play" data-act="toggle" type="button" aria-label="${p.paused ? "Pornește" : "Pauză"}" title="${p.paused ? "Pornește" : "Pauză"}">${p.paused ? ICON.play : ICON.pause}</button>
-          <button class="icon-btn" data-act="skip" type="button" aria-label="Următoarea melodie" title="Următoarea melodie">${ICON.skip}</button>
-          <button class="icon-btn" data-act="stop" type="button" aria-label="Oprește și golește coada" title="Oprește și golește coada">${ICON.stop}</button>
-          <div class="vol">${ICON.vol}<input id="vol" type="range" min="0" max="200" step="1" value="${p.volume}" aria-label="Volum"><output id="vol-out" class="num">${p.volume}%</output></div>
+          <button class="icon-btn play" data-act="toggle" type="button" aria-label="${p.paused ? T("d.play") : T("d.pause")}" title="${p.paused ? T("d.play") : T("d.pause")}">${p.paused ? ICON.play : ICON.pause}</button>
+          <button class="icon-btn" data-act="skip" type="button" aria-label="${T("d.next")}" title="${T("d.next")}">${ICON.skip}</button>
+          <button class="icon-btn" data-act="stop" type="button" aria-label="${T("d.stop")}" title="${T("d.stop")}">${ICON.stop}</button>
+          <div class="vol">${ICON.vol}<input id="vol" type="range" min="0" max="200" step="1" value="${p.volume}" aria-label="${T("d.volume")}"><output id="vol-out" class="num">${p.volume}%</output></div>
         </div>
-        <div class="transport">${chips(p)}<button class="btn btn-ghost btn-sm danger" data-act="leave" type="button">Scoate botul din canal</button></div>
+        <div class="transport">${chips(p)}<button class="btn btn-ghost btn-sm danger" data-act="leave" type="button">${T("d.leave")}</button></div>
       </div></div>`;
     paintRange($("#seek")); paintRange($("#vol"));
   }
 
   function chips(p) {
     const loop = p.loop.song ? "song" : p.loop.queue ? "queue" : "off";
-    return `<div class="chips" role="group" aria-label="Repetare și autoplay">
-      <button class="chip" type="button" data-loop="${loop === "song" ? "off" : "song"}" aria-pressed="${loop === "song"}">Repetă melodia</button>
-      <button class="chip" type="button" data-loop="${loop === "queue" ? "off" : "queue"}" aria-pressed="${loop === "queue"}">Repetă coada</button>
+    return `<div class="chips" role="group" aria-label="${T("d.chips")}">
+      <button class="chip" type="button" data-loop="${loop === "song" ? "off" : "song"}" aria-pressed="${loop === "song"}">${T("d.loopSong")}</button>
+      <button class="chip" type="button" data-loop="${loop === "queue" ? "off" : "queue"}" aria-pressed="${loop === "queue"}">${T("d.loopQueue")}</button>
       <button class="chip" type="button" data-autoplay="${!p.autoplay}" aria-pressed="${p.autoplay}">Autoplay</button>
     </div>`;
   }
@@ -285,7 +432,7 @@
     if (!b) return;
     const base = `api/player/${ch}/`;
     if (b.dataset.act === "leave") {
-      if (!confirm("Scoți botul din canal? Coada se va pierde.")) return;
+      if (!confirm(T("d.leaveConfirm"))) return;
       return act(base + "leave");
     }
     if (b.dataset.act) return act(base + b.dataset.act, {}, b.dataset.act === "toggle" || b.dataset.act === "skip" ? "" : undefined);
@@ -322,7 +469,7 @@
     }
   });
 
-  // progres + VU decorativ
+  // progress + decorative VU meter
   setInterval(() => {
     const p = currentPlayer();
     const c = p?.current;
@@ -345,31 +492,31 @@
     }, 110);
   }
 
-  /* --------------------------------------------------------- coada */
+  /* --------------------------------------------------------- queue */
   function renderQueue() {
     const p = currentPlayer();
     const q = $("#queue");
     $("#q-shuffle").disabled = $("#q-clear").disabled = !p || !p.queueTotal;
     if (!p) { q.innerHTML = ""; $("#queue-meta").textContent = ""; return; }
-    $("#queue-meta").textContent = p.queueTotal ? `${p.queueTotal} ${p.queueTotal === 1 ? "melodie" : "melodii"}, ${fmtLong(p.queueRemainingMs)}` : "";
+    $("#queue-meta").textContent = p.queueTotal ? `${T("q.songs", p.queueTotal)}, ${fmtLong(p.queueRemainingMs)}` : "";
     if (!p.queue.length) {
-      q.innerHTML = `<li class="queue-empty">Coada e goală. Melodiile adăugate apar aici, în ordinea în care vor cânta.</li>`;
+      q.innerHTML = `<li class="queue-empty">${T("q.empty")}</li>`;
       return;
     }
     const n = p.queue.length;
     q.innerHTML = p.queue.map((t, i) => `
       <li class="q-item" draggable="true" data-i="${i}">
-        <span class="q-pos num" title="Trage ca să muți">${i + 1}</span>
+        <span class="q-pos num" title="${T("q.drag")}">${i + 1}</span>
         ${t.thumbnail ? `<img class="thumb" src="${esc(t.thumbnail)}" alt="" loading="lazy" data-fb="hide">` : `<span class="thumb"></span>`}
-        <div class="t-main"><div class="t-title" title="${esc(t.title)}">${esc(t.title)}</div><div class="t-sub">${esc(t.author ?? "")}</div></div>
+        <div class="t-main"><div class="t-title" title="${esc(title(t))}">${esc(title(t))}</div><div class="t-sub">${esc(t.author ?? "")}</div></div>
         <span class="q-dur num">${t.live ? "LIVE" : fmt(t.durationMs)}</span>
         <div class="q-actions">
-          <button class="icon-btn sm" data-q="jump" title="Cântă acum" aria-label="Cântă acum: ${esc(t.title)}">${ICON.jump}</button>
-          <button class="icon-btn sm" data-q="up" title="Mută mai sus" aria-label="Mută mai sus" ${i === 0 ? "disabled" : ""}>${ICON.up}</button>
-          <button class="icon-btn sm" data-q="down" title="Mută mai jos" aria-label="Mută mai jos" ${i === n - 1 ? "disabled" : ""}>${ICON.down}</button>
-          <button class="icon-btn sm" data-q="remove" title="Scoate din coadă" aria-label="Scoate din coadă: ${esc(t.title)}">${ICON.x}</button>
+          <button class="icon-btn sm" data-q="jump" title="${T("q.playNow")}" aria-label="${T("q.playNow")}: ${esc(title(t))}">${ICON.jump}</button>
+          <button class="icon-btn sm" data-q="up" title="${T("q.up")}" aria-label="${T("q.up")}" ${i === 0 ? "disabled" : ""}>${ICON.up}</button>
+          <button class="icon-btn sm" data-q="down" title="${T("q.down")}" aria-label="${T("q.down")}" ${i === n - 1 ? "disabled" : ""}>${ICON.down}</button>
+          <button class="icon-btn sm" data-q="remove" title="${T("q.remove")}" aria-label="${T("q.remove")}: ${esc(title(t))}">${ICON.x}</button>
         </div>
-      </li>`).join("") + (p.queueTotal > n ? `<li class="q-more">și încă ${p.queueTotal - n} melodii</li>` : "");
+      </li>`).join("") + (p.queueTotal > n ? `<li class="q-more">${T("q.more", p.queueTotal - n)}</li>` : "");
   }
 
   $("#queue").addEventListener("click", (e) => {
@@ -418,37 +565,37 @@
   };
   $("#queue").addEventListener("dragend", () => { endDrag(); renderQueue(); });
 
-  $("#q-shuffle").addEventListener("click", () => { const p = currentPlayer(); if (p) act(`api/player/${p.channelId}/shuffle`, {}, "Coada a fost amestecată."); });
+  $("#q-shuffle").addEventListener("click", () => { const p = currentPlayer(); if (p) act(`api/player/${p.channelId}/shuffle`, {}, T("q.shuffled")); });
   $("#q-clear").addEventListener("click", () => {
     const p = currentPlayer(); if (!p) return;
-    if (confirm("Golești coada? Melodia curentă continuă.")) act(`api/player/${p.channelId}/clear`);
+    if (confirm(T("q.clearConfirm"))) act(`api/player/${p.channelId}/clear`);
   });
 
-  /* -------------------------------------------------------- cautare */
+  /* -------------------------------------------------------- search */
   let lastResults = [];
   $("#search-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const q = $("#search-q").value.trim();
     const box = $("#search-results");
     if (!q) { box.innerHTML = ""; return; }
-    box.innerHTML = `<p class="muted small">Caut „${esc(q)}”…</p>`;
+    box.innerHTML = `<p class="muted small">${esc(T("s.searching", q))}</p>`;
     try {
       const r = await api(`api/search?q=${encodeURIComponent(q)}&provider=${encodeURIComponent($("#search-provider").value)}`);
       lastResults = r.results ?? [];
-      if (!lastResults.length) { box.innerHTML = `<p class="muted small">Nu am găsit nimic pentru „${esc(q)}”. Încearcă alt nume sau altă sursă.</p>`; return; }
+      if (!lastResults.length) { box.innerHTML = `<p class="muted small">${esc(T("s.none", q))}</p>`; return; }
       const hasPlayer = !!currentPlayer();
-      const head = r.playlist ? `<div class="result"><span class="thumb"></span><div class="t-main"><div class="t-title">Playlist: ${esc(r.playlist)}</div><div class="t-sub">${lastResults.length} melodii afișate</div></div>
-        <div class="result-actions"><button class="btn btn-sm btn-primary" data-add-url="${esc(q)}" data-mode="end" ${hasPlayer ? "" : "disabled"}>Adaugă tot</button></div></div>` : "";
+      const head = r.playlist ? `<div class="result"><span class="thumb"></span><div class="t-main"><div class="t-title">${esc(T("s.playlist", r.playlist))}</div><div class="t-sub">${T("s.shown", lastResults.length)}</div></div>
+        <div class="result-actions"><button class="btn btn-sm btn-primary" data-add-url="${esc(q)}" data-mode="end" ${hasPlayer ? "" : "disabled"}>${T("s.addAll")}</button></div></div>` : "";
       box.innerHTML = head + lastResults.map((t, i) => `
         <div class="result">
           ${t.thumbnail ? `<img class="thumb" src="${esc(t.thumbnail)}" alt="" loading="lazy" data-fb="hide">` : `<span class="thumb"></span>`}
-          <div class="t-main"><div class="t-title" title="${esc(t.title)}">${esc(t.title)}</div><div class="t-sub">${esc(t.author ?? "")}${t.durationMs ? ", " + fmt(t.durationMs) : ""}</div></div>
+          <div class="t-main"><div class="t-title" title="${esc(title(t))}">${esc(title(t))}</div><div class="t-sub">${esc(t.author ?? "")}${t.durationMs ? ", " + fmt(t.durationMs) : ""}</div></div>
           <div class="result-actions">
-            <button class="btn btn-sm btn-ghost" data-r="${i}" data-mode="now" ${hasPlayer ? "" : "disabled"} title="Oprește melodia curentă și o pornește pe aceasta">Cântă acum</button>
-            <button class="btn btn-sm btn-ghost" data-r="${i}" data-mode="next" ${hasPlayer ? "" : "disabled"}>Următoarea</button>
-            <button class="btn btn-sm btn-primary" data-r="${i}" data-mode="end" ${hasPlayer ? "" : "disabled"}>În coadă</button>
+            <button class="btn btn-sm btn-ghost" data-r="${i}" data-mode="now" ${hasPlayer ? "" : "disabled"} title="${T("s.nowTitle")}">${T("s.now")}</button>
+            <button class="btn btn-sm btn-ghost" data-r="${i}" data-mode="next" ${hasPlayer ? "" : "disabled"}>${T("s.next")}</button>
+            <button class="btn btn-sm btn-primary" data-r="${i}" data-mode="end" ${hasPlayer ? "" : "disabled"}>${T("s.queue")}</button>
           </div>
-        </div>`).join("") + (hasPlayer ? "" : `<p class="muted small">Ca să adaugi melodii, întâi pune botul într-un canal de voce.</p>`);
+        </div>`).join("") + (hasPlayer ? "" : `<p class="muted small">${T("s.needPlayer")}</p>`);
     } catch (err) {
       box.innerHTML = `<p class="form-error">${esc(err.message)}</p>`;
     }
@@ -463,7 +610,7 @@
     b.disabled = false;
   });
 
-  /* --------------------------------------------------------- setari */
+  /* ------------------------------------------------------- settings */
   function fillGuildSelect() {
     const sel = $("#settings-guild");
     const gs = S.state?.guilds ?? [];
@@ -493,7 +640,7 @@
   }
 
   function renderNav(sections) {
-    const items = [["sec-server", "Server"], ...sections.map((s) => ["sec-" + s.id, s.title]), ["sec-restart", "Repornire"]];
+    const items = [["sec-server", T("nav.server")], ...sections.map((s) => ["sec-" + s.id, s.title]), ["sec-restart", T("nav.restart")]];
     $("#settings-nav").innerHTML = items.map(([id, t]) => `<a href="#${id}" data-goto="${id}">${esc(t)}</a>`).join("");
   }
   $("#settings-nav").addEventListener("click", (e) => {
@@ -512,15 +659,16 @@
         if (range <= 60) {
           return `<div class="slider-field"><input id="${id}" type="range" min="${f.min}" max="${f.max}" step="${f.step}" value="${v}" aria-label="${esc(f.label)}"><output for="${id}" class="num">${fmtNum(v, f)}</output></div>`;
         }
-        return `<div class="num-field"><input id="${id}" type="number" min="${f.min ?? ""}" max="${f.max ?? ""}" step="${f.step ?? 1}" value="${v ?? ""}" aria-label="${esc(f.label)}"${f.optional ? ' placeholder="implicit"' : ""}>${f.unit ? `<span class="muted">${esc(f.unit)}</span>` : ""}</div>`;
+        return `<div class="num-field"><input id="${id}" type="number" min="${f.min ?? ""}" max="${f.max ?? ""}" step="${f.step ?? 1}" value="${v ?? ""}" aria-label="${esc(f.label)}"${f.optional ? ` placeholder="${T("c.default")}"` : ""}>${f.unit ? `<span class="muted">${esc(f.unit)}</span>` : ""}</div>`;
       }
       case "color": return `<div class="color-field"><input id="${id}" type="color" value="${esc(v)}" aria-label="${esc(f.label)}"><span class="num muted">${esc(v)}</span></div>`;
-      case "secret": return `<input id="${id}" type="password" autocomplete="new-password" placeholder="${v.isSet ? "Setată, lasă gol ca să rămână" : "Nesetată"}" aria-label="${esc(f.label)}">`;
-      case "list": return `<textarea id="${id}" rows="${Math.max(2, Math.min(6, v.length + 1))}" placeholder="${esc(f.itemHint ?? "")}, câte unul pe linie" aria-label="${esc(f.label)}">${esc(v.join("\n"))}</textarea>`;
+      case "secret": return `<input id="${id}" type="password" autocomplete="new-password" placeholder="${v.isSet ? T("c.secretSet") : T("c.secretUnset")}" aria-label="${esc(f.label)}">`;
+      case "select": return `<select id="${id}" aria-label="${esc(f.label)}">${(f.options ?? []).map((o) => `<option value="${esc(o.value)}" ${o.value === v ? "selected" : ""}>${esc(o.label)}</option>`).join("")}</select>`;
+      case "list": return `<textarea id="${id}" rows="${Math.max(2, Math.min(6, v.length + 1))}" placeholder="${esc(f.itemHint ?? "")}, ${T("c.onePerLine")}" aria-label="${esc(f.label)}">${esc(v.join("\n"))}</textarea>`;
       default: return `<input id="${id}" type="text" value="${esc(v)}" ${f.maxLength ? `maxlength="${f.maxLength}"` : ""} aria-label="${esc(f.label)}">`;
     }
   }
-  const fmtNum = (v, f) => (Number(v) === 0 && f.path?.includes("rossfade")) ? "Oprit" : `${Number(v).toLocaleString("ro-RO")}${f.unit ? " " + f.unit : ""}`;
+  const fmtNum = (v, f) => (Number(v) === 0 && f.path?.includes("rossfade")) ? T("c.off") : `${Number(v).toLocaleString(LOCALE())}${f.unit ? " " + f.unit : ""}`;
 
   let globalFields = [];
   function renderGlobal(sections) {
@@ -529,14 +677,14 @@
     $("#global-settings").innerHTML = sections.map((sec) => {
       const rows = sec.fields.map((f) => {
         const idx = globalFields.push({ ...f, section: sec.id }) - 1;
-        const badge = f.live ? "" : ` <span class="tag" title="Se aplică după repornirea botului">după repornire</span>`;
+        const badge = f.live ? "" : ` <span class="tag" title="${T("c.afterRestartTitle")}">${T("c.afterRestart")}</span>`;
         return rowHtml(f.label, f.help, fieldControl(f, idx), badge);
       }).join("");
       return `<section class="panel" id="sec-${esc(sec.id)}">
         <h2 class="panel-title">${esc(sec.title)}</h2>
         <p class="muted small sec-desc">${esc(sec.desc ?? "")}</p>
         ${rows}
-        <div class="row-end"><button class="btn btn-primary" data-save-sec="${esc(sec.id)}" type="button" disabled>Salvează</button></div>
+        <div class="row-end"><button class="btn btn-primary" data-save-sec="${esc(sec.id)}" type="button" disabled>${T("c.save")}</button></div>
       </section>`;
     }).join("");
   }
@@ -576,6 +724,7 @@
     try {
       const r = await api("api/config", { changes });
       toast(r.message);
+      if (r.language && setLanguage(r.language)) { if (S.state) renderAll(); loadServerSettings(); if (S.tab === "status") { loadStatus(); renderLogs(); } }
       if (r.restart?.length) markRestart(r.restart);
       const y = window.scrollY;
       renderGlobal(r.sections);
@@ -585,16 +734,16 @@
 
   function markRestart(labels) {
     const p = $("#sec-restart .sec-desc");
-    p.innerHTML = `Ai schimbat setări care se aplică după repornire: <strong>${labels.map(esc).join(", ")}</strong>. Repornește botul când ești gata.`;
+    p.innerHTML = T("r.changed", labels.map(esc).join(", "));
     $("#restart-bot").classList.add("btn-primary");
   }
 
   $("#restart-bot").addEventListener("click", async () => {
-    if (!confirm("Repornești botul? Muzica se oprește câteva secunde și apoi se reia.")) return;
+    if (!confirm(T("r.confirm"))) return;
     const btn = $("#restart-bot");
-    btn.disabled = true; btn.textContent = "Repornește…";
+    btn.disabled = true; btn.textContent = T("r.restarting");
     try { await api("api/restart", {}); } catch (_) {}
-    toast("Botul repornește. Pagina se reconectează singură.");
+    toast(T("r.toast"));
     const t0 = Date.now();
     await new Promise((r) => setTimeout(r, 4000));
     while (Date.now() - t0 < 120000) {
@@ -607,25 +756,25 @@
   async function loadServerSettings() {
     const gid = $("#settings-guild").value;
     const box = $("#server-settings");
-    if (!gid) { box.innerHTML = `<p class="muted">Botul nu este în niciun server.</p>`; return; }
+    if (!gid) { box.innerHTML = `<p class="muted">${T("ss.noServer")}</p>`; return; }
     try {
       const s = (await api("api/settings?guild=" + encodeURIComponent(gid))).server;
-      if (!s) { box.innerHTML = `<p class="muted">Setările acestui server nu sunt încă încărcate.</p>`; return; }
+      if (!s) { box.innerHTML = `<p class="muted">${T("ss.notLoaded")}</p>`; return; }
       const langOpts = s.locales.map((l) => `<option value="${esc(l)}" ${l === s.locale ? "selected" : ""}>${esc(LANG[l] ?? l)}</option>`).join("");
-      const vcOpts = `<option value="">Oprit</option>` + s.voiceChannels.map((c) => `<option value="${esc(c.id)}" ${c.id === s.stay247 ? "selected" : ""}>${esc(c.name)}</option>`).join("");
+      const vcOpts = `<option value="">${T("c.off")}</option>` + s.voiceChannels.map((c) => `<option value="${esc(c.id)}" ${c.id === s.stay247 ? "selected" : ""}>${esc(c.name)}</option>`).join("");
       box.innerHTML =
-        rowHtml("Prefix", "Caracterele cu care încep comenzile în acest server (1–5, fără spații).",
-          `<input id="ss-prefix" type="text" maxlength="5" value="${esc(s.prefix)}" aria-label="Prefix" class="short">`) +
-        rowHtml("Limba botului", "Limba răspunsurilor botului în acest server.", `<select id="ss-locale" aria-label="Limba">${langOpts}</select>`) +
-        rowHtml("Volum implicit", "Volumul cu care pornește botul în acest server (1–200%).",
-          `<div class="num-field"><input id="ss-volume" type="number" min="1" max="200" value="${s.volume}" aria-label="Volum implicit"><span class="muted">%</span></div>`) +
-        rowHtml("Autoplay pornit implicit", "Când botul intră într-un canal, pornește singur autoplay: la finalul cozii adaugă melodii asemănătoare.", toggle("ss-autoplay", s.autoplay, "Autoplay pornit implicit")) +
-        rowHtml("Anunță fiecare melodie", "Trimite un mesaj în chat când începe o melodie nouă.", toggle("ss-ann", s.songAnnouncements, "Anunță fiecare melodie")) +
-        rowHtml("Vot pentru skip", "Când sunt mai mulți ascultători, skip-ul cere majoritatea voturilor.", toggle("ss-vote", s.voteSkip, "Vot pentru skip")) +
-        rowHtml("Votul începe de la", "Numărul de ascultători de la care skip-ul cere vot (2–50).",
-          `<div class="num-field"><input id="ss-thr" type="number" min="2" max="50" value="${s.voteSkipThreshold}" aria-label="Prag vot"><span class="muted">persoane</span></div>`) +
-        rowHtml("Canal 24/7", "Botul stă permanent în acest canal și revine singur dacă e deconectat.", `<select id="ss-247" aria-label="Canal 24/7">${vcOpts}</select>`) +
-        `<div class="row-end"><button id="save-server" class="btn btn-primary" type="button">Salvează</button></div>`;
+        rowHtml(T("ss.prefix"), T("ss.prefixHelp"),
+          `<input id="ss-prefix" type="text" maxlength="5" value="${esc(s.prefix)}" aria-label="${T("ss.prefix")}" class="short">`) +
+        rowHtml(T("ss.lang"), T("ss.langHelp"), `<select id="ss-locale" aria-label="${T("ss.lang")}">${langOpts}</select>`) +
+        rowHtml(T("ss.vol"), T("ss.volHelp"),
+          `<div class="num-field"><input id="ss-volume" type="number" min="1" max="200" value="${s.volume}" aria-label="${T("ss.vol")}"><span class="muted">%</span></div>`) +
+        rowHtml(T("ss.ap"), T("ss.apHelp"), toggle("ss-autoplay", s.autoplay, T("ss.ap"))) +
+        rowHtml(T("ss.ann"), T("ss.annHelp"), toggle("ss-ann", s.songAnnouncements, T("ss.ann"))) +
+        rowHtml(T("ss.vote"), T("ss.voteHelp"), toggle("ss-vote", s.voteSkip, T("ss.vote"))) +
+        rowHtml(T("ss.thr"), T("ss.thrHelp"),
+          `<div class="num-field"><input id="ss-thr" type="number" min="2" max="50" value="${s.voteSkipThreshold}" aria-label="${T("ss.thrAria")}"><span class="muted">${T("ss.people")}</span></div>`) +
+        rowHtml(T("ss.247"), T("ss.247Help"), `<select id="ss-247" aria-label="${T("ss.247")}">${vcOpts}</select>`) +
+        `<div class="row-end"><button id="save-server" class="btn btn-primary" type="button">${T("c.save")}</button></div>`;
       $("#save-server").addEventListener("click", async () => {
         const server = {
           guildId: gid,
@@ -650,32 +799,32 @@
     try {
       const s = await api("api/status");
       const mb = (b) => `${Math.round(b / 1048576)} MB`;
-      const up = (ms) => { const d = Math.floor(ms / 86400000); return (d ? d + " z " : "") + fmt(ms % 86400000); };
+      const up = (ms) => { const d = Math.floor(ms / 86400000); return (d ? d + " " + T("st.days") + " " : "") + fmt(ms % 86400000); };
       const led = (v) => v === true ? "ok" : v === false ? "bad" : "off";
       const w = s.whisper;
       $("#strips").innerHTML = `
         <div class="strip"><div class="strip-head"><span class="led ok"></span>Bot</div><dl class="kv">
-          <dt>Nume</dt><dd>${esc(s.bot.name ?? "-")}</dd>
-          <dt>Pornit de</dt><dd>${up(s.bot.uptimeMs)}</dd>
-          <dt>Memorie</dt><dd>${mb(s.bot.memory.rss)}</dd>
-          <dt>Servere</dt><dd>${s.bot.guilds}</dd>
-          <dt>Playere active</dt><dd>${s.bot.players}</dd>
-          <dt>Node.js</dt><dd>${esc(s.bot.node)}</dd></dl></div>
+          <dt>${T("st.name")}</dt><dd>${esc(s.bot.name ?? "-")}</dd>
+          <dt>${T("st.uptime")}</dt><dd>${up(s.bot.uptimeMs)}</dd>
+          <dt>${T("st.memory")}</dt><dd>${mb(s.bot.memory.rss)}</dd>
+          <dt>${T("st.servers")}</dt><dd>${s.bot.guilds}</dd>
+          <dt>${T("st.players")}</dt><dd>${s.bot.players}</dd>
+          <dt>Node.js</dt><dd>${esc(s.bot.node)}</dd></dl>${s.bot.invite ? inviteButtons(s.bot.invite) : ""}</div>
         <div class="strip"><div class="strip-head"><span class="led ${led(s.nodelink.connected)}"></span>NodeLink</div><dl class="kv">
-          <dt>Stare</dt><dd>${s.nodelink.connected ? "Conectat" : "Deconectat"}</dd>
-          <dt>Adresă</dt><dd>${esc(s.nodelink.host ?? "-")}</dd></dl>
-          <p class="muted small">Caută și pregătește melodiile pentru redare.</p></div>
-        <div class="strip"><div class="strip-head"><span class="led ${w.enabled ? led(w.ok) : "off"}"></span>Comenzi vocale</div><dl class="kv">
-          <dt>Stare</dt><dd>${!w.enabled ? "Dezactivate" : w.ok ? "Whisper răspunde" : w.ok === false ? "Whisper nu răspunde" : "Se verifică"}</dd>
-          ${w.enabled ? `<dt>Cuvânt de activare</dt><dd>${esc(w.wakeWord)}</dd>` : ""}</dl></div>
+          <dt>${T("st.state")}</dt><dd>${s.nodelink.connected ? T("st.connected") : T("st.disconnected")}</dd>
+          <dt>${T("st.address")}</dt><dd>${esc(s.nodelink.host ?? "-")}</dd></dl>
+          <p class="muted small">${T("st.nodelinkHelp")}</p></div>
+        <div class="strip"><div class="strip-head"><span class="led ${w.enabled ? led(w.ok) : "off"}"></span>${T("st.voice")}</div><dl class="kv">
+          <dt>${T("st.state")}</dt><dd>${!w.enabled ? T("st.disabled") : w.ok ? T("st.wOk") : w.ok === false ? T("st.wBad") : T("st.wCheck")}</dd>
+          ${w.enabled ? `<dt>${T("st.wake")}</dt><dd>${esc(w.wakeWord)}</dd>` : ""}</dl></div>
         <div class="strip"><div class="strip-head"><span class="led ${s.audio.crossfadeSeconds || s.audio.skipCrossfadeSeconds ? "ok" : "off"}"></span>Crossfade</div><dl class="kv">
-          <dt>La final</dt><dd>${s.audio.crossfadeSeconds ? s.audio.crossfadeSeconds + " s" : "Oprit"}</dd>
-          <dt>La skip</dt><dd>${s.audio.skipCrossfadeSeconds ? s.audio.skipCrossfadeSeconds + " s" : "Oprit"}</dd></dl></div>`;
+          <dt>${T("st.atEnd")}</dt><dd>${s.audio.crossfadeSeconds ? s.audio.crossfadeSeconds + " s" : T("c.off")}</dd>
+          <dt>${T("st.onSkip")}</dt><dd>${s.audio.skipCrossfadeSeconds ? s.audio.skipCrossfadeSeconds + " s" : T("c.off")}</dd></dl></div>`;
     } catch (e) { $("#strips").innerHTML = `<p class="form-error">${esc(e.message)}</p>`; }
   }
   setInterval(() => { if (S.tab === "status" && !document.hidden) loadStatus(); }, 10000);
 
-  /* --------------------------------------------------------- jurnal */
+  /* ------------------------------------------------------------ log */
   async function loadLogs() {
     try {
       const r = await api("api/logs?since=" + S.lastLogId);
@@ -698,12 +847,12 @@
     return true;
   };
   const logHtml = (l) => {
-    const t = new Date(l.t).toLocaleTimeString("ro-RO", { hour12: false });
+    const t = new Date(l.t).toLocaleTimeString(LOCALE(), { hour12: false });
     return `<span class="l-${l.level}"><span class="l-t">${t}</span>${esc(l.text)}</span>\n`;
   };
   function renderLogs() {
     const el = $("#log");
-    el.innerHTML = S.logs.filter(logPass).map(logHtml).join("") || `<span class="muted">Nicio linie de afișat.</span>`;
+    el.innerHTML = S.logs.filter(logPass).map(logHtml).join("") || `<span class="muted">${T("log.none")}</span>`;
     if ($("#log-follow").checked) el.scrollTop = el.scrollHeight;
   }
   function appendLogLine(l) {
@@ -723,6 +872,7 @@
     if (["player", "settings", "status"].includes(h)) setTab(h);
     try {
       const s = await api("api/session");
+      if (s.language) setLanguage(s.language);
       if (s.authenticated) showApp(); else showLogin();
     } catch (_) { showLogin(); }
   })();

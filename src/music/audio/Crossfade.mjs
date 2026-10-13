@@ -1,22 +1,22 @@
 /**
  * @module src/music/audio/Crossfade
- * @description Player audio cu crossfade pentru conexiunile LiveKit (@fluxerjs/voice).
+ * @description Crossfading audio player for LiveKit connections (@fluxerjs/voice).
  *
- * Inlocuieste conn.play()/conn.stop() ale librariei de voce cu un mixer propriu:
- *  - o SINGURA pista audio publicata ("output"), refolosita de la o melodie la alta;
- *  - fiecare melodie e o "voce" (WebM demuxer + Opus decoder) cu castig propriu;
- *  - o bucla (pump) ia cate 10 ms din fiecare voce, le mixeaza si le trimite in pista.
- * Asa melodia veche poate scadea (fade-out) in timp ce noua creste (fade-in), fara ca
- * pipeline-ul vechi sa poata opri/inchide melodia noua.
+ * Replaces the voice library's conn.play()/conn.stop() with its own mixer:
+ *  - a SINGLE published audio track ("output"), reused from one track to the next;
+ *  - every song is a "voice" (WebM demuxer + Opus decoder) with its own gain;
+ *  - a loop (pump) takes 10 ms from every voice, mixes them and sends them to the track.
+ * This way the old song can fade out while the new one fades in, without the old
+ * pipeline being able to stop/close the new song.
  *
- * API folosit de restul botului:
- *  - installCrossfade(conn)      apelat de FluxerAudioBridge inainte de play
- *  - conn.__xfArm(ms)            porneste fade-out pe melodia curenta; urmatorul stop()
- *                                nu o mai opreste, ci o lasa sa se stinga peste urmatoarea
- *  - conn.__xfKeepSids           pista output nu trebuie depublicata de bridge
- *  - crossfadeFor(durationMs)    cat crossfade se aplica la finalul natural al unei melodii
+ * API used by the rest of the bot:
+ *  - installCrossfade(conn)      called by FluxerAudioBridge before play
+ *  - conn.__xfArm(ms)            starts a fade-out on the current song; the next stop()
+ *                                no longer cuts it, it lets it fade out over the next one
+ *  - conn.__xfKeepSids           the output track must not be unpublished by the bridge
+ *  - crossfadeFor(durationMs)    how much crossfade applies at the natural end of a song
  *
- * Daca modulele audio nu pot fi incarcate, nu se instaleaza nimic si botul merge ca inainte.
+ * If the audio modules cannot be loaded, nothing is installed and the bot works as before.
  */
 
 import { Readable } from "node:stream";
@@ -47,14 +47,14 @@ try {
   };
   if (Object.values(deps).some((x) => !x)) throw new Error("module incomplete");
 } catch (e) {
-  logger.warn("[Crossfade] Dezactivat — nu pot incarca modulele audio:", e?.message);
+  logger.warn("[Crossfade] Disabled — cannot load the audio modules:", e?.message);
   deps = null;
 }
 
-/** Pentru teste: injecteaza module false. */
+/** For tests: inject fake modules. */
 export function __setDeps(d) { deps = d; }
 
-/** Durata de crossfade folosita pentru o melodie de lungimea data (0 = fara). */
+/** Crossfade duration used for a song of the given length (0 = none). */
 export function crossfadeFor(durationMs) {
   const ms = getCrossfadeMs();
   if (!deps || !ms || !durationMs || durationMs < ms * 3) return 0;
@@ -63,7 +63,7 @@ export function crossfadeFor(durationMs) {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/* ------------------------------------------------------------------ voce */
+/* ----------------------------------------------------------------- voice */
 
 class Voice {
   constructor(conn, name) {
@@ -73,7 +73,7 @@ class Voice {
     this.pcm = [];          // Float32Array[]
     this.pcmOff = 0;        // offset in pcm[0]
     this.pcmLen = 0;
-    this.ended = false;     // sursa s-a terminat
+    this.ended = false;     // the source has ended
     this.dead = false;
     this.gain = { mode: "none", frames: 0, dur: 1 };
     this.input = null;
@@ -97,7 +97,7 @@ class Voice {
     input.pipe(demuxer);
   }
 
-  /** Decodeaza pana are cel putin n esantioane (sau nu mai are pachete). */
+  /** Decodes until at least n samples are buffered (or packets run out). */
   fill(n) {
     while (this.pcmLen < n && this.packets.length) {
       const pkt = this.packets.shift();
@@ -105,17 +105,17 @@ class Voice {
         const r = this.decoder.decodeFrame(pkt);
         const ch = r?.channelData?.[0];
         if (ch?.length) { this.pcm.push(ch); this.pcmLen += ch.length; }
-      } catch (_) { /* pachet stricat */ }
+      } catch (_) { /* corrupt packet */ }
     }
   }
 
-  /** true daca nu mai are nimic de redat */
+  /** true when there is nothing left to play */
   get drained() { return this.ended && !this.packets.length && this.pcmLen === 0; }
 
-  /** Adauga urmatoarele FRAME esantioane (x castig) in out. @returns {boolean} daca a contribuit */
+  /** Adds the next FRAME samples (x gain) into out. @returns {boolean} whether it contributed */
   mixInto(out, extraGain) {
     this.fill(FRAME);
-    if (this.pcmLen < FRAME && !this.ended) return false; // asteapta date (retea)
+    if (this.pcmLen < FRAME && !this.ended) return false; // waiting for data (network)
     if (this.pcmLen === 0) return false;
     const g = this.nextGain() * extraGain;
     let i = 0;
@@ -143,13 +143,13 @@ class Voice {
 
   get fadedOut() { return this.gain.mode === "out" && this.gain.frames >= this.gain.dur; }
 
-  /** Cat audio mai are de redat (ms), daca sursa s-a descarcat complet; altfel null. */
+  /** How much audio is left to play (ms) once the source is fully downloaded; otherwise null. */
   remainingMs() {
     if (!this.ended) return null;
     return this.packets.length * 20 + this.pcmLen / (SAMPLE_RATE / 1000);
   }
 
-  /** Porneste fade-out acum, pe durata data. */
+  /** Starts a fade-out now, over the given duration. */
   fadeOut(ms) {
     if (this.gain.mode === "out") return;
     this.gain = { mode: "out", frames: 0, dur: Math.max(1, ms / FRAME_MS) };
@@ -184,7 +184,7 @@ async function openInput(urlOrStream) {
 }
 
 /**
- * Instaleaza player-ul cu crossfade pe o conexiune LiveKit (o singura data).
+ * Installs the crossfading player on a LiveKit connection (once).
  * @param {object} conn - LiveKitRtcConnection
  */
 export function installCrossfade(conn) {
@@ -299,12 +299,12 @@ export function installCrossfade(conn) {
     updatePlaying();
   };
 
-  /** Porneste fade-out pe melodia curenta; urmatorul stop() n-o mai opreste brusc. */
   /**
-   * mode "skip": melodia curenta incepe imediat sa scada.
-   * mode "end":  melodia curenta canta normal pana porneste efectiv urmatoarea,
-   *              apoi scade pe durata ramasa (max ms). Daca urmatoarea nu mai vine,
-   *              se termina natural, cu un fade foarte scurt la final.
+   * Arms a fade-out on the current song; the next stop() no longer cuts it abruptly.
+   * mode "skip": the current song starts fading out immediately.
+   * mode "end":  the current song plays normally until the next one actually starts,
+   *              then fades out over the remaining time (max ms). If no next song
+   *              comes, it ends naturally with a very short fade at the end.
    */
   conn.__xfArm = (ms, mode = "skip") => {
     const v = m.master;
@@ -315,7 +315,7 @@ export function installCrossfade(conn) {
     if (mode === "end") {
       v.endArmed = true;
       m.armedUntil = Date.now() + 120_000;
-      logger.player(`[Crossfade] final de melodie: astept urmatoarea (max ${ms} ms crossfade)`);
+      logger.player(`[Crossfade] end of song: waiting for the next one (max ${ms} ms crossfade)`);
     } else {
       v.fadeOut(ms);
       m.armedUntil = Date.now() + ms + 5000;
@@ -364,7 +364,7 @@ export function installCrossfade(conn) {
           o.fadeOut(f);
           o.waitFade = 0;
           fadeMs = Math.max(1500, f);
-          logger.player(`[Crossfade] trecere: melodia veche scade in ${Math.round(f)} ms, noua creste in ${Math.round(fadeMs)} ms`);
+          logger.player(`[Crossfade] transition: old song fades out in ${Math.round(f)} ms, new one fades in over ${Math.round(fadeMs)} ms`);
         }
       }
       v.gain = { mode: "in", frames: 0, dur: Math.max(1, fadeMs / FRAME_MS) };
@@ -380,26 +380,26 @@ export function installCrossfade(conn) {
     const armed = m.armedUntil > Date.now() && m.armedVoice === m.master;
     m.armedUntil = 0;
     if (armed && m.master && !m.master.dead && !m.master.drained) {
-      // melodia curenta continua; urmatoarea va intra peste ea cu fade-in
+      // the current song keeps playing; the next one will fade in over it
       const v = m.master;
       m.master = null;
       m.armedVoice = null;
       m.fadeInNextMs = m.armMs || 3000;
       conn._playing = false;
       if (m.armMode === "end") {
-        // incepe sa scada abia cand porneste urmatoarea (sau la finalul ei natural)
+        // starts fading only when the next one starts (or at its own natural end)
         v.waitFade = m.armMs || 3000;
         const rem = v.remainingMs();
         m.pendingUntil = Date.now() + Math.max(8000, (rem ?? 15000) + 2000);
-        logger.player(`[Crossfade] melodia veche continua (${rem === null ? "?" : Math.round(rem / 1000) + " s ramase"}) pana porneste urmatoarea`);
+        logger.player(`[Crossfade] old song keeps playing (${rem === null ? "?" : Math.round(rem / 1000) + " s left"}) until the next one starts`);
       } else {
         m.pendingUntil = Date.now() + 8000;
         const left = Math.max(0, (v.gain.dur - v.gain.frames) * FRAME_MS);
-        logger.player(`[Crossfade] melodia veche se stinge in ~${Math.round(left)} ms, urmatoarea intra cu fade-in`);
+        logger.player(`[Crossfade] old song fades out in ~${Math.round(left)} ms, the next one fades in`);
       }
       return;
     }
-    // intre "skip cu fade" si pornirea urmatoarei melodii: nu taiem fade-ul
+    // between a "skip with fade" and the next song starting: don't cut the fade
     if (m.pendingUntil > Date.now()) { conn._playing = false; return; }
     hardStop();
     try { conn.stopVideo?.(); } catch (_) {}
@@ -414,5 +414,5 @@ export function installCrossfade(conn) {
     };
   }
 
-  logger.player("[Crossfade] player cu mixer instalat pe conexiune");
+  logger.player("[Crossfade] mixer player installed on connection");
 }

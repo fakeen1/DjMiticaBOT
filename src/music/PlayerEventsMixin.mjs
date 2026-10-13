@@ -47,7 +47,7 @@ const PlayerEventsMixin = {
       writable: true,
     });
 
-    // Autoplay pornit implicit, daca serverul are setarea "autoplay" activa
+    // Enable autoplay by default when the server has the "autoplay" setting turned on
     try {
       const apGuild = cleanId(context.guildId ?? player._guildId ?? "");
       const apRaw = apGuild ? this.settings?.getServer?.(apGuild)?.get?.("autoplay") : null;

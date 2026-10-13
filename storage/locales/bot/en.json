@@ -1,830 +1,831 @@
 {
-  "cmdBuilder": {
-    "requirement": {
-      "permission": "You don't have the needed permissions to run this command!"
+    "cmdBuilder": {
+        "requirement": {
+            "permission": "You don't have the needed permissions to run this command!"
+        },
+        "subcommand": {
+            "invalid": "Invalid subcommand. Try one of the following options: `$previousCmd <$cmdlist>`"
+        },
+        "option": {
+            "invalidChoice": "Invalid value '{{$currValue}}'. The option `{{$optionName}}` has to be one of the following:\n{{$choices}}\nSchematic: `$previousCmd <{{$type}}>`",
+            "invalidChannel": "Invalid value '{{$currValue}}'. The option `{{$optionName}}` has to be a channel mention, id, or name.\nSchematic: `$previousCmd <{{$type}}>`",
+            "invalidType": "Invalid value '{{$currValue}}'. The option `{{$optionName}}` has to be of type `{{$type}}`.\nSchematic: `$previousCmd <{{$type}}>`"
+        }
     },
-    "subcommand": {
-      "invalid": "Invalid subcommand. Try one of the following options: `$previousCmd <$cmdlist>`"
+    "cmdHandler": {
+        "command": {
+            "invalid": "Unknown command {{command}}!",
+            "suggestion": "Did you mean {{command}}? (Type {{acceptCommand}} to run it)"
+        },
+        "help": {
+            "pageStructure": "Available Commands (page $currPage/$maxPage): \n\n$content\n\nRun `$prefix$helpCmd <command>` to learn more about it. You can also include subcommands.\nFor example: `$prefix$helpCmd settings get`\n\nTip: Use the arrows beneath this message to turn pages, or specify the required page by using `$prefix$helpCmd <page number>`",
+            "unknownCommand": "❌ Unknown command `{{command}}`. Use `{{prefix}}help` to browse.",
+            "availableCommands": "Available Commands{{$page}}: ",
+            "runHelp": "\nRun `$prefix$helpCmd <command>` to learn more about it. You can also include subcommands.\nFor example: `$prefix$helpCmd command subcommandName`",
+            "pageTip": "\n\nTip: Turn pages by using `$prefix$helpCmd <page number>`",
+            "ellipsis": ". [...]",
+            "usage": "Usage: ",
+            "examples": "Example(s): ",
+            "aliases": "Aliases: ",
+            "subcommands": "Subcommands: ",
+            "arguments": "Arguments: ",
+            "allowedValues": "Allowed values: ",
+            "aliasesLabel": "Aliases: ",
+            "requirements": "Requirements: ",
+            "permission": "Permission `{{$permission}}`",
+            "optionCount": "{{$count}} option(s)"
+        },
+        "invalidFlag": "Invalid flag `$invalidFlag`. It doesn't match any options on this command.\n`$previousCmd $invalidFlag`",
+        "textWrapError": "Malformed string `{{$value}}`: Missing a closing quote character (`{{$quote}}`) after the desired string.",
+        "page": {
+            "invalid": "{{number}} is not a valid page number!"
+        },
+        "permissions": {
+            "message": "Please grant me the {{permission}} permission in {{channel}} or contact a server administrator. I am unable to operate without this."
+        }
     },
-    "option": {
-      "invalidChoice": "Invalid value '{{$currValue}}'. The option `{{$optionName}}` has to be one of the following:\n{{$choices}}\nSchematic: `$previousCmd <{{$type}}>`",
-      "invalidChannel": "Invalid value '{{$currValue}}'. The option `{{$optionName}}` has to be a channel mention, id, or name.\nSchematic: `$previousCmd <{{$type}}>`",
-      "invalidType": "Invalid value '{{$currValue}}'. The option `{{$optionName}}` has to be of type `{{$type}}`.\nSchematic: `$previousCmd <{{$type}}>`"
+    "commands": {
+        "clear": "Remove all songs from the queue.",
+        "debug": "A debug command for various purposes.",
+        "eval": "Evaluates JavaScript code (Owner Only).",
+        "filter": "Open an interactive filter picker — react with an emoji to apply an audio effect.",
+        "forceleave": "Make Dj Mitica leave a channel even if you're not in it.",
+        "invite": "Get the link to add Dj Mitica to your server.",
+        "join": "Make the bot join your voice channel, or specify one.",
+        "leave": "Make the bot leave a voice channel. Specify a channel or leave blank for your current one.",
+        "lastfm": "Link your Last.fm account, toggle scrobbling, or view your profile.",
+        "list": "List the songs in the queue of your current voice channel.",
+        "loop": "Toggle the looping of your queue/song.",
+        "lyrics": "Display synced lyrics from NodeLink.",
+        "np": "Request the name and url of the currently playing song.",
+        "pause": "Pause the playback in your voice channel.",
+        "ping": "Check the bot's latency and connection health.",
+        "play": "Play a song or playlist from a URL or search query.\nSupports YouTube, Spotify, SoundCloud, Deezer, Apple Music, Tidal, Bilibili, and more.\nDefault search: YouTube Music. Use `-p <provider>` or inline prefix e.g. `sp: blinding lights`.",
+        "player": "Create an interactive player control panel with live progress.",
+        "playnext": "Same as $prefixplay but adds the result to the top of the queue.",
+        "radio": "Play a radio station. Use `$prefixradio list` to browse all stations.",
+        "reload": "Reload commands. Leave blank to see all targets.",
+        "remove": "Remove a specific song from the queue.",
+        "resume": "Resume the playback in your voice channel.",
+        "search": "Display search results for a query and pick one to play.\nSupports all providers — use inline prefix e.g. `sp: song` or `-p dz`.",
+        "servers": "Fetch a list of servers the bot is in.",
+        "settings": "Change/Get settings in the current server.",
+        "shuffle": "Re-orders the queue randomly.",
+        "skip": "Skip the current playing song.",
+        "stats": "Display stats about the bot like the uptime.",
+        "support": "Where to get help with Dj Mitica, report bugs or suggest features.",
+        "test": "Shows how many people are in each voice channel.",
+        "thumbnail": "Request the thumbnail of the currently playing song.",
+        "volume": "Get or change the current volume.",
+        "vote": "View voting info or check voters for your server/bot on FluxerList",
+        "volumedefault": "View or set the server default volume. (Requires Manage Server to set)",
+        "seek": "Seek to a specific position in the currently playing track.",
+        "move": "Move a track from one position to another in the queue.",
+        "autoplay": "Toggle autoplay — automatically play similar tracks when the queue ends.",
+        "trackopt": "Set custom start/end times for tracks. Supports named aliases — save multiple trims per track for different sections."
+    },
+    "options": {
+        "debug": {
+            "target": "The target that should be examined."
+        },
+        "lastfm": {
+            "action": "The action to perform: link, confirm, unlink, np, profile, loved, top, recent, artists, love, unlove, scrobble",
+            "token": "The auth token from Last.fm (used with 'confirm' action)"
+        },
+        "eval": {
+            "expression": "The JavaScript expression to evaluate"
+        },
+        "filter": {
+            "name": "Filter name"
+        },
+        "forceleave": {
+            "channelId": "The channel that should be left."
+        },
+        "join": {
+            "channel": "A voice channel mention, ID, or name to join. Defaults to your current channel."
+        },
+        "loop": {
+            "type": "Specifies what loop should be toggled."
+        },
+        "play": {
+            "query": "A search query, URL, or provider-prefixed query like `sp: song name`.",
+            "provider": "The search provider. Default: YouTube Music. Or use inline prefix: sp:, dz:, am:, yt:, sc: etc."
+        },
+        "playnext": {
+            "query": "A search query, URL, or provider-prefixed query like `sp: song name`.",
+            "provider": "The search provider. Default: YouTube Music."
+        },
+        "radio": {
+            "station": "Station name, 'list' to browse, or leave blank for default."
+        },
+        "reload": {
+            "target": "Command/module name, or: all | commands | src | audio"
+        },
+        "remove": {
+            "index": "The position of the song in the queue. You can view the indices with the 'list' command."
+        },
+        "search": {
+            "provider": "The search provider. Default: YouTube Music.",
+            "query": "The query to search for, or a provider-prefixed query like `sp: song name`."
+        },
+        "settings": {
+            "get": {
+                "setting": "Get the current value of a setting."
+            },
+            "set": {
+                "setting": "The name of the setting you want to set.",
+                "value": "The new value."
+            },
+            "reset": {
+                "setting": "Which setting to reset."
+            },
+            "help": {
+                "setting": "Omit to see all available settings."
+            }
+        },
+        "volume": {
+            "volume": "The new volume in percentages (e.g. `30` or `100`). If you go above 100% there might be quality loss."
+        },
+        "vote": {
+            "action": "The action to perform: info, check, voters",
+            "type": "Resource type: server or bot"
+        },
+        "volumedefault": {
+            "volume": "New volume in % (0–200) to save as server default. Leave empty to view current."
+        },
+        "seek": {
+            "position": "Position to seek to (e.g. 1:30, 90, or 1:30:00 for hours)"
+        },
+        "move": {
+            "from": "The current position of the track in the queue (1-based).",
+            "to": "The target position to move the track to (1-based)."
+        },
+        "trackopt": {
+            "times": "Start and optional end time, e.g. '0:30' or '0:30 3:45'"
+        }
+    },
+    "pagination": {
+        "embed": {
+            "sclosedContent": "{{content}}\nSession closed - Changing pages **won't work** from here.",
+            "sclosedTitle": "Session Closed"
+        },
+        "error": {
+            "perms": {
+                "messages": "I am unable to send messages in {{channel}}. Please contact a server administrator and grant me the \"SendMessage\" permission.",
+                "reactions": "I need reaction permissions to work. Please contact a server administrator to address this."
+            }
+        }
+    },
+    "subcommands": {
+        "settings": {
+            "get": "Get the value of a specific setting or the settings of the server.",
+            "set": "Set the value of a specific setting.",
+            "reset": "Reset a setting to its default value.",
+            "help": "Show help for the settings system, or explain a specific setting."
+        }
+    },
+    "voice": {
+        "join": {
+            "cancelled": "Cancelled!",
+            "error": {
+                "dc": "It doesn't look like we're in the same voice channel.",
+                "invalid": "Invalid voice channel. Please try again and check capitalization! (`x` to cancel)",
+                "perms": "Something went wrong. Unable to join {{channel}}. Do I have the needed permissions?"
+            },
+            "warning": {
+                "nc": "You don't seem to be connected to {{channel}}. Did you forget to join?"
+            }
+        }
+    },
+    "responses": {
+        "_common": {
+            "nothingPlaying": "❌ There's nothing playing at the moment!",
+            "serverOnlyForMusic": "🎵 Music needs a **voice channel in a server** — I can't join voice in DMs. Run the command in a server instead!",
+            "noVoiceChannel": "⚠️ I can't find you in a voice channel. Please join one first, or if you're already in one, make sure I have **View Channel** and **Connect** permissions.",
+            "noVoiceStrict": "⚠️ I can't find you in a voice channel. Please join one, or if you're already in one, make sure I have **View Channel** and **Connect** permissions.",
+            "alreadyInChannel": "⚠️ I'm already playing in {{channels}}. Join that channel or use `{{prefix}}play` to start music in your channel.",
+            "busyPlayingInOtherVoiceChannel": "🎵 **I'm already playing music in {{channels}}!**\n🎧 **Join that channel** to listen along.\n⏳ Want me in your channel instead? Let the queue finish, or clear it with `{{prefix}}clear`, then run `{{prefix}}join` again.\n🔧 Server managers can override this anytime with `{{prefix}}forceleave`.",
+            "busyStayingInOtherVoiceChannel": "🤖 **I'm parked in {{channels}} in 24/7 mode.**\n🎧 Join that channel to hang out with me.\n🔧 To bring me to your channel instead, turn off 24/7 there with `{{prefix}}247 off`, or ask a server manager to run `{{prefix}}forceleave`.",
+            "notInVoice": "I'm not in a voice channel.",
+            "queueEmpty": "📭 The queue is empty. Use `{{prefix}}play` to add songs!",
+            "queueEnded": "🎵 The queue has ended — nothing left to play. Add more songs with `{{prefix}}play`!",
+            "queueRestored": "🔁 Bot restarted — restored **{{count}}** song(s) to the queue and reconnected to voice. Resuming where it stopped.",
+            "notConnected": "It doesn't look like we're in the same voice channel.",
+            "controlsExpired": "⌛ Controls expired",
+            "sessionEnded": "Session ended",
+            "navigateHint": "💡 ⬅️ ➡️ Navigate",
+            "voiceSelectionPrompt": "Please select one of the following channels by clicking on the reactions below",
+            "voiceSelectionHint": "send a message with the voice channel! (Mention/Id/Name)\nSend 'x' to cancel.",
+            "voiceSelectionTimedOut": "⏱️ Voice selection timed out.",
+            "voiceConnectionLost": "❌ Voice connection lost. Please rejoin.",
+            "couldNotGetStream": "❌ Could not get stream URL for **{{title}}** — skipping.",
+            "errorStreaming": "❌ Error streaming **{{title}}** — skipping.",
+            "successfullyLeft": "✅ Successfully Left",
+            "voiceSelectionInvalid": "Invalid voice channel. Try again or type `x`.",
+            "voiceChannelRequired": "❌ I can't find you in a voice channel. Please join one, or if you're already in one, make sure I have **View Channel** and **Connect** permissions!",
+            "joinPermissionError": "❌ I don't have permission to join <#{{channel}}>. Please give me the **Connect** permission in that channel.",
+            "joinFailedPermissions": "❌ Failed to join voice channel — missing permissions. Please make sure I have **Connect** and **Speak** permissions.",
+            "joinFailedGeneric": "❌ Failed to join voice channel. Please try again.",
+            "joinFailedNotFound": "❌ Could not find that voice channel."
+        },
+        "clear": {
+            "cleared": "🗑️ Queue cleared."
+        },
+        "debug": {
+            "voiceTitle": "🔧 Voice Debug",
+            "summary": "📊 **Summary**",
+            "pageLabel": "Page {{page}}/{{total}}",
+            "navigateHint": "Use ⬅️➡️ to navigate"
+        },
+        "eval": {
+            "resultTitle": "Eval Result",
+            "resultTitleError": "❌ Eval Result",
+            "resultTitleSuccess": "✅ Eval Result",
+            "typeLabel": "Type:",
+            "timeLabel": "Time:",
+            "pageLabel": "Page {{page}}/{{total}}",
+            "navigateHint": "• ⬅️ ➡️ Navigate • ❌ Delete",
+            "deleteHint": "• ❌ Delete",
+            "controlsExpired": "⌛ Controls expired"
+        },
+        "filter": {
+            "pickerTitle": "🎛️ Audio Filter Picker",
+            "nothingPlaying": "❌ Nothing is playing right now.",
+            "nothingPlayingInline": "*Nothing playing*",
+            "applyFailed": "❌ Failed to apply **{{filter}}**: `{{reason}}`\n\nMake sure your NodeLink node has filters enabled.",
+            "applied": "{{emoji}} **{{label}}** applied!",
+            "removed": "{{emoji}} **{{label}}** removed.",
+            "cleared": "🔇 Filters cleared — original audio restored.",
+            "pendingCleared": "Filter cleared. Original audio will be used on the next playable track.",
+            "pendingApplied": "{{label}} saved. It will apply on the next playable track.",
+            "pendingRemoved": "{{label}} removed. The next playable track will use the updated filters.",
+            "noFilterActive": "🔇 No filter active.",
+            "filtersActive": "✅ Filters active: **{{filters}}**.",
+            "reactToToggle": "💡 React again to toggle, or ❌ to close.",
+            "sessionTimedOut": "⌛ Session timed out.",
+            "pickerClosed": "👋 Filter picker closed.",
+            "footer": "Page {{page}}/{{total}} • React with a filter emoji to toggle it",
+            "activeLabel": "**← active**",
+            "closeHint": "❌ Close"
+        },
+        "forceleave": {
+            "channelNotFound": "❌ Channel not found.",
+            "wrongServer": "❌ This command has to be run in the same server as the voice channel.",
+            "playerNotFound": "❌ Player not found.",
+            "playerNotInit": "❌ Player not initialized."
+        },
+        "gateway": {
+            "missingPermsFallback": "⚠️ I'm missing permissions I need to work properly! Missing: **{{perms}}**. Please ask a server administrator to grant these permissions in Server Settings → Roles."
+        },
+        "invite": {
+            "title": "Invite {{name}}",
+            "addLink": "**[➕ Add {{name}} to your server]({{url}})**\nYou need the **Manage Server** permission on that server.",
+            "description": "Want your own copy instead? Dj Mitica is open source and self-hosted: the code and the setup guide are on [GitHub](https://github.com/fakeen1/DjMiticaBOT)."
+        },
+        "join": {
+            "channelNotFound": "Couldn't find the channel `{{channel}}`\nUse the help command to learn more about this. (`$prefixhelp join`)",
+            "alreadyJoined": "Already joined <#{{channel}}>.",
+            "audioNodeConnecting": "⚠️ Audio node is still connecting — please try again in a few seconds.",
+            "joining": "⏳ Joining Channel...",
+            "joined": "✅ Successfully joined <#{{channel}}>",
+            "joinFailed": "❌ Failed to join: {{error}}",
+            "noVoiceChannel": "❌ I can't find you in a voice channel. Please join one first, or if you're already in one, make sure I have **View Channel** and **Connect** permissions. You can also specify a channel: `{{prefix}}join <#channel>`",
+            "voiceChannelNotFound": "❌ Couldn't find that voice channel. Try using a mention like `<#channelid>` or the exact channel name.",
+            "autoLeaveInactive": "Left channel <#{{channel}}> because of inactivity.",
+            "autoLeaveInactive247": "Left channel <#{{channel}}> because of inactivity.\nIf you want me to stay in voice, use `{{prefix}}247 on` or `{{prefix}}247 auto`\nUse `{{prefix}}247` to view and manage all saved channels.",
+            "joinFailedPerms": "❌ I don't have permission to join <#{{channel}}>. Please check that I have the **Connect** permission.",
+            "voiceChannelUnknown": "unknown voice channel"
+        },
+        "leave": {
+            "noVoiceChannel": "⚠️ I can't find you in a voice channel. Please join one, or if you're already in one, make sure I have **View Channel** and **Connect** permissions. You can also specify a channel: `{{prefix}}leave <#channel>`",
+            "notInVoice": "I'm not in a voice channel.",
+            "joinChannel": "⚠️ Please join {{channel}} to use this command.",
+            "multipleChannels": "⚠️ I'm playing in multiple channels! Please join one of them:\n{{channels}}",
+            "specifyChannel": "⚠️ You're not in a voice channel. I'm playing in:\n{{channels}}\n\nUse `{{prefix}}leave <#channel>` to leave a specific channel.",
+            "noPlayerInChannel": "⚠️ I'm not playing in <#{{channel}}>. I'm in:\n{{channels}}",
+            "playerNotInit": "Player not initialized.",
+            "left": "✅ Successfully Left",
+            "leftRejoin247": "✅ Successfully Left — rejoining <#{{channel}}> in a few seconds.\nTo disable 24/7 mode permanently, use `{{prefix}}247 off`.",
+            "left247On": "✅ Successfully Left.\n24/7 mode is **on** — bot won't rejoin automatically. Use `{{prefix}}play` to bring it back, or `{{prefix}}247 off` to fully disable.\nUse `{{prefix}}247` to view all saved channels.",
+            "autoRejoinHint": "⚠️ 24/7 mode is enabled (auto) — I'll rejoin <#{{channel}}> in a few seconds.\nTo permanently remove me, disable 24/7 mode first: `{{prefix}}247 off`"
+        },
+        "lastfm": {
+            "notConfigured": "❌ Last.fm integration is not configured on this bot. Ask the bot owner to add a Last.fm API key to the config.",
+            "notLinked": "❌ You don't have a Last.fm account linked. Use `{{prefix}}lastfm link` to get started.",
+            "linked": "✅ Last.fm account **[{{username}}](https://last.fm/user/{{username}})** linked! Scrobbling is enabled by default.",
+            "alreadyLinked": "✅ You already have **{{username}}** linked! Use `{{prefix}}lastfm unlink` to disconnect, or `{{prefix}}lastfm scrobble` to toggle scrobbling.",
+            "unlinked": "✅ Last.fm account **{{username}}** has been unlinked.",
+            "scrobbleEnabled": "✅ Scrobbling **enabled** — songs you listen to will be scrobbled to **{{username}}**.",
+            "scrobbleDisabled": "⏸️ Scrobbling **disabled** — songs won't be scrobbled. Your account is still linked.",
+            "authDM": "📧 Check your DMs for the Last.fm authorization link! After approving, run `{{prefix}}lastfm confirm <token>` here.",
+            "authDMFailed": "⚠️ I couldn't DM you. [Click here to authorize on Last.fm]({{url}}), then run `{{prefix}}lastfm confirm <token>`.",
+            "authLinkTitle": "🎵 Link your Last.fm account",
+            "confirmUsage": "❌ Usage: `{{prefix}}lastfm confirm <token>` — provide the token from the auth DM.",
+            "confirmFailed": "❌ Failed to get session: {{error}}\nMake sure you approved the token on Last.fm first.",
+            "tokenFailed": "❌ Failed to get auth token: {{error}}",
+            "noLoved": "❤️ No loved tracks found for **{{username}}**.",
+            "noTop": "📊 No top tracks found for **{{username}}**.",
+            "noRecent": "🕐 No recent tracks found for **{{username}}**.",
+            "lovedTitle": "❤️ Loved Tracks — {{username}}",
+            "topTitle": "📊 Top Tracks — {{username}}",
+            "recentTitle": "🕐 Recent Tracks — {{username}}",
+            "nowPlaying": "🎵 Now Playing on Last.fm",
+            "lastPlayed": "🕐 Last Played on Last.fm",
+            "profileTitle": "Last.fm Profile: {{username}}",
+            "profileScrobbles": "🎵 **{{playcount}}** scrobbles",
+            "profileRegistered": "👤 Registered: {{date}}",
+            "profileLink": "🔗 [Open profile]({{url}})",
+            "noArtists": "🎤 No top artists found for **{{username}}**.",
+            "artistsTitle": "🎤 Top Artists — {{username}}",
+            "lovedTrack": "❤️ Loved **{{name}}** by **{{artist}}** on Last.fm!",
+            "unlovedTrack": "💔 Unloved **{{name}}** by **{{artist}}** on Last.fm.",
+            "loveFailed": "❌ Failed to love track: {{error}}",
+            "unloveFailed": "❌ Failed to unlove track: {{error}}",
+            "nothingPlayingLove": "❌ Nothing is playing right now. Play a song first to love it!",
+            "fetchFailed": "❌ Failed to fetch data from Last.fm: {{error}}",
+            "authLinkBody": "Click the link below to authorize Dj Mitica on Last.fm:\n\n**[Authorize on Last.fm]({{url}})**\n\nAfter you click \"Yes, allow access\", come back and run:\n`{{prefix}}lastfm confirm {{token}}`\n\n_This link expires in 60 minutes._",
+            "npTrackInfo": "**{{name}}** by **{{artist}}**\n[Open on Last.fm]({{url}})",
+            "npFooter": "Last.fm: {{username}}",
+            "profileScrobbleStatus": "🔄 Scrobbling: {{status}}",
+            "profileScrobbleEnabled": "✅ Enabled",
+            "profileScrobbleDisabled": "⏸️ Disabled",
+            "profileScrobbleFooter": "Use {{prefix}}lastfm scrobble to toggle scrobbling",
+            "noPlaylists": "📋 No playlists found for **{{username}}**.",
+            "playlistsTitle": "📋 Playlists — {{username}}",
+            "playlistsFooter": "💡 Use {{prefix}}lastfm play playlist <number> to play one!",
+            "nothingPlayingUnlove": "❌ Nothing is playing right now. Play a song first to unlove it!",
+            "nothingPlayingNoArtist": "❌ Nothing is playing right now and no artist specified. Play a song or provide an artist name!",
+            "whoknowsChecking": "🔍 Checking who listens to **{{artist}}** in this server...",
+            "whoknowsNobody": "👤 Nobody in this server has listened to **{{artist}}** on Last.fm.",
+            "whoknowsTitle": "👤 Who knows {{artist}}?",
+            "whoknowsFooter": "{{count}} listener{{plural}} · {{totalPlays}} total plays",
+            "leaderboardEmpty": "🎵 No scrobbles recorded yet. Link your Last.fm account with `{{prefix}}lastfm link` and start listening!",
+            "leaderboardControlsExpired": "Controls expired",
+            "leaderboardTitleServer": "🎵 Server Scrobble Leaderboard",
+            "leaderboardTitleGlobal": "🎵 Scrobble Leaderboard (global)",
+            "leaderboardScrobbles": "scrobbles",
+            "leaderboardYou": "← you",
+            "leaderboardFooterSync": "💡 Counts synced live from Last.fm (cached ~10 min) · `{{prefix}}lastfm profile` to force-sync yours",
+            "trackListFooter": "💡 Use `{{prefix}}lastfm play loved` to play these!",
+            "plays": "plays",
+            "leaderboardPageFooter": "Page {{current}}/{{total}} • Use ◀️▶️ to navigate",
+            "artistsFooter": "💡 Use {{prefix}}lastfm play top to play your top tracks!",
+            "noArtistSpecified": "❌ No artist specified. Play a song or provide an artist name via the token option.",
+            "artistNotFound": "❌ Artist **{{artist}}** not found on Last.fm.",
+            "noAlbumSpecified": "❌ No album specified. Play a song or provide an album name (e.g. `artist - album`) via the token option.",
+            "albumNotFound": "❌ Album **{{album}}** not found on Last.fm.",
+            "noTrackSpecified": "❌ No track specified. Play a song or provide a track name (e.g. `artist - track`) via the token option.",
+            "trackNotFound": "❌ Track **{{track}}** by **{{artist}}** not found on Last.fm.",
+            "noTopAlbums": "💿 No top albums found for **{{username}}**.",
+            "topAlbumsTitle": "💿 Top Albums{{period}} — {{username}}",
+            "topAlbumsFooter": "💡 Use {{prefix}}lastfm play albums to play your top albums!",
+            "noTopTags": "🏷️ No top tags found for **{{username}}**.",
+            "topTagsTitle": "🏷️ Top Tags — {{username}}",
+            "topTagsFooter": "💡 Use {{prefix}}lastfm tag <name> to view info about a tag!",
+            "tagProvideName": "❌ Provide a tag name via the token option. Example: `{{prefix}}lastfm tag rock`",
+            "tagNotFound": "❌ Tag **{{tag}}** not found on Last.fm.",
+            "compareSpecifyUser": "❌ Specify another user to compare with. Example: `{{prefix}}lastfm compare -user @user`",
+            "compareUserNotLinked": "❌ That user doesn't have a Last.fm account linked.",
+            "compareFailed": "❌ Could not compare profiles. Make sure both users are linked.",
+            "compareTitle": "🤝 Taste Comparison",
+            "coverNothingPlaying": "❌ Nothing is playing right now. Play a song to get its album cover!",
+            "coverNotFound": "🖼️ No album cover found for **{{track}}** by **{{artist}}**.",
+            "coverTitle": "🖼️ {{album}}",
+            "coverFooter": "🎵 {{track}} by {{artist}}",
+            "refreshFailed": "❌ Could not access the server.",
+            "refreshSuccess": "✅ Member list refreshed! Found **{{count}}** members in this server.",
+            "affinityNeedUsers": "👥 Need at least 2 linked users in this server to check affinity.",
+            "affinityChecking": "🔍 Checking music affinity among server members...",
+            "affinityNoCommon": "👥 No common artists found between any server members.",
+            "affinityTitle": "👥 Music Affinity",
+            "affinityFooter": "{{count}} members checked",
+            "crownsChecking": "👑 Checking your artist crowns...",
+            "crownsNone": "👑 You don't hold any artist crowns in this server. Keep listening!",
+            "crownsTitle": "👑 Artist Crowns — {{username}}",
+            "crownsFooter": "{{count}} crown{{plural}} held",
+            "whoknowsTrackChecking": "🔍 Checking who knows **{{track}}** by **{{artist}}** in this server...",
+            "whoknowsTrackNobody": "👤 Nobody in this server has listened to **{{track}}** by **{{artist}}** on Last.fm.",
+            "whoknowsTrackTitle": "👤 Who knows {{track}}?",
+            "whoknowsTrackFooter": "{{count}} listener{{plural}} · {{totalPlays}} total plays · by {{artist}}",
+            "whoknowsAlbumChecking": "🔍 Checking who knows **{{album}}**{{artistClause}} in this server...",
+            "whoknowsAlbumNobody": "👤 Nobody in this server has listened to **{{album}}** on Last.fm.",
+            "whoknowsAlbumTitle": "👤 Who knows {{album}}?",
+            "noArtistTags": "🏷️ No tags found for artist **{{artist}}**.",
+            "artistTagsTitle": "🏷️ Top Tags for {{artist}}",
+            "listeners": "listeners",
+            "leaderboardYourRank": "📍 Your rank: **#{{rank}}** ({{count}} scrobbles)"
+        },
+        "list": {
+            "empty": "📭 The queue is empty. Use `{{prefix}}play` to add songs!",
+            "emptyInline": "_Queue is empty._",
+            "nowPlaying": "🎵 **Now Playing**",
+            "header": "📋 **{{count}} tracks in queue** • ⏱️ `{{time}}`",
+            "upNext": " ▶",
+            "queueTitle": "🎧 Queue"
+        },
+        "loop": {
+            "invalidChoice": "'{{choice}}' is not valid. Use `song` or `queue`",
+            "songActivated": "🔂 Song loop activated",
+            "songDisabled": "➡️ Song loop disabled",
+            "queueActivated": "🔁 Queue loop activated",
+            "queueDisabled": "➡️ Queue loop disabled"
+        },
+        "queue": {
+            "empty": "The queue is empty.",
+            "indexOutOfBounds": "Index out of bounds",
+            "removed": "Successfully removed **{{title}}** from the queue.",
+            "sourceOutOfBounds": "Source index out of bounds",
+            "targetOutOfBounds": "Target index out of bounds",
+            "alreadyInPosition": "Track is already in that position",
+            "moved": "Moved **{{title}}** from position {{from}} to {{to}}."
+        },
+        "lyrics": {
+            "nothingPlaying": "❌ There's nothing playing at the moment.",
+            "searching": "Loading frame Searching lyrics for **{{title}}**...",
+            "noLyrics": "❌ No lyrics available for **{{title}}**.\n\n💡 NodeLink lyrics plugin may not have this track. Try a popular song!",
+            "error": "❌ Error: {{error}}",
+            "syncedBadge": " ⏱️ Synced",
+            "nodeLinkFooter": "NodeLink • {{lines}} lines",
+            "sourceFooter": "{{source}} • {{lines}} lines",
+            "controlsExpired": "⌛ Controls expired • NodeLink • {{lines}} lines",
+            "sessionClosed": "Session closed • NodeLink • {{lines}} lines"
+        },
+        "messages": {
+            "missingCriticalPermsTitle": "Missing Permissions — Bot Cannot Work Properly",
+            "missingCriticalPermsDesc": "The bot is missing **critical permissions** it needs to function. Please ask a server administrator to grant them.",
+            "missingOptionalPermsTitle": "Missing Optional Permissions",
+            "missingOptionalPermsDesc": "Some features may not work without these permissions, but the bot can still play music.",
+            "permFooter": "Re-invite the bot with correct permissions using the invite link, or edit the bot's role in Server Settings → Roles.",
+            "needPermsFallback": "I need the following permissions: **{{perms}}**. Please ask a server admin to grant them."
+        },
+        "np": {
+            "loading": "⏳ Loading...",
+            "nothingPlaying": "There's nothing playing at the moment.",
+            "nowPlayingIn": "🔊 **Now playing in:** <#{{channel}}>",
+            "playing": "🎵 Playing: **[{{title}}]({{url}})** ({{elapsed}}/{{duration}})",
+            "volume": "Volume: {{volume}}%",
+            "queueLoop": "Queue loop: **{{state}}**",
+            "songLoop": "Song loop: **{{state}}**",
+            "streaming": "📻 Streaming **[{{title}}]({{url}})**",
+            "playingBy": "Playing **[{{title}}]({{url}})** by [{{artist}}]({{artistUrl}})"
+        },
+        "pause": {
+            "nothingPlaying": "❌ There's nothing playing at the moment!",
+            "alreadyPaused": "❌ Already paused!",
+            "paused": "⏸️ Paused"
+        },
+        "ping": {
+            "title": "🏓  Pong!",
+            "measuring": "🏓  Pinging...",
+            "roundtrip": "📶  **Roundtrip**",
+            "gateway": "🌐  **Gateway**",
+            "node": "🎧  **NodeLink**"
+        },
+        "play": {
+            "searching": "🔍 Searching...",
+            "loading": "Loading...",
+            "loadingFailed": "**Failed to load that track.**",
+            "added": "Successfully added [{{title}}]({{url}}) to the queue.",
+            "addedPlaylist": "Successfully added **{{count}}** songs to the queue.",
+            "nowPlaying": "🎵 Now playing [{{title}}]({{url}}) by {{author}} in <#{{channel}}>",
+            "noResults": "**No results found for '{{query}}'.**",
+            "searchFailed": "**Search failed. Please try again.**",
+            "noData": "Could not load track - no data returned.",
+            "loadFailed": "Failed to load track.",
+            "unexpectedResult": "Unexpected result from track loader.",
+            "loadError": "An error occurred while loading the track.",
+            "searchingProvider": "Searching {{provider}}...",
+            "bilibiliResolving": "📺 Resolving Bilibili video...",
+            "bilibiliNoAudio": "❌ No playable audio for **{{title}}** — the video may be region-locked, premium-only, or deleted.",
+            "bilibiliError": "❌ Bilibili: {{message}}",
+            "bilibiliDisabled": "❌ Bilibili playback is disabled (config.json → bilibili.enabled)."
+        },
+        "playnext": {
+            "searching": "🔍 Searching..."
+        },
+        "player": {
+            "title": "🎧 Music Player Controls",
+            "inactiveTitle": "🎧 Music Player (Inactive)",
+            "nowPlayingLabel": "Now Playing",
+            "volumeLabel": "🔊 Volume: `{{volume}}%`",
+            "queueLabel": "📋 Queue: `{{count}}` tracks",
+            "loopOff": "Loop: ❌ Off",
+            "loopSong": "Loop: 🎂 Song",
+            "loopQueue": "Loop: 🔁 Queue",
+            "filterOff": "Filter: 🔇 Off",
+            "filterActive": "Filter: {{emoji}} **{{label}}**",
+            "filterStacked": "Filter: 🔥 **{{label}}**",
+            "reactHint": "💡 *React to control playback*",
+            "sessionExpires": "⏱️ Session expires in {{minutes}}m of inactivity",
+            "requestedBy": "Requested by {{username}} • Controls active",
+            "controlsDisabled": "⌛ Controls disabled (react to re-enable)",
+            "sessionClosed": "Session closed{{reason}}",
+            "closedByUser": "👋 Player controls closed",
+            "startedPlaying": "▶️ Started playing",
+            "resumed": "▶️ Resumed",
+            "pausedState": "⏸️ Paused",
+            "stopped": "⏹️ Stopped",
+            "stoppedCleared": "⏹️ Stopped and cleared",
+            "shuffled": "🔀 Queue shuffled",
+            "added": "➕ Added: {{title}}",
+            "volumeChanged": "🔊 Volume: {{volume}}%",
+            "filtersCleared": "🔇 Filters cleared",
+            "filterApplied": "{{emoji}} Filter: **{{label}}** applied",
+            "filterStackedApplied": "🔥 Filters: **{{label}}** applied",
+            "songLoopEnabled": "🔂 Song loop enabled",
+            "queueLoopEnabled": "🔁 Queue loop enabled",
+            "loopDisabled": "❌ Loop disabled",
+            "alreadyPlaying": "▶️ Already playing",
+            "startingPlayback": "▶️ Starting playback",
+            "previousNotImplemented": "⏮️ Previous track (not implemented)",
+            "previousNotAvailable": "⏮️ Previous track is not available yet.",
+            "errorGeneric": "⚠️ Error: {{error}}",
+            "openingFilterPicker": "🎛️ Opening filter picker — check the filter menu above or use the `filter` command.",
+            "filterError": "⚠️ Filter error: {{error}}",
+            "fetchingLyrics": "📜 Fetching lyrics...",
+            "noLyricsFound": "❌ No lyrics found in NodeLink",
+            "lyricsDisplayed": "Lyrics displayed ({{lines}} lines, {{pages}} pages)",
+            "lyricsError": "⚠️ Lyrics error: {{error}}"
+        },
+        "radio": {
+            "noStations": "❌ No radio stations are configured.",
+            "stationsTitle": "📻 **Radio Stations (Page {{page}}/{{total}})**",
+            "timedOut": "📻 Radio selection timed out.",
+            "cancelled": "❌ Radio selection cancelled.",
+            "unknownStation": "❌ Unknown station `{{station}}`. Available: {{stations}}\n\nUse `$prefixradio list` to browse.",
+            "nowPlaying": "📻 Now streaming _{{title}}_ by [{{author}}]({{url}}) in <#{{channel}}>",
+            "skipHint": "_Use `$prefixskip` to stop the radio, or `$prefixradio list` to switch stations._",
+            "prevNext": "⬅️ Previous   ➡️ Next   ❌ Cancel"
+        },
+        "reload": {
+            "indexNoReload": "❌ `index.mjs` cannot be hot-reloaded — do a full restart.",
+            "unknownCommand": "❌ Unknown command `{{name}}`",
+            "noFileTracked": "❌ No file tracked for `{{name}}`",
+            "noBuilder": "❌ No builder returned from `{{name}}`",
+            "reloaded": "✅ `{{name}}`",
+            "moduleError": "❌ `{{label}}`: {{error}}",
+            "unknownTarget": "❌ Unknown target `{{target}}`.\nRun `$prefixreload` with no arguments to see all reloadable targets.",
+            "availableTargetsTitle": "🔄 Reload — Available Targets",
+            "runHint": "Run `$prefixreload <target>` or use a batch keyword:",
+            "batchKeywords": "`all` · `commands`",
+            "resultsHeader": "✅ **{{ok}}** reloaded · ❌ **{{bad}}** failed"
+        },
+        "remove": {
+            "indexOutOfBounds": "Index out of bounds",
+            "removed": "Successfully removed **{{title}}** from the queue."
+        },
+        "resume": {
+            "nothingPlaying": "❌ There's nothing playing at the moment!",
+            "notPaused": "❌ Not paused!",
+            "resumed": "▶️ Resumed"
+        },
+        "search": {
+            "loadingResults": "⏳ Loading results...",
+            "searching": "Searching {{provider}}...",
+            "noResults": "❌ No results found.",
+            "resultsTitle": "{{provider}} — Search Results",
+            "reactHint": "React with a number to add to queue • ❌ to cancel • 30s timeout",
+            "cancelled": "❌ Cancelled.",
+            "added": "✅ Added [{{title}}]({{url}}) to the queue!",
+            "timedOut": "⏰ Search timed out.",
+            "sessionClosed": "Session closed"
+        },
+        "servers": {
+            "noServers": "_No servers found._",
+            "title": "🌐 Servers ({{count}})",
+            "pageTitle": "🌐 Servers ({{count}}) - Page {{page}}/{{total}}",
+            "listComplete": "List complete"
+        },
+        "settings": {
+            "unknownSetting": "❌ Unknown setting `{{setting}}`.",
+            "availableSettings": "Available: `{{settings}}`",
+            "setSuccess": "✅ **{{label}}** set to {{value}}",
+            "resetSuccess": "🔄 `{{setting}}` has been reset to its default: {{value}}",
+            "mustBeBool": "❌ `{{setting}}` must be a boolean.\nAccepted: `true`, `false`, `on`, `off`, `enable`, `disable`",
+            "volumeRange": "❌ Volume must be a number between **1** and **200**.",
+            "voteSkipThresholdRange": "❌ Vote-skip threshold must be a number between **{{min}}** and **{{max}}**.",
+            "invalidLocale": "❌ `{{locale}}` is not a supported locale.\nAvailable locales: {{locales}}",
+            "prefixLength": "❌ Prefix must be between **1** and **5** characters.",
+            "prefixSpaces": "❌ Prefix cannot contain spaces.",
+            "invalid247": "❌ Invalid value `{{value}}` for 24/7 mode.\n\n**Valid options:**\n• `on` — Stay connected permanently, no auto-rejoin after `{{prefix}}leave`\n• `auto` — Stay connected & auto-rejoin after `{{prefix}}leave` or disconnect\n• `off` — Leave after inactivity\n\nEach channel has its own mode. Use `{{prefix}}247` to see all saved channels.",
+            "noServer": "❌ Could not detect your server.",
+            "noVoice247": "❌ You're not in a voice channel. Join one first, then run `{{prefix}}247 {{mode}}` again.\n\n💡 Each channel gets its own 24/7 mode setting.",
+            "247Disabled": "✅ 24/7 mode **disabled** for <#{{channel}}>. Bot has left.\n💡 Use `{{prefix}}247` to see remaining saved channels.",
+            "247DisabledAll": "✅ 24/7 mode **disabled** for all channels in this server.\nBot will leave voice after inactivity.",
+            "247Set": "✅ 24/7 mode set to **{{mode}}** for <#{{channel}}>.\n{{summary}}\n\n💡 Use `{{prefix}}247` to view all saved channels.",
+            "247Joined": "✅ 24/7 mode set to **{{mode}}** for <#{{channel}}>. Bot joined!\n{{summary}}\n\n💡 Use `{{prefix}}247` to view all saved channels.",
+            "247JoinFailed": "⚠️ 24/7 mode saved for <#{{channel}}>, but failed to join: {{error}}\n{{summary}}\n\nTry `{{prefix}}join` or `{{prefix}}play` later, or `{{prefix}}247 off` to remove.",
+            "247Status": "♾️ **24/7 Mode**: {{status}}\n\nUse `{{prefix}}247 on` or `{{prefix}}247 auto` to enable — `{{prefix}}247 off` to disable.",
+            "helpTitle": "⚙️ Settings Help",
+            "helpAvailable": "**Available settings:** {{settings}}",
+            "helpSubcommands": "**Subcommands:**\n• `{{prefix}}settings get` — list all current values\n• `{{prefix}}settings get <setting>` — view a single setting\n• `{{prefix}}settings set <setting> <value>` — change a setting\n• `{{prefix}}settings reset <setting>` — restore default value\n• `{{prefix}}settings help <setting>` — describe a setting",
+            "helpShortcuts": "**Shortcuts:** `{{prefix}}prefix`, `{{prefix}}247`, `{{prefix}}voteskip`, `{{prefix}}voteskiplimit`",
+            "serverTitle": "⚙️ Server Settings",
+            "serverHeader": "Server: **{{name}}**",
+            "shortcutsHint": "Shortcuts: `{{prefix}}247`, `{{prefix}}prefix`, `{{prefix}}voteskip`, `{{prefix}}voteskiplimit`\nUse `{{prefix}}settings help <setting>` to learn about any setting.",
+            "enabled": "✅ enabled",
+            "disabled": "❌ disabled",
+            "label247": "24/7 mode",
+            "labelPrefix": "Prefix",
+            "labelSongAnnouncements": "Song announcements",
+            "labelPfp": "Bot avatar style",
+            "labelLocale": "Locale",
+            "labelVolume": "Default volume",
+            "labelVoteSkip": "Vote to skip",
+            "labelVoteSkipThreshold": "Vote to skip threshold",
+            "labelAnnouncementChannel": "Announcement channel",
+            "labelRestrictVolume": "Restrict volume",
+            "labelAutojoinChannel": "Autojoin channel",
+            "noDescription": "No description available.",
+            "validValues": "**Valid values:** {{values}}",
+            "validRange": "**Valid range:** {{min}}–{{max}}",
+            "currentValue": "**Current value:**",
+            "defaultValue": "**Default:**",
+            "settingTitle": "⚙️ {{setting}}",
+            "savedChannel": "Saved channel: <#{{channel}}>",
+            "savedChannels": "Saved channels ({{count}}): {{channels}}",
+            "statusDisabled": "❌ disabled",
+            "savedChannelsNone": "Saved channels: none",
+            "modeAuto": "🔄 Auto",
+            "modeOn": "✅ On",
+            "modeOff": "❌ Off",
+            "channelsLabel": "{{count}} channel",
+            "channelsLabelPlural": "{{count}} channels",
+            "thisServer": "this server",
+            "max247Channels": "You can save up to {{max}} 24/7 voice channels in one server. Use `{{prefix}}247 off` in one of the saved channels first.",
+            "247Panel": {
+                "title": "♾️ 24/7 Mode",
+                "noChannelsSaved": "No voice channels saved.",
+                "gettingStarted": "Getting Started",
+                "gettingStartedValue": "• `{{prefix}}247 on` — stay permanently\n• `{{prefix}}247 auto` — stay + auto-rejoin after disconnect",
+                "footer": "{{prefix}}247 on | {{prefix}}247 auto | {{prefix}}247 off",
+                "channelsSaved_one": "{{count}} channel saved",
+                "channelsSaved_other": "{{count}} channels saved",
+                "summaryOn": "✅ {{count}} on",
+                "summaryAuto": "🔄 {{count}} auto",
+                "modeOn": "✅ On",
+                "modeAuto": "🔄 Auto",
+                "modeOff": "❌ Off",
+                "enabledTitle": "♾️ 24/7 {{mode}}",
+                "enabledDescription": "{{channel}} → **{{mode}}** — {{summary}}",
+                "enabledFooter": "{{prefix}}247 off to disable for a channel",
+                "savedChannels": "Saved Channels",
+                "currentMarker": " ←",
+                "disabledTitle": "♾️ 24/7 Disabled",
+                "noChannelsSavedField": "No Channels Saved",
+                "allChannelsRemoved": "All 24/7 channels removed. Bot will leave voice after inactivity.",
+                "channelRemoved": "<#{{channel}}> removed",
+                "channelsRemaining_one": "{{count}} channel remaining",
+                "channelsRemaining_other": "{{count}} channels remaining",
+                "reenableFooter": "{{prefix}}247 on | {{prefix}}247 auto to re-enable",
+                "allChannelsLabel": "❌ All Channels",
+                "allChannelsDisabled": "24/7 mode **disabled** for all channels in this server.\nThe bot will leave voice after inactivity.",
+                "noChannelsSavedShort": "No channels saved",
+                "joinFailed": "⚠️ 24/7 {{mode}} saved, but failed to join <#{{channel}}>.\nError: `{{error}}`\n\nTry `{{prefix}}join` or `{{prefix}}play` later.",
+                "statusConnected": "🟢 Connected",
+                "statusReconnecting": "🟡 Reconnecting",
+                "statusOffline": "🔴 Offline",
+                "autoRecoveryLine": "♻️ Auto-recovery active — saved channels are checked every {{seconds}}s",
+                "autoRecoveryDisabledLine": "♻️ Auto-recovery standing by",
+                "enabledLine": "✅ 24/7 is **enabled** — the bot stays connected and auto-rejoins if disconnected.",
+                "disabledHint": "Join a voice channel and use `{{prefix}}247` to enable.",
+                "footerLine": "{{prefix}}247 · toggle · {{prefix}}247 off · disable all",
+                "confirmEnabled": "✅ 24/7 enabled in {{channel}} — the bot will stay connected and auto-rejoin if disconnected.",
+                "confirmDisabled": "❌ 24/7 disabled in {{channel}} — the bot will leave when idle.",
+                "confirmDisabledAll": "❌ 24/7 disabled for all channels in this server — the bot will leave when idle.",
+                "disabledLine": "❌ 24/7 is **disabled**",
+                "activeChannels_one": "✅ 24/7 active in {{count}} channel:",
+                "activeChannels_other": "✅ 24/7 active in {{count}} channels:"
+            }
+        },
+        "shuffle": {
+            "emptyQueue": "There is nothing to shuffle in the queue.",
+            "shuffled": "🔀 Shuffled queue"
+        },
+        "skip": {
+            "nothingPlaying": "❌ There's nothing playing at the moment!",
+            "skipped": "⏭️ Skipped",
+            "skippedTrack": "⏭️ Skipped [{{title}}]({{url}})",
+            "skippedToPosition": "⏭️ Skipped to position {{position}}",
+            "voteAdded": "🗳️ Vote to skip: **{{votes}}/{{needed}}**. Run this command again to add your vote!",
+            "alreadyVoted": "🗳️ You've already voted to skip! **{{votes}}/{{needed}}** votes so far."
+        },
+        "stats": {
+            "title": "Dj Mitica Music Bot",
+            "servers": "📂  **Servers**",
+            "users": "👥  **Users**",
+            "players": "🎧  **Players**",
+            "scrobbles": "🎵  **Scrobbles**",
+            "linkedUsers": "🔗  **Linked Last.fm**",
+            "ping": "🏓  **Ping**",
+            "gateway": "🌐  **Gateway**",
+            "uptime": "⏱️  **Uptime**",
+            "build": "🔧  **Build**",
+            "lastRestart": "🪛  **Last restart**",
+            "supportKofi": "⭐ [Star on GitHub](https://github.com/fakeen1/DjMiticaBOT)",
+            "community": "💬 [Report a bug or suggest a feature](https://github.com/fakeen1/DjMiticaBOT/issues)"
+        },
+        "support": {
+            "title": "💬 Support",
+            "description": "For anything regarding Dj Mitica, open an issue on GitHub:\n[github.com/fakeen1/DjMiticaBOT](https://github.com/fakeen1/DjMiticaBOT/issues)\n\nFor questions about this server's copy of the bot, ask the server owner."
+        },
+        "test": {
+            "notInServer": "❌ Must be used in a server.",
+            "noOneInVoice": "No one is in voice.",
+            "title": "🎙️ Voice Channel Members",
+            "channelEntry": "🔊 **{{name}}**: {{count}} members"
+        },
+        "thumbnail": {
+            "nothingPlaying": "There's nothing playing at the moment.",
+            "noThumbnail": "No thumbnail available.",
+            "thumbnail": "Thumbnail of [{{title}}]({{url}}):"
+        },
+        "volume": {
+            "current": "🔊 Current volume: `{{volume}}%`",
+            "outOfRange": "❌ Volume must be between `0` and `{{max}}%`.",
+            "changed": "🔊 Volume changed to `{{volume}}%` for this session.",
+            "setPending": "Volume set to `{{volume}}%` — will apply when connected."
+        },
+        "vote": {
+            "notConfigured": "❌ FluxerList integration is not configured on this bot. Ask the bot owner to add a FluxerList API key to the config.",
+            "noResourceId": "❌ No {{type}} ID configured. Provide it with `{{prefix}}vote check {{type}} <id-or-slug>` or set it in config.json.",
+            "infoTitle": "FluxerList Vote",
+            "infoDescription": "Vote for this bot/server on [FluxerList]({{siteUrl}})!\n\nFluxerList is a server and bot listing platform where users can vote to help grow the community.\n\n**Commands:**\n`{{prefix}}vote info` — Show this info & vote link\n`{{prefix}}vote info server` — Show vote link for a server\n`{{prefix}}vote check` — Check your own vote status\n`{{prefix}}vote voters` — View the voter list (owner-only)",
+            "voteTitle": "Vote on FluxerList",
+            "supportDesc": "Support this {{type}} by voting on FluxerList!",
+            "voteLink": "**[Vote & View Profile]({{url}})**",
+            "findLink": "Visit [FluxerList]({{siteUrl}}) to find and vote for this {{type}}.",
+            "helpGrow": "Your votes help this {{type}} grow and reach more users.",
+            "fetchVotersFailed": "❌ Failed to fetch voters: {{error}}",
+            "noVotersYet": "No one has voted for this {{type}} yet. Share the vote link to get started!",
+            "serverVoters": "Server Voters",
+            "botVoters": "Bot Voters",
+            "noVotersOnPage": "No voters found on this page.",
+            "controlsExpired": "Controls expired",
+            "pageInfo": "Page {{page}}/{{totalPages}} of {{total}} voters • Use ◀️▶️ to navigate",
+            "voterTotal": "{{total}} voter(s) total",
+            "defaultCommandsTitle": "**FluxerList Vote Commands:**",
+            "defaultCommandsList": "`{{prefix}}vote` — Show vote info & link\n`{{prefix}}vote info` — Show voting info & vote link\n`{{prefix}}vote check` — Check your own vote status\n`{{prefix}}vote voters` — View the voter list (owner-only)",
+            "optionsTitle": "**Options:**",
+            "optionsList": "`{{prefix}}vote check server` — Check your vote status for a server\n`{{prefix}}vote check bot` — Check your vote status for a bot",
+            "votedDate": "voted {{date}}",
+            "unknownUser": "User#{{id}}",
+            "unknownDate": "Unknown",
+            "checkYes": "✅ You **have an active vote** for this {{type}} — thank you!",
+            "checkNo": "❌ You haven't voted for this {{type}} yet (or your vote expired).\n**[Vote now!]({{url}})**",
+            "checkUnknown": "⚠️ Couldn't check your vote status right now — try again in a minute."
+        },
+        "volumedefault": {
+            "title": "🔊 Volume Settings",
+            "serverDefault": "• Server default: `{{volume}}%`",
+            "currentVolume": "• Current player volume: `{{volume}}%`",
+            "changeHint": "To change the default, use: `{{prefix}}volumedefault <0-{{max}}>`",
+            "noPermission": "⚠️ You need **Manage Server** permission to change the default.",
+            "noPermissionSet": "❌ You need **Manage Server** permission to set the server default volume.",
+            "outOfRange": "❌ Volume must be between `0` and `{{max}}%`.",
+            "saved": "🔊 Server default volume saved as `{{volume}}%`."
+        },
+        "seek": {
+            "nothingPlaying": "❌ There's nothing playing at the moment!",
+            "paused": "❌ Can't seek while paused. Resume first.",
+            "live": "❌ This is a live stream or radio — you can't seek in it.",
+            "invalidFormat": "❌ Invalid position format. Use `mm:ss`, `hh:mm:ss`, or seconds (e.g. `1:30`, `90`).",
+            "exceedsDuration": "❌ Seek position exceeds track duration (**{{duration}}**).",
+            "seeked": "⏩ Seeked to **{{position}}**",
+            "notSupported": "❌ Seeking is not supported by the current audio node.",
+            "failed": "❌ Failed to seek: {{error}}"
+        },
+        "autoplay": {
+            "enabled": "🔁 Autoplay **enabled** — similar tracks will be added automatically when the queue ends.",
+            "disabled": "➡️ Autoplay **disabled** — the bot will stop when the queue ends."
+        },
+        "trackopt": {
+            "notAvailable": "❌ Track options feature is not available.",
+            "nothingPlaying": "❌ There's nothing playing at the moment!",
+            "invalidFormat": "❌ Invalid time format. Use `mm:ss`, `hh:mm:ss`, or seconds.",
+            "invalidEndAfterStart": "❌ End time must be after start time.",
+            "startExceedsDuration": "❌ Start time exceeds track duration (**{{duration}}**).",
+            "endExceedsDuration": "❌ End time exceeds track duration (**{{duration}}**).",
+            "saved": "✅ Track option saved for **{{title}}**{{aliasLabel}}\n▶️ Start: **{{start}}** | ⏹️ End: **{{end}}**\n\nThis will apply automatically whenever this track plays in a channel you're in.",
+            "savedAlias": "✅ Track option saved for **{{title}}** [{{alias}}]\n▶️ Start: **{{start}}** | ⏹️ End: **{{end}}**\n\nUse `{{prefix}}trackopt play {{alias}}` to apply this trim while the track is playing.",
+            "saveFailed": "❌ Failed to save track option.",
+            "notSet": "No custom times set for **{{title}}**.",
+            "current": "📎 Track options for **{{title}}** ({{count}})",
+            "currentEntry": "• **{{alias}}** — {{start}} → {{end}}{{autoTag}}",
+            "removed": "🗑️ Removed track option for **{{title}}**.",
+            "removedAlias": "🗑️ Removed alias **{{alias}}** for **{{title}}**.",
+            "removedAll": "🗑️ Removed all track options for **{{title}}**.",
+            "notFound": "No custom times found for **{{title}}**.",
+            "aliasNotFound": "❌ No alias **{{alias}}** found for **{{title}}**.\nYour aliases: {{names}}",
+            "applied": "✂️ Applied alias **{{alias}}** — {{start}} → {{end}}",
+            "applyFailed": "❌ Failed to apply alias: {{error}}",
+            "mustBePlaying": "❌ The player must be actively playing to apply an alias.",
+            "invalidAlias": "❌ Invalid alias name. Use letters, numbers, hyphens, or underscores.",
+            "provideAlias": "❌ Provide an alias name. Usage: `{{prefix}}trackopt play <alias>`",
+            "listEmpty": "📭 You have no saved track options. Use `{{prefix}}trackopt set <start> [end]` to add one!",
+            "listTitle": "📋 **Your Track Options** ({{count}})",
+            "listEntry": "• **{{title}}** — {{start}} → {{end}}",
+            "listHint": "Use `{{prefix}}trackopt play <alias>` to apply a named trim, or `{{prefix}}trackopt remove [alias]` to delete one."
+        }
     }
-  },
-  "cmdHandler": {
-    "command": {
-      "invalid": "Unknown command {{command}}!",
-      "suggestion": "Did you mean {{command}}? (Type {{acceptCommand}} to run it)"
-    },
-    "help": {
-      "pageStructure": "Available Commands (page $currPage/$maxPage): \n\n$content\n\nRun `$prefix$helpCmd <command>` to learn more about it. You can also include subcommands.\nFor example: `$prefix$helpCmd settings get`\n\nTip: Use the arrows beneath this message to turn pages, or specify the required page by using `$prefix$helpCmd <page number>`",
-      "unknownCommand": "❌ Unknown command `{{command}}`. Use `{{prefix}}help` to browse.",
-      "availableCommands": "Available Commands{{$page}}: ",
-      "runHelp": "\nRun `$prefix$helpCmd <command>` to learn more about it. You can also include subcommands.\nFor example: `$prefix$helpCmd command subcommandName`",
-      "pageTip": "\n\nTip: Turn pages by using `$prefix$helpCmd <page number>`",
-      "ellipsis": ". [...]",
-      "usage": "Usage: ",
-      "examples": "Example(s): ",
-      "aliases": "Aliases: ",
-      "subcommands": "Subcommands: ",
-      "arguments": "Arguments: ",
-      "allowedValues": "Allowed values: ",
-      "aliasesLabel": "Aliases: ",
-      "requirements": "Requirements: ",
-      "permission": "Permission `{{$permission}}`",
-      "optionCount": "{{$count}} option(s)"
-    },
-    "invalidFlag": "Invalid flag `$invalidFlag`. It doesn't match any options on this command.\n`$previousCmd $invalidFlag`",
-    "textWrapError": "Malformed string `{{$value}}`: Missing a closing quote character (`{{$quote}}`) after the desired string.",
-    "page": {
-      "invalid": "{{number}} is not a valid page number!"
-    },
-    "permissions": {
-      "message": "Please grant me the {{permission}} permission in {{channel}} or contact a server administrator. I am unable to operate without this."
-    }
-  },
-  "commands": {
-    "clear": "Remove all songs from the queue.",
-    "debug": "A debug command for various purposes.",
-    "eval": "Evaluates JavaScript code (Owner Only).",
-    "filter": "Open an interactive filter picker — react with an emoji to apply an audio effect.",
-    "forceleave": "Make Dj Mitica leave a channel even if you're not in it.",
-    "invite": "Get the Dj Mitica GitHub page to run your own copy of the bot.",
-    "join": "Make the bot join your voice channel, or specify one.",
-    "leave": "Make the bot leave a voice channel. Specify a channel or leave blank for your current one.",
-    "lastfm": "Link your Last.fm account, toggle scrobbling, or view your profile.",
-    "list": "List the songs in the queue of your current voice channel.",
-    "loop": "Toggle the looping of your queue/song.",
-    "lyrics": "Display synced lyrics from NodeLink.",
-    "np": "Request the name and url of the currently playing song.",
-    "pause": "Pause the playback in your voice channel.",
-    "ping": "Check the bot's latency and connection health.",
-    "play": "Play a song or playlist from a URL or search query.\nSupports YouTube, Spotify, SoundCloud, Deezer, Apple Music, Tidal, Bilibili, and more.\nDefault search: YouTube Music. Use `-p <provider>` or inline prefix e.g. `sp: blinding lights`.",
-    "player": "Create an interactive player control panel with live progress.",
-    "playnext": "Same as $prefixplay but adds the result to the top of the queue.",
-    "radio": "Play a radio station. Use `$prefixradio list` to browse all stations.",
-    "reload": "Reload commands. Leave blank to see all targets.",
-    "remove": "Remove a specific song from the queue.",
-    "resume": "Resume the playback in your voice channel.",
-    "search": "Display search results for a query and pick one to play.\nSupports all providers — use inline prefix e.g. `sp: song` or `-p dz`.",
-    "servers": "Fetch a list of servers the bot is in.",
-    "settings": "Change/Get settings in the current server.",
-    "shuffle": "Re-orders the queue randomly.",
-    "skip": "Skip the current playing song.",
-    "stats": "Display stats about the bot like the uptime.",
-    "support": "Where to get help with Dj Mitica, report bugs or suggest features.",
-    "test": "Shows how many people are in each voice channel.",
-    "thumbnail": "Request the thumbnail of the currently playing song.",
-    "volume": "Get or change the current volume.",
-    "vote": "View voting info or check voters for your server/bot on FluxerList",
-    "volumedefault": "View or set the server default volume. (Requires Manage Server to set)",
-    "seek": "Seek to a specific position in the currently playing track.",
-    "move": "Move a track from one position to another in the queue.",
-    "autoplay": "Toggle autoplay — automatically play similar tracks when the queue ends.",
-    "trackopt": "Set custom start/end times for tracks. Supports named aliases — save multiple trims per track for different sections."
-  },
-  "options": {
-    "debug": {
-      "target": "The target that should be examined."
-    },
-    "lastfm": {
-      "action": "The action to perform: link, confirm, unlink, np, profile, loved, top, recent, artists, love, unlove, scrobble",
-      "token": "The auth token from Last.fm (used with 'confirm' action)"
-    },
-    "eval": {
-      "expression": "The JavaScript expression to evaluate"
-    },
-    "filter": {
-      "name": "Filter name"
-    },
-    "forceleave": {
-      "channelId": "The channel that should be left."
-    },
-    "join": {
-      "channel": "A voice channel mention, ID, or name to join. Defaults to your current channel."
-    },
-    "loop": {
-      "type": "Specifies what loop should be toggled."
-    },
-    "play": {
-      "query": "A search query, URL, or provider-prefixed query like `sp: song name`.",
-      "provider": "The search provider. Default: YouTube Music. Or use inline prefix: sp:, dz:, am:, yt:, sc: etc."
-    },
-    "playnext": {
-      "query": "A search query, URL, or provider-prefixed query like `sp: song name`.",
-      "provider": "The search provider. Default: YouTube Music."
-    },
-    "radio": {
-      "station": "Station name, 'list' to browse, or leave blank for default."
-    },
-    "reload": {
-      "target": "Command/module name, or: all | commands | src | audio"
-    },
-    "remove": {
-      "index": "The position of the song in the queue. You can view the indices with the 'list' command."
-    },
-    "search": {
-      "provider": "The search provider. Default: YouTube Music.",
-      "query": "The query to search for, or a provider-prefixed query like `sp: song name`."
-    },
-    "settings": {
-      "get": {
-        "setting": "Get the current value of a setting."
-      },
-      "set": {
-        "setting": "The name of the setting you want to set.",
-        "value": "The new value."
-      },
-      "reset": {
-        "setting": "Which setting to reset."
-      },
-      "help": {
-        "setting": "Omit to see all available settings."
-      }
-    },
-    "volume": {
-      "volume": "The new volume in percentages (e.g. `30` or `100`). If you go above 100% there might be quality loss."
-    },
-    "vote": {
-      "action": "The action to perform: info, check, voters",
-      "type": "Resource type: server or bot"
-    },
-    "volumedefault": {
-      "volume": "New volume in % (0–200) to save as server default. Leave empty to view current."
-    },
-    "seek": {
-      "position": "Position to seek to (e.g. 1:30, 90, or 1:30:00 for hours)"
-    },
-    "move": {
-      "from": "The current position of the track in the queue (1-based).",
-      "to": "The target position to move the track to (1-based)."
-    },
-    "trackopt": {
-      "times": "Start and optional end time, e.g. '0:30' or '0:30 3:45'"
-    }
-  },
-  "pagination": {
-    "embed": {
-      "sclosedContent": "{{content}}\nSession closed - Changing pages **won't work** from here.",
-      "sclosedTitle": "Session Closed"
-    },
-    "error": {
-      "perms": {
-        "messages": "I am unable to send messages in {{channel}}. Please contact a server administrator and grant me the \"SendMessage\" permission.",
-        "reactions": "I need reaction permissions to work. Please contact a server administrator to address this."
-      }
-    }
-  },
-  "subcommands": {
-    "settings": {
-      "get": "Get the value of a specific setting or the settings of the server.",
-      "set": "Set the value of a specific setting.",
-      "reset": "Reset a setting to its default value.",
-      "help": "Show help for the settings system, or explain a specific setting."
-    }
-  },
-  "voice": {
-    "join": {
-      "cancelled": "Cancelled!",
-      "error": {
-        "dc": "It doesn't look like we're in the same voice channel.",
-        "invalid": "Invalid voice channel. Please try again and check capitalization! (`x` to cancel)",
-        "perms": "Something went wrong. Unable to join {{channel}}. Do I have the needed permissions?"
-      },
-      "warning": {
-        "nc": "You don't seem to be connected to {{channel}}. Did you forget to join?"
-      }
-    }
-  },
-  "responses": {
-    "_common": {
-      "nothingPlaying": "❌ There's nothing playing at the moment!",
-      "serverOnlyForMusic": "🎵 Music needs a **voice channel in a server** — I can't join voice in DMs. Run the command in a server instead!",
-      "noVoiceChannel": "⚠️ I can't find you in a voice channel. Please join one first, or if you're already in one, make sure I have **View Channel** and **Connect** permissions.",
-      "noVoiceStrict": "⚠️ I can't find you in a voice channel. Please join one, or if you're already in one, make sure I have **View Channel** and **Connect** permissions.",
-      "alreadyInChannel": "⚠️ I'm already playing in {{channels}}. Join that channel or use `{{prefix}}play` to start music in your channel.",
-      "busyPlayingInOtherVoiceChannel": "🎵 **I'm already playing music in {{channels}}!**\n🎧 **Join that channel** to listen along.\n⏳ Want me in your channel instead? Let the queue finish, or clear it with `{{prefix}}clear`, then run `{{prefix}}join` again.\n🔧 Server managers can override this anytime with `{{prefix}}forceleave`.",
-      "busyStayingInOtherVoiceChannel": "🤖 **I'm parked in {{channels}} in 24/7 mode.**\n🎧 Join that channel to hang out with me.\n🔧 To bring me to your channel instead, turn off 24/7 there with `{{prefix}}247 off`, or ask a server manager to run `{{prefix}}forceleave`.",
-      "notInVoice": "I'm not in a voice channel.",
-      "queueEmpty": "📭 The queue is empty. Use `{{prefix}}play` to add songs!",
-      "queueEnded": "🎵 The queue has ended — nothing left to play. Add more songs with `{{prefix}}play`!",
-      "queueRestored": "🔁 Bot restarted — restored **{{count}}** song(s) to the queue and reconnected to voice. Resuming where it stopped.",
-      "notConnected": "It doesn't look like we're in the same voice channel.",
-      "controlsExpired": "⌛ Controls expired",
-      "sessionEnded": "Session ended",
-      "navigateHint": "💡 ⬅️ ➡️ Navigate",
-      "voiceSelectionPrompt": "Please select one of the following channels by clicking on the reactions below",
-      "voiceSelectionHint": "send a message with the voice channel! (Mention/Id/Name)\nSend 'x' to cancel.",
-      "voiceSelectionTimedOut": "⏱️ Voice selection timed out.",
-      "voiceConnectionLost": "❌ Voice connection lost. Please rejoin.",
-      "couldNotGetStream": "❌ Could not get stream URL for **{{title}}** — skipping.",
-      "errorStreaming": "❌ Error streaming **{{title}}** — skipping.",
-      "successfullyLeft": "✅ Successfully Left",
-      "voiceSelectionInvalid": "Invalid voice channel. Try again or type `x`.",
-      "voiceChannelRequired": "❌ I can't find you in a voice channel. Please join one, or if you're already in one, make sure I have **View Channel** and **Connect** permissions!",
-      "joinPermissionError": "❌ I don't have permission to join <#{{channel}}>. Please give me the **Connect** permission in that channel.",
-      "joinFailedPermissions": "❌ Failed to join voice channel — missing permissions. Please make sure I have **Connect** and **Speak** permissions.",
-      "joinFailedGeneric": "❌ Failed to join voice channel. Please try again.",
-      "joinFailedNotFound": "❌ Could not find that voice channel."
-    },
-    "clear": {
-      "cleared": "🗑️ Queue cleared."
-    },
-    "debug": {
-      "voiceTitle": "🔧 Voice Debug",
-      "summary": "📊 **Summary**",
-      "pageLabel": "Page {{page}}/{{total}}",
-      "navigateHint": "Use ⬅️➡️ to navigate"
-    },
-    "eval": {
-      "resultTitle": "Eval Result",
-      "resultTitleError": "❌ Eval Result",
-      "resultTitleSuccess": "✅ Eval Result",
-      "typeLabel": "Type:",
-      "timeLabel": "Time:",
-      "pageLabel": "Page {{page}}/{{total}}",
-      "navigateHint": "• ⬅️ ➡️ Navigate • ❌ Delete",
-      "deleteHint": "• ❌ Delete",
-      "controlsExpired": "⌛ Controls expired"
-    },
-    "filter": {
-      "pickerTitle": "🎛️ Audio Filter Picker",
-      "nothingPlaying": "❌ Nothing is playing right now.",
-      "nothingPlayingInline": "*Nothing playing*",
-      "applyFailed": "❌ Failed to apply **{{filter}}**: `{{reason}}`\n\nMake sure your NodeLink node has filters enabled.",
-      "applied": "{{emoji}} **{{label}}** applied!",
-      "removed": "{{emoji}} **{{label}}** removed.",
-      "cleared": "🔇 Filters cleared — original audio restored.",
-      "pendingCleared": "Filter cleared. Original audio will be used on the next playable track.",
-      "pendingApplied": "{{label}} saved. It will apply on the next playable track.",
-      "pendingRemoved": "{{label}} removed. The next playable track will use the updated filters.",
-      "noFilterActive": "🔇 No filter active.",
-      "filtersActive": "✅ Filters active: **{{filters}}**.",
-      "reactToToggle": "💡 React again to toggle, or ❌ to close.",
-      "sessionTimedOut": "⌛ Session timed out.",
-      "pickerClosed": "👋 Filter picker closed.",
-      "footer": "Page {{page}}/{{total}} • React with a filter emoji to toggle it",
-      "activeLabel": "**← active**",
-      "closeHint": "❌ Close"
-    },
-    "forceleave": {
-      "channelNotFound": "❌ Channel not found.",
-      "wrongServer": "❌ This command has to be run in the same server as the voice channel.",
-      "playerNotFound": "❌ Player not found.",
-      "playerNotInit": "❌ Player not initialized."
-    },
-    "gateway": {
-      "missingPermsFallback": "⚠️ I'm missing permissions I need to work properly! Missing: **{{perms}}**. Please ask a server administrator to grant these permissions in Server Settings → Roles."
-    },
-    "invite": {
-      "title": "Get Dj Mitica",
-      "description": "Dj Mitica is self-hosted: anyone can run their own copy on their Fluxer instance.\n\nGet the code and the setup guide on [GitHub](https://github.com/fakeen1/djmitica)."
-    },
-    "join": {
-      "channelNotFound": "Couldn't find the channel `{{channel}}`\nUse the help command to learn more about this. (`$prefixhelp join`)",
-      "alreadyJoined": "Already joined <#{{channel}}>.",
-      "audioNodeConnecting": "⚠️ Audio node is still connecting — please try again in a few seconds.",
-      "joining": "⏳ Joining Channel...",
-      "joined": "✅ Successfully joined <#{{channel}}>",
-      "joinFailed": "❌ Failed to join: {{error}}",
-      "noVoiceChannel": "❌ I can't find you in a voice channel. Please join one first, or if you're already in one, make sure I have **View Channel** and **Connect** permissions. You can also specify a channel: `{{prefix}}join <#channel>`",
-      "voiceChannelNotFound": "❌ Couldn't find that voice channel. Try using a mention like `<#channelid>` or the exact channel name.",
-      "autoLeaveInactive": "Left channel <#{{channel}}> because of inactivity.",
-      "autoLeaveInactive247": "Left channel <#{{channel}}> because of inactivity.\nIf you want me to stay in voice, use `{{prefix}}247 on` or `{{prefix}}247 auto`\nUse `{{prefix}}247` to view and manage all saved channels.",
-      "joinFailedPerms": "❌ I don't have permission to join <#{{channel}}>. Please check that I have the **Connect** permission.",
-      "voiceChannelUnknown": "unknown voice channel"
-    },
-    "leave": {
-      "noVoiceChannel": "⚠️ I can't find you in a voice channel. Please join one, or if you're already in one, make sure I have **View Channel** and **Connect** permissions. You can also specify a channel: `{{prefix}}leave <#channel>`",
-      "notInVoice": "I'm not in a voice channel.",
-      "joinChannel": "⚠️ Please join {{channel}} to use this command.",
-      "multipleChannels": "⚠️ I'm playing in multiple channels! Please join one of them:\n{{channels}}",
-      "specifyChannel": "⚠️ You're not in a voice channel. I'm playing in:\n{{channels}}\n\nUse `{{prefix}}leave <#channel>` to leave a specific channel.",
-      "noPlayerInChannel": "⚠️ I'm not playing in <#{{channel}}>. I'm in:\n{{channels}}",
-      "playerNotInit": "Player not initialized.",
-      "left": "✅ Successfully Left",
-      "leftRejoin247": "✅ Successfully Left — rejoining <#{{channel}}> in a few seconds.\nTo disable 24/7 mode permanently, use `{{prefix}}247 off`.",
-      "left247On": "✅ Successfully Left.\n24/7 mode is **on** — bot won't rejoin automatically. Use `{{prefix}}play` to bring it back, or `{{prefix}}247 off` to fully disable.\nUse `{{prefix}}247` to view all saved channels.",
-      "autoRejoinHint": "⚠️ 24/7 mode is enabled (auto) — I'll rejoin <#{{channel}}> in a few seconds.\nTo permanently remove me, disable 24/7 mode first: `{{prefix}}247 off`"
-    },
-    "lastfm": {
-      "notConfigured": "❌ Last.fm integration is not configured on this bot. Ask the bot owner to add a Last.fm API key to the config.",
-      "notLinked": "❌ You don't have a Last.fm account linked. Use `{{prefix}}lastfm link` to get started.",
-      "linked": "✅ Last.fm account **[{{username}}](https://last.fm/user/{{username}})** linked! Scrobbling is enabled by default.",
-      "alreadyLinked": "✅ You already have **{{username}}** linked! Use `{{prefix}}lastfm unlink` to disconnect, or `{{prefix}}lastfm scrobble` to toggle scrobbling.",
-      "unlinked": "✅ Last.fm account **{{username}}** has been unlinked.",
-      "scrobbleEnabled": "✅ Scrobbling **enabled** — songs you listen to will be scrobbled to **{{username}}**.",
-      "scrobbleDisabled": "⏸️ Scrobbling **disabled** — songs won't be scrobbled. Your account is still linked.",
-      "authDM": "📧 Check your DMs for the Last.fm authorization link! After approving, run `{{prefix}}lastfm confirm <token>` here.",
-      "authDMFailed": "⚠️ I couldn't DM you. [Click here to authorize on Last.fm]({{url}}), then run `{{prefix}}lastfm confirm <token>`.",
-      "authLinkTitle": "🎵 Link your Last.fm account",
-      "confirmUsage": "❌ Usage: `{{prefix}}lastfm confirm <token>` — provide the token from the auth DM.",
-      "confirmFailed": "❌ Failed to get session: {{error}}\nMake sure you approved the token on Last.fm first.",
-      "tokenFailed": "❌ Failed to get auth token: {{error}}",
-      "noLoved": "❤️ No loved tracks found for **{{username}}**.",
-      "noTop": "📊 No top tracks found for **{{username}}**.",
-      "noRecent": "🕐 No recent tracks found for **{{username}}**.",
-      "lovedTitle": "❤️ Loved Tracks — {{username}}",
-      "topTitle": "📊 Top Tracks — {{username}}",
-      "recentTitle": "🕐 Recent Tracks — {{username}}",
-      "nowPlaying": "🎵 Now Playing on Last.fm",
-      "lastPlayed": "🕐 Last Played on Last.fm",
-      "profileTitle": "Last.fm Profile: {{username}}",
-      "profileScrobbles": "🎵 **{{playcount}}** scrobbles",
-      "profileRegistered": "👤 Registered: {{date}}",
-      "profileLink": "🔗 [Open profile]({{url}})",
-      "noArtists": "🎤 No top artists found for **{{username}}**.",
-      "artistsTitle": "🎤 Top Artists — {{username}}",
-      "lovedTrack": "❤️ Loved **{{name}}** by **{{artist}}** on Last.fm!",
-      "unlovedTrack": "💔 Unloved **{{name}}** by **{{artist}}** on Last.fm.",
-      "loveFailed": "❌ Failed to love track: {{error}}",
-      "unloveFailed": "❌ Failed to unlove track: {{error}}",
-      "nothingPlayingLove": "❌ Nothing is playing right now. Play a song first to love it!",
-      "fetchFailed": "❌ Failed to fetch data from Last.fm: {{error}}",
-      "authLinkBody": "Click the link below to authorize Dj Mitica on Last.fm:\n\n**[Authorize on Last.fm]({{url}})**\n\nAfter you click \"Yes, allow access\", come back and run:\n`{{prefix}}lastfm confirm {{token}}`\n\n_This link expires in 60 minutes._",
-      "npTrackInfo": "**{{name}}** by **{{artist}}**\n[Open on Last.fm]({{url}})",
-      "npFooter": "Last.fm: {{username}}",
-      "profileScrobbleStatus": "🔄 Scrobbling: {{status}}",
-      "profileScrobbleEnabled": "✅ Enabled",
-      "profileScrobbleDisabled": "⏸️ Disabled",
-      "profileScrobbleFooter": "Use {{prefix}}lastfm scrobble to toggle scrobbling",
-      "noPlaylists": "📋 No playlists found for **{{username}}**.",
-      "playlistsTitle": "📋 Playlists — {{username}}",
-      "playlistsFooter": "💡 Use {{prefix}}lastfm play playlist <number> to play one!",
-      "nothingPlayingUnlove": "❌ Nothing is playing right now. Play a song first to unlove it!",
-      "nothingPlayingNoArtist": "❌ Nothing is playing right now and no artist specified. Play a song or provide an artist name!",
-      "whoknowsChecking": "🔍 Checking who listens to **{{artist}}** in this server...",
-      "whoknowsNobody": "👤 Nobody in this server has listened to **{{artist}}** on Last.fm.",
-      "whoknowsTitle": "👤 Who knows {{artist}}?",
-      "whoknowsFooter": "{{count}} listener{{plural}} · {{totalPlays}} total plays",
-      "leaderboardEmpty": "🎵 No scrobbles recorded yet. Link your Last.fm account with `{{prefix}}lastfm link` and start listening!",
-      "leaderboardControlsExpired": "Controls expired",
-      "leaderboardTitleServer": "🎵 Server Scrobble Leaderboard",
-      "leaderboardTitleGlobal": "🎵 Scrobble Leaderboard (global)",
-      "leaderboardScrobbles": "scrobbles",
-      "leaderboardYou": "← you",
-      "leaderboardFooterSync": "💡 Counts synced live from Last.fm (cached ~10 min) · `{{prefix}}lastfm profile` to force-sync yours",
-      "trackListFooter": "💡 Use `{{prefix}}lastfm play loved` to play these!",
-      "plays": "plays",
-      "leaderboardPageFooter": "Page {{current}}/{{total}} • Use ◀️▶️ to navigate",
-      "artistsFooter": "💡 Use {{prefix}}lastfm play top to play your top tracks!",
-      "noArtistSpecified": "❌ No artist specified. Play a song or provide an artist name via the token option.",
-      "artistNotFound": "❌ Artist **{{artist}}** not found on Last.fm.",
-      "noAlbumSpecified": "❌ No album specified. Play a song or provide an album name (e.g. `artist - album`) via the token option.",
-      "albumNotFound": "❌ Album **{{album}}** not found on Last.fm.",
-      "noTrackSpecified": "❌ No track specified. Play a song or provide a track name (e.g. `artist - track`) via the token option.",
-      "trackNotFound": "❌ Track **{{track}}** by **{{artist}}** not found on Last.fm.",
-      "noTopAlbums": "💿 No top albums found for **{{username}}**.",
-      "topAlbumsTitle": "💿 Top Albums{{period}} — {{username}}",
-      "topAlbumsFooter": "💡 Use {{prefix}}lastfm play albums to play your top albums!",
-      "noTopTags": "🏷️ No top tags found for **{{username}}**.",
-      "topTagsTitle": "🏷️ Top Tags — {{username}}",
-      "topTagsFooter": "💡 Use {{prefix}}lastfm tag <name> to view info about a tag!",
-      "tagProvideName": "❌ Provide a tag name via the token option. Example: `{{prefix}}lastfm tag rock`",
-      "tagNotFound": "❌ Tag **{{tag}}** not found on Last.fm.",
-      "compareSpecifyUser": "❌ Specify another user to compare with. Example: `{{prefix}}lastfm compare -user @user`",
-      "compareUserNotLinked": "❌ That user doesn't have a Last.fm account linked.",
-      "compareFailed": "❌ Could not compare profiles. Make sure both users are linked.",
-      "compareTitle": "🤝 Taste Comparison",
-      "coverNothingPlaying": "❌ Nothing is playing right now. Play a song to get its album cover!",
-      "coverNotFound": "🖼️ No album cover found for **{{track}}** by **{{artist}}**.",
-      "coverTitle": "🖼️ {{album}}",
-      "coverFooter": "🎵 {{track}} by {{artist}}",
-      "refreshFailed": "❌ Could not access the server.",
-      "refreshSuccess": "✅ Member list refreshed! Found **{{count}}** members in this server.",
-      "affinityNeedUsers": "👥 Need at least 2 linked users in this server to check affinity.",
-      "affinityChecking": "🔍 Checking music affinity among server members...",
-      "affinityNoCommon": "👥 No common artists found between any server members.",
-      "affinityTitle": "👥 Music Affinity",
-      "affinityFooter": "{{count}} members checked",
-      "crownsChecking": "👑 Checking your artist crowns...",
-      "crownsNone": "👑 You don't hold any artist crowns in this server. Keep listening!",
-      "crownsTitle": "👑 Artist Crowns — {{username}}",
-      "crownsFooter": "{{count}} crown{{plural}} held",
-      "whoknowsTrackChecking": "🔍 Checking who knows **{{track}}** by **{{artist}}** in this server...",
-      "whoknowsTrackNobody": "👤 Nobody in this server has listened to **{{track}}** by **{{artist}}** on Last.fm.",
-      "whoknowsTrackTitle": "👤 Who knows {{track}}?",
-      "whoknowsTrackFooter": "{{count}} listener{{plural}} · {{totalPlays}} total plays · by {{artist}}",
-      "whoknowsAlbumChecking": "🔍 Checking who knows **{{album}}**{{artistClause}} in this server...",
-      "whoknowsAlbumNobody": "👤 Nobody in this server has listened to **{{album}}** on Last.fm.",
-      "whoknowsAlbumTitle": "👤 Who knows {{album}}?",
-      "noArtistTags": "🏷️ No tags found for artist **{{artist}}**.",
-      "artistTagsTitle": "🏷️ Top Tags for {{artist}}",
-      "listeners": "listeners",
-      "leaderboardYourRank": "📍 Your rank: **#{{rank}}** ({{count}} scrobbles)"
-    },
-    "list": {
-      "empty": "📭 The queue is empty. Use `{{prefix}}play` to add songs!",
-      "emptyInline": "_Queue is empty._",
-      "nowPlaying": "🎵 **Now Playing**",
-      "header": "📋 **{{count}} tracks in queue** • ⏱️ `{{time}}`",
-      "upNext": " ▶",
-      "queueTitle": "🎧 Queue"
-    },
-    "loop": {
-      "invalidChoice": "'{{choice}}' is not valid. Use `song` or `queue`",
-      "songActivated": "🔂 Song loop activated",
-      "songDisabled": "➡️ Song loop disabled",
-      "queueActivated": "🔁 Queue loop activated",
-      "queueDisabled": "➡️ Queue loop disabled"
-    },
-    "queue": {
-      "empty": "The queue is empty.",
-      "indexOutOfBounds": "Index out of bounds",
-      "removed": "Successfully removed **{{title}}** from the queue.",
-      "sourceOutOfBounds": "Source index out of bounds",
-      "targetOutOfBounds": "Target index out of bounds",
-      "alreadyInPosition": "Track is already in that position",
-      "moved": "Moved **{{title}}** from position {{from}} to {{to}}."
-    },
-    "lyrics": {
-      "nothingPlaying": "❌ There's nothing playing at the moment.",
-      "searching": "Loading frame Searching lyrics for **{{title}}**...",
-      "noLyrics": "❌ No lyrics available for **{{title}}**.\n\n💡 NodeLink lyrics plugin may not have this track. Try a popular song!",
-      "error": "❌ Error: {{error}}",
-      "syncedBadge": " ⏱️ Synced",
-      "nodeLinkFooter": "NodeLink • {{lines}} lines",
-      "sourceFooter": "{{source}} • {{lines}} lines",
-      "controlsExpired": "⌛ Controls expired • NodeLink • {{lines}} lines",
-      "sessionClosed": "Session closed • NodeLink • {{lines}} lines"
-    },
-    "messages": {
-      "missingCriticalPermsTitle": "Missing Permissions — Bot Cannot Work Properly",
-      "missingCriticalPermsDesc": "The bot is missing **critical permissions** it needs to function. Please ask a server administrator to grant them.",
-      "missingOptionalPermsTitle": "Missing Optional Permissions",
-      "missingOptionalPermsDesc": "Some features may not work without these permissions, but the bot can still play music.",
-      "permFooter": "Re-invite the bot with correct permissions using the invite link, or edit the bot's role in Server Settings → Roles.",
-      "needPermsFallback": "I need the following permissions: **{{perms}}**. Please ask a server admin to grant them."
-    },
-    "np": {
-      "loading": "⏳ Loading...",
-      "nothingPlaying": "There's nothing playing at the moment.",
-      "nowPlayingIn": "🔊 **Now playing in:** <#{{channel}}>",
-      "playing": "🎵 Playing: **[{{title}}]({{url}})** ({{elapsed}}/{{duration}})",
-      "volume": "Volume: {{volume}}%",
-      "queueLoop": "Queue loop: **{{state}}**",
-      "songLoop": "Song loop: **{{state}}**",
-      "streaming": "📻 Streaming **[{{title}}]({{url}})**",
-      "playingBy": "Playing **[{{title}}]({{url}})** by [{{artist}}]({{artistUrl}})"
-    },
-    "pause": {
-      "nothingPlaying": "❌ There's nothing playing at the moment!",
-      "alreadyPaused": "❌ Already paused!",
-      "paused": "⏸️ Paused"
-    },
-    "ping": {
-      "title": "🏓  Pong!",
-      "measuring": "🏓  Pinging...",
-      "roundtrip": "📶  **Roundtrip**",
-      "gateway": "🌐  **Gateway**",
-      "node": "🎧  **NodeLink**"
-    },
-    "play": {
-      "searching": "🔍 Searching...",
-      "loading": "Loading...",
-      "loadingFailed": "**Failed to load that track.**",
-      "added": "Successfully added [{{title}}]({{url}}) to the queue.",
-      "addedPlaylist": "Successfully added **{{count}}** songs to the queue.",
-      "nowPlaying": "🎵 Now playing [{{title}}]({{url}}) by {{author}} in <#{{channel}}>",
-      "noResults": "**No results found for '{{query}}'.**",
-      "searchFailed": "**Search failed. Please try again.**",
-      "noData": "Could not load track - no data returned.",
-      "loadFailed": "Failed to load track.",
-      "unexpectedResult": "Unexpected result from track loader.",
-      "loadError": "An error occurred while loading the track.",
-      "searchingProvider": "Searching {{provider}}...",
-      "bilibiliResolving": "📺 Resolving Bilibili video...",
-      "bilibiliNoAudio": "❌ No playable audio for **{{title}}** — the video may be region-locked, premium-only, or deleted.",
-      "bilibiliError": "❌ Bilibili: {{message}}",
-      "bilibiliDisabled": "❌ Bilibili playback is disabled (config.json → bilibili.enabled)."
-    },
-    "playnext": {
-      "searching": "🔍 Searching..."
-    },
-    "player": {
-      "title": "🎧 Music Player Controls",
-      "inactiveTitle": "🎧 Music Player (Inactive)",
-      "nowPlayingLabel": "Now Playing",
-      "volumeLabel": "🔊 Volume: `{{volume}}%`",
-      "queueLabel": "📋 Queue: `{{count}}` tracks",
-      "loopOff": "Loop: ❌ Off",
-      "loopSong": "Loop: 🎂 Song",
-      "loopQueue": "Loop: 🔁 Queue",
-      "filterOff": "Filter: 🔇 Off",
-      "filterActive": "Filter: {{emoji}} **{{label}}**",
-      "filterStacked": "Filter: 🔥 **{{label}}**",
-      "reactHint": "💡 *React to control playback*",
-      "sessionExpires": "⏱️ Session expires in {{minutes}}m of inactivity",
-      "requestedBy": "Requested by {{username}} • Controls active",
-      "controlsDisabled": "⌛ Controls disabled (react to re-enable)",
-      "sessionClosed": "Session closed{{reason}}",
-      "closedByUser": "👋 Player controls closed",
-      "startedPlaying": "▶️ Started playing",
-      "resumed": "▶️ Resumed",
-      "pausedState": "⏸️ Paused",
-      "stopped": "⏹️ Stopped",
-      "stoppedCleared": "⏹️ Stopped and cleared",
-      "shuffled": "🔀 Queue shuffled",
-      "added": "➕ Added: {{title}}",
-      "volumeChanged": "🔊 Volume: {{volume}}%",
-      "filtersCleared": "🔇 Filters cleared",
-      "filterApplied": "{{emoji}} Filter: **{{label}}** applied",
-      "filterStackedApplied": "🔥 Filters: **{{label}}** applied",
-      "songLoopEnabled": "🔂 Song loop enabled",
-      "queueLoopEnabled": "🔁 Queue loop enabled",
-      "loopDisabled": "❌ Loop disabled",
-      "alreadyPlaying": "▶️ Already playing",
-      "startingPlayback": "▶️ Starting playback",
-      "previousNotImplemented": "⏮️ Previous track (not implemented)",
-      "previousNotAvailable": "⏮️ Previous track is not available yet.",
-      "errorGeneric": "⚠️ Error: {{error}}",
-      "openingFilterPicker": "🎛️ Opening filter picker — check the filter menu above or use the `filter` command.",
-      "filterError": "⚠️ Filter error: {{error}}",
-      "fetchingLyrics": "📜 Fetching lyrics...",
-      "noLyricsFound": "❌ No lyrics found in NodeLink",
-      "lyricsDisplayed": "Lyrics displayed ({{lines}} lines, {{pages}} pages)",
-      "lyricsError": "⚠️ Lyrics error: {{error}}"
-    },
-    "radio": {
-      "noStations": "❌ No radio stations are configured.",
-      "stationsTitle": "📻 **Radio Stations (Page {{page}}/{{total}})**",
-      "timedOut": "📻 Radio selection timed out.",
-      "cancelled": "❌ Radio selection cancelled.",
-      "unknownStation": "❌ Unknown station `{{station}}`. Available: {{stations}}\n\nUse `$prefixradio list` to browse.",
-      "nowPlaying": "📻 Now streaming _{{title}}_ by [{{author}}]({{url}}) in <#{{channel}}>",
-      "skipHint": "_Use `$prefixskip` to stop the radio, or `$prefixradio list` to switch stations._",
-      "prevNext": "⬅️ Previous   ➡️ Next   ❌ Cancel"
-    },
-    "reload": {
-      "indexNoReload": "❌ `index.mjs` cannot be hot-reloaded — do a full restart.",
-      "unknownCommand": "❌ Unknown command `{{name}}`",
-      "noFileTracked": "❌ No file tracked for `{{name}}`",
-      "noBuilder": "❌ No builder returned from `{{name}}`",
-      "reloaded": "✅ `{{name}}`",
-      "moduleError": "❌ `{{label}}`: {{error}}",
-      "unknownTarget": "❌ Unknown target `{{target}}`.\nRun `$prefixreload` with no arguments to see all reloadable targets.",
-      "availableTargetsTitle": "🔄 Reload — Available Targets",
-      "runHint": "Run `$prefixreload <target>` or use a batch keyword:",
-      "batchKeywords": "`all` · `commands`",
-      "resultsHeader": "✅ **{{ok}}** reloaded · ❌ **{{bad}}** failed"
-    },
-    "remove": {
-      "indexOutOfBounds": "Index out of bounds",
-      "removed": "Successfully removed **{{title}}** from the queue."
-    },
-    "resume": {
-      "nothingPlaying": "❌ There's nothing playing at the moment!",
-      "notPaused": "❌ Not paused!",
-      "resumed": "▶️ Resumed"
-    },
-    "search": {
-      "loadingResults": "⏳ Loading results...",
-      "searching": "Searching {{provider}}...",
-      "noResults": "❌ No results found.",
-      "resultsTitle": "{{provider}} — Search Results",
-      "reactHint": "React with a number to add to queue • ❌ to cancel • 30s timeout",
-      "cancelled": "❌ Cancelled.",
-      "added": "✅ Added [{{title}}]({{url}}) to the queue!",
-      "timedOut": "⏰ Search timed out.",
-      "sessionClosed": "Session closed"
-    },
-    "servers": {
-      "noServers": "_No servers found._",
-      "title": "🌐 Servers ({{count}})",
-      "pageTitle": "🌐 Servers ({{count}}) - Page {{page}}/{{total}}",
-      "listComplete": "List complete"
-    },
-    "settings": {
-      "unknownSetting": "❌ Unknown setting `{{setting}}`.",
-      "availableSettings": "Available: `{{settings}}`",
-      "setSuccess": "✅ **{{label}}** set to {{value}}",
-      "resetSuccess": "🔄 `{{setting}}` has been reset to its default: {{value}}",
-      "mustBeBool": "❌ `{{setting}}` must be a boolean.\nAccepted: `true`, `false`, `on`, `off`, `enable`, `disable`",
-      "volumeRange": "❌ Volume must be a number between **1** and **200**.",
-      "voteSkipThresholdRange": "❌ Vote-skip threshold must be a number between **{{min}}** and **{{max}}**.",
-      "invalidLocale": "❌ `{{locale}}` is not a supported locale.\nAvailable locales: {{locales}}",
-      "prefixLength": "❌ Prefix must be between **1** and **5** characters.",
-      "prefixSpaces": "❌ Prefix cannot contain spaces.",
-      "invalid247": "❌ Invalid value `{{value}}` for 24/7 mode.\n\n**Valid options:**\n• `on` — Stay connected permanently, no auto-rejoin after `{{prefix}}leave`\n• `auto` — Stay connected & auto-rejoin after `{{prefix}}leave` or disconnect\n• `off` — Leave after inactivity\n\nEach channel has its own mode. Use `{{prefix}}247` to see all saved channels.",
-      "noServer": "❌ Could not detect your server.",
-      "noVoice247": "❌ You're not in a voice channel. Join one first, then run `{{prefix}}247 {{mode}}` again.\n\n💡 Each channel gets its own 24/7 mode setting.",
-      "247Disabled": "✅ 24/7 mode **disabled** for <#{{channel}}>. Bot has left.\n💡 Use `{{prefix}}247` to see remaining saved channels.",
-      "247DisabledAll": "✅ 24/7 mode **disabled** for all channels in this server.\nBot will leave voice after inactivity.",
-      "247Set": "✅ 24/7 mode set to **{{mode}}** for <#{{channel}}>.\n{{summary}}\n\n💡 Use `{{prefix}}247` to view all saved channels.",
-      "247Joined": "✅ 24/7 mode set to **{{mode}}** for <#{{channel}}>. Bot joined!\n{{summary}}\n\n💡 Use `{{prefix}}247` to view all saved channels.",
-      "247JoinFailed": "⚠️ 24/7 mode saved for <#{{channel}}>, but failed to join: {{error}}\n{{summary}}\n\nTry `{{prefix}}join` or `{{prefix}}play` later, or `{{prefix}}247 off` to remove.",
-      "247Status": "♾️ **24/7 Mode**: {{status}}\n\nUse `{{prefix}}247 on` or `{{prefix}}247 auto` to enable — `{{prefix}}247 off` to disable.",
-      "helpTitle": "⚙️ Settings Help",
-      "helpAvailable": "**Available settings:** {{settings}}",
-      "helpSubcommands": "**Subcommands:**\n• `{{prefix}}settings get` — list all current values\n• `{{prefix}}settings get <setting>` — view a single setting\n• `{{prefix}}settings set <setting> <value>` — change a setting\n• `{{prefix}}settings reset <setting>` — restore default value\n• `{{prefix}}settings help <setting>` — describe a setting",
-      "helpShortcuts": "**Shortcuts:** `{{prefix}}prefix`, `{{prefix}}247`, `{{prefix}}voteskip`, `{{prefix}}voteskiplimit`",
-      "serverTitle": "⚙️ Server Settings",
-      "serverHeader": "Server: **{{name}}**",
-      "shortcutsHint": "Shortcuts: `{{prefix}}247`, `{{prefix}}prefix`, `{{prefix}}voteskip`, `{{prefix}}voteskiplimit`\nUse `{{prefix}}settings help <setting>` to learn about any setting.",
-      "enabled": "✅ enabled",
-      "disabled": "❌ disabled",
-      "label247": "24/7 mode",
-      "labelPrefix": "Prefix",
-      "labelSongAnnouncements": "Song announcements",
-      "labelPfp": "Bot avatar style",
-      "labelLocale": "Locale",
-      "labelVolume": "Default volume",
-      "labelVoteSkip": "Vote to skip",
-      "labelVoteSkipThreshold": "Vote to skip threshold",
-      "labelAnnouncementChannel": "Announcement channel",
-      "labelRestrictVolume": "Restrict volume",
-      "labelAutojoinChannel": "Autojoin channel",
-      "noDescription": "No description available.",
-      "validValues": "**Valid values:** {{values}}",
-      "validRange": "**Valid range:** {{min}}–{{max}}",
-      "currentValue": "**Current value:**",
-      "defaultValue": "**Default:**",
-      "settingTitle": "⚙️ {{setting}}",
-      "savedChannel": "Saved channel: <#{{channel}}>",
-      "savedChannels": "Saved channels ({{count}}): {{channels}}",
-      "statusDisabled": "❌ disabled",
-      "savedChannelsNone": "Saved channels: none",
-      "modeAuto": "🔄 Auto",
-      "modeOn": "✅ On",
-      "modeOff": "❌ Off",
-      "channelsLabel": "{{count}} channel",
-      "channelsLabelPlural": "{{count}} channels",
-      "thisServer": "this server",
-      "max247Channels": "You can save up to {{max}} 24/7 voice channels in one server. Use `{{prefix}}247 off` in one of the saved channels first.",
-      "247Panel": {
-        "title": "♾️ 24/7 Mode",
-        "noChannelsSaved": "No voice channels saved.",
-        "gettingStarted": "Getting Started",
-        "gettingStartedValue": "• `{{prefix}}247 on` — stay permanently\n• `{{prefix}}247 auto` — stay + auto-rejoin after disconnect",
-        "footer": "{{prefix}}247 on | {{prefix}}247 auto | {{prefix}}247 off",
-        "channelsSaved_one": "{{count}} channel saved",
-        "channelsSaved_other": "{{count}} channels saved",
-        "summaryOn": "✅ {{count}} on",
-        "summaryAuto": "🔄 {{count}} auto",
-        "modeOn": "✅ On",
-        "modeAuto": "🔄 Auto",
-        "modeOff": "❌ Off",
-        "enabledTitle": "♾️ 24/7 {{mode}}",
-        "enabledDescription": "{{channel}} → **{{mode}}** — {{summary}}",
-        "enabledFooter": "{{prefix}}247 off to disable for a channel",
-        "savedChannels": "Saved Channels",
-        "currentMarker": " ←",
-        "disabledTitle": "♾️ 24/7 Disabled",
-        "noChannelsSavedField": "No Channels Saved",
-        "allChannelsRemoved": "All 24/7 channels removed. Bot will leave voice after inactivity.",
-        "channelRemoved": "<#{{channel}}> removed",
-        "channelsRemaining_one": "{{count}} channel remaining",
-        "channelsRemaining_other": "{{count}} channels remaining",
-        "reenableFooter": "{{prefix}}247 on | {{prefix}}247 auto to re-enable",
-        "allChannelsLabel": "❌ All Channels",
-        "allChannelsDisabled": "24/7 mode **disabled** for all channels in this server.\nThe bot will leave voice after inactivity.",
-        "noChannelsSavedShort": "No channels saved",
-        "joinFailed": "⚠️ 24/7 {{mode}} saved, but failed to join <#{{channel}}>.\nError: `{{error}}`\n\nTry `{{prefix}}join` or `{{prefix}}play` later.",
-        "statusConnected": "🟢 Connected",
-        "statusReconnecting": "🟡 Reconnecting",
-        "statusOffline": "🔴 Offline",
-        "autoRecoveryLine": "♻️ Auto-recovery active — saved channels are checked every {{seconds}}s",
-        "autoRecoveryDisabledLine": "♻️ Auto-recovery standing by",
-        "enabledLine": "✅ 24/7 is **enabled** — the bot stays connected and auto-rejoins if disconnected.",
-        "disabledHint": "Join a voice channel and use `{{prefix}}247` to enable.",
-        "footerLine": "{{prefix}}247 · toggle · {{prefix}}247 off · disable all",
-        "confirmEnabled": "✅ 24/7 enabled in {{channel}} — the bot will stay connected and auto-rejoin if disconnected.",
-        "confirmDisabled": "❌ 24/7 disabled in {{channel}} — the bot will leave when idle.",
-        "confirmDisabledAll": "❌ 24/7 disabled for all channels in this server — the bot will leave when idle.",
-        "disabledLine": "❌ 24/7 is **disabled**",
-        "activeChannels_one": "✅ 24/7 active in {{count}} channel:",
-        "activeChannels_other": "✅ 24/7 active in {{count}} channels:"
-      }
-    },
-    "shuffle": {
-      "emptyQueue": "There is nothing to shuffle in the queue.",
-      "shuffled": "🔀 Shuffled queue"
-    },
-    "skip": {
-      "nothingPlaying": "❌ There's nothing playing at the moment!",
-      "skipped": "⏭️ Skipped",
-      "skippedTrack": "⏭️ Skipped [{{title}}]({{url}})",
-      "skippedToPosition": "⏭️ Skipped to position {{position}}",
-      "voteAdded": "🗳️ Vote to skip: **{{votes}}/{{needed}}**. Run this command again to add your vote!",
-      "alreadyVoted": "🗳️ You've already voted to skip! **{{votes}}/{{needed}}** votes so far."
-    },
-    "stats": {
-      "title": "Dj Mitica Music Bot",
-      "servers": "📂  **Servers**",
-      "users": "👥  **Users**",
-      "players": "🎧  **Players**",
-      "scrobbles": "🎵  **Scrobbles**",
-      "linkedUsers": "🔗  **Linked Last.fm**",
-      "ping": "🏓  **Ping**",
-      "gateway": "🌐  **Gateway**",
-      "uptime": "⏱️  **Uptime**",
-      "build": "🔧  **Build**",
-      "lastRestart": "🪛  **Last restart**",
-      "supportKofi": "⭐ [Star on GitHub](https://github.com/fakeen1/djmitica)",
-      "community": "💬 [Report a bug or suggest a feature](https://github.com/fakeen1/djmitica/issues)"
-    },
-    "support": {
-      "title": "💬 Support",
-      "description": "For anything regarding Dj Mitica, open an issue on GitHub:\n[github.com/fakeen1/djmitica](https://github.com/fakeen1/djmitica/issues)\n\nFor questions about this server's copy of the bot, ask the server owner."
-    },
-    "test": {
-      "notInServer": "❌ Must be used in a server.",
-      "noOneInVoice": "No one is in voice.",
-      "title": "🎙️ Voice Channel Members",
-      "channelEntry": "🔊 **{{name}}**: {{count}} members"
-    },
-    "thumbnail": {
-      "nothingPlaying": "There's nothing playing at the moment.",
-      "noThumbnail": "No thumbnail available.",
-      "thumbnail": "Thumbnail of [{{title}}]({{url}}):"
-    },
-    "volume": {
-      "current": "🔊 Current volume: `{{volume}}%`",
-      "outOfRange": "❌ Volume must be between `0` and `{{max}}%`.",
-      "changed": "🔊 Volume changed to `{{volume}}%` for this session.",
-      "setPending": "Volume set to `{{volume}}%` — will apply when connected."
-    },
-    "vote": {
-      "notConfigured": "❌ FluxerList integration is not configured on this bot. Ask the bot owner to add a FluxerList API key to the config.",
-      "noResourceId": "❌ No {{type}} ID configured. Provide it with `{{prefix}}vote check {{type}} <id-or-slug>` or set it in config.json.",
-      "infoTitle": "FluxerList Vote",
-      "infoDescription": "Vote for this bot/server on [FluxerList]({{siteUrl}})!\n\nFluxerList is a server and bot listing platform where users can vote to help grow the community.\n\n**Commands:**\n`{{prefix}}vote info` — Show this info & vote link\n`{{prefix}}vote info server` — Show vote link for a server\n`{{prefix}}vote check` — Check your own vote status\n`{{prefix}}vote voters` — View the voter list (owner-only)",
-      "voteTitle": "Vote on FluxerList",
-      "supportDesc": "Support this {{type}} by voting on FluxerList!",
-      "voteLink": "**[Vote & View Profile]({{url}})**",
-      "findLink": "Visit [FluxerList]({{siteUrl}}) to find and vote for this {{type}}.",
-      "helpGrow": "Your votes help this {{type}} grow and reach more users.",
-      "fetchVotersFailed": "❌ Failed to fetch voters: {{error}}",
-      "noVotersYet": "No one has voted for this {{type}} yet. Share the vote link to get started!",
-      "serverVoters": "Server Voters",
-      "botVoters": "Bot Voters",
-      "noVotersOnPage": "No voters found on this page.",
-      "controlsExpired": "Controls expired",
-      "pageInfo": "Page {{page}}/{{totalPages}} of {{total}} voters • Use ◀️▶️ to navigate",
-      "voterTotal": "{{total}} voter(s) total",
-      "defaultCommandsTitle": "**FluxerList Vote Commands:**",
-      "defaultCommandsList": "`{{prefix}}vote` — Show vote info & link\n`{{prefix}}vote info` — Show voting info & vote link\n`{{prefix}}vote check` — Check your own vote status\n`{{prefix}}vote voters` — View the voter list (owner-only)",
-      "optionsTitle": "**Options:**",
-      "optionsList": "`{{prefix}}vote check server` — Check your vote status for a server\n`{{prefix}}vote check bot` — Check your vote status for a bot",
-      "votedDate": "voted {{date}}",
-      "unknownUser": "User#{{id}}",
-      "unknownDate": "Unknown",
-      "checkYes": "✅ You **have an active vote** for this {{type}} — thank you!",
-      "checkNo": "❌ You haven't voted for this {{type}} yet (or your vote expired).\n**[Vote now!]({{url}})**",
-      "checkUnknown": "⚠️ Couldn't check your vote status right now — try again in a minute."
-    },
-    "volumedefault": {
-      "title": "🔊 Volume Settings",
-      "serverDefault": "• Server default: `{{volume}}%`",
-      "currentVolume": "• Current player volume: `{{volume}}%`",
-      "changeHint": "To change the default, use: `{{prefix}}volumedefault <0-{{max}}>`",
-      "noPermission": "⚠️ You need **Manage Server** permission to change the default.",
-      "noPermissionSet": "❌ You need **Manage Server** permission to set the server default volume.",
-      "outOfRange": "❌ Volume must be between `0` and `{{max}}%`.",
-      "saved": "🔊 Server default volume saved as `{{volume}}%`."
-    },
-    "seek": {
-      "nothingPlaying": "❌ There's nothing playing at the moment!",
-      "paused": "❌ Can't seek while paused. Resume first.",
-      "live": "❌ This is a live stream or radio — you can't seek in it.",
-      "invalidFormat": "❌ Invalid position format. Use `mm:ss`, `hh:mm:ss`, or seconds (e.g. `1:30`, `90`).",
-      "exceedsDuration": "❌ Seek position exceeds track duration (**{{duration}}**).",
-      "seeked": "⏩ Seeked to **{{position}}**",
-      "notSupported": "❌ Seeking is not supported by the current audio node.",
-      "failed": "❌ Failed to seek: {{error}}"
-    },
-    "autoplay": {
-      "enabled": "🔁 Autoplay **enabled** — similar tracks will be added automatically when the queue ends.",
-      "disabled": "➡️ Autoplay **disabled** — the bot will stop when the queue ends."
-    },
-    "trackopt": {
-      "notAvailable": "❌ Track options feature is not available.",
-      "nothingPlaying": "❌ There's nothing playing at the moment!",
-      "invalidFormat": "❌ Invalid time format. Use `mm:ss`, `hh:mm:ss`, or seconds.",
-      "invalidEndAfterStart": "❌ End time must be after start time.",
-      "startExceedsDuration": "❌ Start time exceeds track duration (**{{duration}}**).",
-      "endExceedsDuration": "❌ End time exceeds track duration (**{{duration}}**).",
-      "saved": "✅ Track option saved for **{{title}}**{{aliasLabel}}\n▶️ Start: **{{start}}** | ⏹️ End: **{{end}}**\n\nThis will apply automatically whenever this track plays in a channel you're in.",
-      "savedAlias": "✅ Track option saved for **{{title}}** [{{alias}}]\n▶️ Start: **{{start}}** | ⏹️ End: **{{end}}**\n\nUse `{{prefix}}trackopt play {{alias}}` to apply this trim while the track is playing.",
-      "saveFailed": "❌ Failed to save track option.",
-      "notSet": "No custom times set for **{{title}}**.",
-      "current": "📎 Track options for **{{title}}** ({{count}})",
-      "currentEntry": "• **{{alias}}** — {{start}} → {{end}}{{autoTag}}",
-      "removed": "🗑️ Removed track option for **{{title}}**.",
-      "removedAlias": "🗑️ Removed alias **{{alias}}** for **{{title}}**.",
-      "removedAll": "🗑️ Removed all track options for **{{title}}**.",
-      "notFound": "No custom times found for **{{title}}**.",
-      "aliasNotFound": "❌ No alias **{{alias}}** found for **{{title}}**.\nYour aliases: {{names}}",
-      "applied": "✂️ Applied alias **{{alias}}** — {{start}} → {{end}}",
-      "applyFailed": "❌ Failed to apply alias: {{error}}",
-      "mustBePlaying": "❌ The player must be actively playing to apply an alias.",
-      "invalidAlias": "❌ Invalid alias name. Use letters, numbers, hyphens, or underscores.",
-      "provideAlias": "❌ Provide an alias name. Usage: `{{prefix}}trackopt play <alias>`",
-      "listEmpty": "📭 You have no saved track options. Use `{{prefix}}trackopt set <start> [end]` to add one!",
-      "listTitle": "📋 **Your Track Options** ({{count}})",
-      "listEntry": "• **{{title}}** — {{start}} → {{end}}",
-      "listHint": "Use `{{prefix}}trackopt play <alias>` to apply a named trim, or `{{prefix}}trackopt remove [alias]` to delete one."
-    }
-  }
 }

@@ -524,7 +524,7 @@ export class FluxerAudioBridge extends EventEmitter {
 
       for (const [sid, pub] of publications.entries()) {
         if (keepSid && sid === keepSid) continue;
-        if (conn.__xfKeepSids?.has(sid)) continue; // pista veche inca face fade-out (crossfade)
+        if (conn.__xfKeepSids?.has(sid)) continue; // old track is still fading out (crossfade)
         if (pub?.kind !== TRACK_KIND_AUDIO) continue;
         if (pending.has(sid)) continue;
         try {

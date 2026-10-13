@@ -991,7 +991,7 @@ class Player extends EventEmitter {
     return msg;
   }
 
-  /** @private La skip: porneste fade-out scurt (crossfade) in loc de oprire brusca. */
+  /** @private On skip: start a short fade-out (crossfade) instead of cutting the track abruptly. */
   _armSkipCrossfade() {
     try {
       const ms = getSkipCrossfadeMs();

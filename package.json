@@ -5,9 +5,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/fakeen1/djmitica.git"
+    "url": "https://github.com/fakeen1/DjMiticaBOT.git"
   },
-  "homepage": "https://github.com/fakeen1/djmitica",
+  "homepage": "https://github.com/fakeen1/DjMiticaBOT",
   "type": "module",
   "engines": {
     "node": ">=22.13.0"

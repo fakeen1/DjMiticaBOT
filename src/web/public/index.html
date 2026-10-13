@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ro">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Panou Dj Mitica</title>
+  <title>Dj Mitica Panel</title>
   <meta name="color-scheme" content="dark light">
   <meta name="theme-color" content="#1C2333">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -13,39 +13,41 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <!-- Static texts carry data-i18n keys; app.js translates them (English by default, Romanian with web.language = "ro"). -->
+
   <!-- Login -->
   <main id="login" class="login" hidden>
     <form id="login-form" class="login-card" autocomplete="on">
       <img src="favicon.svg" alt="" class="login-logo" width="56" height="56">
       <h1>Dj Mitica</h1>
-      <p class="muted">Introdu parola panoului ca să controlezi botul.</p>
-      <label for="login-pass" class="field-label">Parolă</label>
+      <p class="muted" data-i18n="login.intro">Enter the panel password to control the bot.</p>
+      <label for="login-pass" class="field-label" data-i18n="login.password">Password</label>
       <input id="login-pass" name="password" type="password" autocomplete="current-password" required autofocus>
       <p id="login-error" class="form-error" role="alert"></p>
-      <button type="submit" class="btn btn-primary btn-block">Intră în panou</button>
+      <button type="submit" class="btn btn-primary btn-block" data-i18n="login.submit">Open the panel</button>
     </form>
   </main>
 
-  <!-- Aplicatia -->
+  <!-- App -->
   <div id="app" class="app" hidden>
     <header class="topbar">
       <div class="brand">
         <img id="bot-avatar" src="favicon.svg" alt="" width="32" height="32">
         <span id="bot-name">Dj Mitica</span>
-        <span id="live-dot" class="live-dot" title="Conectare live"></span>
+        <span id="live-dot" class="live-dot" data-i18n-title="top.live" title="Live connection"></span>
       </div>
-      <nav class="tabs" role="tablist" aria-label="Secțiuni">
-        <button role="tab" class="tab" data-tab="player" aria-selected="true">Player</button>
-        <button role="tab" class="tab" data-tab="settings" aria-selected="false">Setări</button>
-        <button role="tab" class="tab" data-tab="status" aria-selected="false">Status</button>
+      <nav class="tabs" role="tablist" data-i18n-aria="top.sections" aria-label="Sections">
+        <button role="tab" class="tab" data-tab="player" aria-selected="true" data-i18n="tab.player">Player</button>
+        <button role="tab" class="tab" data-tab="settings" aria-selected="false" data-i18n="tab.settings">Settings</button>
+        <button role="tab" class="tab" data-tab="status" aria-selected="false" data-i18n="tab.status">Status</button>
       </nav>
-      <button id="logout" class="btn btn-ghost btn-sm" type="button">Ieși</button>
+      <button id="logout" class="btn btn-ghost btn-sm" type="button" data-i18n="top.logout">Log out</button>
     </header>
 
     <!-- PLAYER -->
     <section id="tab-player" class="view view-player" role="tabpanel">
-      <aside class="rail" aria-label="Canale de voce">
-        <h2 class="rail-title">Canale de voce</h2>
+      <aside class="rail" data-i18n-aria="rail.title" aria-label="Voice channels">
+        <h2 class="rail-title" data-i18n="rail.title">Voice channels</h2>
         <div id="guilds"></div>
       </aside>
 
@@ -53,22 +55,22 @@
         <div id="deck-area"></div>
 
         <section class="panel add-panel" aria-labelledby="add-title">
-          <h2 id="add-title" class="panel-title">Adaugă muzică</h2>
+          <h2 id="add-title" class="panel-title" data-i18n="add.title">Add music</h2>
           <form id="search-form" class="search-row">
-            <input id="search-q" type="search" placeholder="Nume melodie, artist sau link YouTube / Spotify" aria-label="Caută" autocomplete="off">
-            <select id="search-provider" aria-label="Sursă"></select>
-            <button class="btn btn-primary" type="submit">Caută</button>
+            <input id="search-q" type="search" data-i18n-placeholder="add.placeholder" placeholder="Song name, artist or YouTube / Spotify link" data-i18n-aria="add.search" aria-label="Search" autocomplete="off">
+            <select id="search-provider" data-i18n-aria="add.source" aria-label="Source"></select>
+            <button class="btn btn-primary" type="submit" data-i18n="add.search">Search</button>
           </form>
           <div id="search-results" class="results" aria-live="polite"></div>
         </section>
 
         <section class="panel queue-panel" aria-labelledby="queue-title">
           <div class="panel-head">
-            <h2 id="queue-title" class="panel-title">Coada</h2>
+            <h2 id="queue-title" class="panel-title" data-i18n="queue.title">Queue</h2>
             <span id="queue-meta" class="muted small"></span>
             <div class="panel-actions">
-              <button id="q-shuffle" class="btn btn-ghost btn-sm" type="button">Amestecă</button>
-              <button id="q-clear" class="btn btn-ghost btn-sm danger" type="button">Golește</button>
+              <button id="q-shuffle" class="btn btn-ghost btn-sm" type="button" data-i18n="queue.shuffle">Shuffle</button>
+              <button id="q-clear" class="btn btn-ghost btn-sm danger" type="button" data-i18n="queue.clear">Clear</button>
             </div>
           </div>
           <ol id="queue" class="queue"></ol>
@@ -76,25 +78,25 @@
       </div>
     </section>
 
-    <!-- SETARI -->
+    <!-- SETTINGS -->
     <section id="tab-settings" class="view view-settings" role="tabpanel" hidden>
-      <nav class="settings-nav" aria-label="Secțiuni de setări" id="settings-nav"></nav>
+      <nav class="settings-nav" data-i18n-aria="set.sections" aria-label="Settings sections" id="settings-nav"></nav>
       <div class="settings-body">
         <section class="panel" id="sec-server">
           <div class="panel-head">
-            <h2 class="panel-title">Setările serverului</h2>
+            <h2 class="panel-title" data-i18n="set.serverTitle">Server settings</h2>
             <select id="settings-guild" aria-label="Server"></select>
           </div>
-          <p class="muted small sec-desc">Se aplică doar serverului ales și intră în vigoare imediat.</p>
+          <p class="muted small sec-desc" data-i18n="set.serverDesc">Applies only to the selected server and takes effect immediately.</p>
           <div id="server-settings"></div>
         </section>
         <div id="global-settings"></div>
         <section class="panel" id="sec-restart">
-          <h2 class="panel-title">Repornire</h2>
-          <p class="muted small sec-desc">Setările marcate „după repornire” se aplică doar după ce botul pornește din nou. Repornirea durează 10–20 de secunde, iar muzica se reia singură.</p>
-          <div class="row-end"><button id="restart-bot" class="btn danger-solid" type="button">Repornește botul</button></div>
+          <h2 class="panel-title" data-i18n="set.restartTitle">Restart</h2>
+          <p class="muted small sec-desc" data-i18n="set.restartDesc">Settings marked “after restart” only apply once the bot starts again. A restart takes 10–20 seconds and the music resumes on its own.</p>
+          <div class="row-end"><button id="restart-bot" class="btn danger-solid" type="button" data-i18n="set.restartBtn">Restart the bot</button></div>
         </section>
-        <p class="muted small">Tokenul botului, baza de date și conexiunea la NodeLink se schimbă doar din <code>docker\config.json</code>. O greșeală acolo ar opri botul, inclusiv acest panou.</p>
+        <p class="muted small" data-i18n-html="set.footer">The bot token, database and NodeLink connection can only be changed in <code>docker/config.json</code>. A mistake there would stop the bot, including this panel.</p>
       </div>
     </section>
 
@@ -103,25 +105,25 @@
       <div id="strips" class="strips"></div>
       <section class="panel log-panel">
         <div class="panel-head">
-          <h2 class="panel-title">Jurnal</h2>
+          <h2 class="panel-title" data-i18n="log.title">Log</h2>
           <div class="log-tools">
-            <input id="log-filter" type="search" placeholder="Filtrează" aria-label="Filtrează jurnalul">
-            <select id="log-level" aria-label="Nivel">
-              <option value="all">Toate</option>
-              <option value="warn">Avertismente și erori</option>
-              <option value="error">Doar erori</option>
+            <input id="log-filter" type="search" data-i18n-placeholder="log.filter" placeholder="Filter" data-i18n-aria="log.filterAria" aria-label="Filter the log">
+            <select id="log-level" data-i18n-aria="log.level" aria-label="Level">
+              <option value="all" data-i18n="log.all">All</option>
+              <option value="warn" data-i18n="log.warn">Warnings and errors</option>
+              <option value="error" data-i18n="log.error">Errors only</option>
             </select>
-            <label class="check"><input id="log-follow" type="checkbox" checked> Urmărește</label>
+            <label class="check"><input id="log-follow" type="checkbox" checked> <span data-i18n="log.follow">Follow</span></label>
           </div>
         </div>
-        <pre id="log" class="log" tabindex="0" aria-label="Jurnalul botului"></pre>
+        <pre id="log" class="log" tabindex="0" data-i18n-aria="log.aria" aria-label="Bot log"></pre>
       </section>
     </section>
 
-    <nav class="bottombar" aria-label="Secțiuni">
-      <button class="tab" data-tab="player">Player</button>
-      <button class="tab" data-tab="settings">Setări</button>
-      <button class="tab" data-tab="status">Status</button>
+    <nav class="bottombar" data-i18n-aria="top.sections" aria-label="Sections">
+      <button class="tab" data-tab="player" data-i18n="tab.player">Player</button>
+      <button class="tab" data-tab="settings" data-i18n="tab.settings">Settings</button>
+      <button class="tab" data-tab="status" data-i18n="tab.status">Status</button>
     </nav>
   </div>
 

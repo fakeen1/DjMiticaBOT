@@ -345,3 +345,7 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; backgr
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+/* invite link buttons */
+.invite-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.invite-row a.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }

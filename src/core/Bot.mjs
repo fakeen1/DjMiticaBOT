@@ -332,18 +332,18 @@ class DjMitica {
 
     this.players.checkVoiceChannels = (message) => this._checkVoiceChannelsImpl(message);
 
-    // Comenzi vocale (vezi src/voice/VoiceCommands.mjs si config.voiceCommands)
+    // Voice commands (see src/voice/VoiceCommands.mjs and config.voiceCommands)
     try {
       this.voiceCommands = new VoiceCommands(this).start();
     } catch (e) {
-      logger.warn("[VoiceCmd] Pornire esuata:", e?.message);
+      logger.warn("[VoiceCmd] Failed to start:", e?.message);
     }
 
-    // Interfata web (vezi src/web/WebServer.mjs si config.web)
+    // Web control panel (see src/web/WebServer.mjs and config.web)
     try {
       this.web = new WebServer(this).start();
     } catch (e) {
-      logger.warn("[Web] Pornire esuata:", e?.message);
+      logger.warn("[Web] Failed to start:", e?.message);
     }
 
     const __dirname = import.meta.dirname;
@@ -356,7 +356,7 @@ class DjMitica {
       this.comHashLong = null;
     }
 
-    this.comLink = "https://github.com/fakeen1/djmitica/commit/" + (this.comHashLong ?? "");
+    this.comLink = "https://github.com/fakeen1/DjMiticaBOT/commit/" + (this.comHashLong ?? "");
 
     const loader    = new CommandLoader(commands, this);
     const dir       = path.join(__dirname, "..", "..", "commands");

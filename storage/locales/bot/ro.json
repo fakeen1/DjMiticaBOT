@@ -1,0 +1,831 @@
+{
+    "cmdBuilder": {
+        "requirement": {
+            "permission": "Nu ai permisiunile necesare pentru această comandă!"
+        },
+        "subcommand": {
+            "invalid": "Subcomandă invalidă. Încearcă una dintre următoarele: `$previousCmd <$cmdlist>`"
+        },
+        "option": {
+            "invalidChoice": "Valoare invalidă '{{$currValue}}'. Opțiunea `{{$optionName}}` trebuie să fie una dintre următoarele:\n{{$choices}}\nSchemă: `$previousCmd <{{$type}}>`",
+            "invalidChannel": "Valoare invalidă '{{$currValue}}'. Opțiunea `{{$optionName}}` trebuie să fie o mențiune, un ID sau un nume de canal.\nSchemă: `$previousCmd <{{$type}}>`",
+            "invalidType": "Valoare invalidă '{{$currValue}}'. Opțiunea `{{$optionName}}` trebuie să fie de tipul `{{$type}}`.\nSchemă: `$previousCmd <{{$type}}>`"
+        }
+    },
+    "cmdHandler": {
+        "command": {
+            "invalid": "Comandă necunoscută: {{command}}!",
+            "suggestion": "Te refereai la {{command}}? (Scrie {{acceptCommand}} ca s-o rulezi)"
+        },
+        "help": {
+            "pageStructure": "Comenzi disponibile (pagina $currPage/$maxPage): \n\n$content\n\nScrie `$prefix$helpCmd <comandă>` ca să afli mai multe despre ea. Poți include și subcomenzi.\nDe exemplu: `$prefix$helpCmd settings get`\n\nSfat: folosește săgețile de sub acest mesaj ca să schimbi pagina, sau alege pagina cu `$prefix$helpCmd <număr pagină>`",
+            "unknownCommand": "❌ Comandă necunoscută `{{command}}`. Folosește `{{prefix}}help` ca să vezi lista.",
+            "availableCommands": "Comenzi disponibile{{$page}}: ",
+            "runHelp": "\nScrie `$prefix$helpCmd <comandă>` ca să afli mai multe despre ea. Poți include și subcomenzi.\nDe exemplu: `$prefix$helpCmd comandă numeSubcomandă`",
+            "pageTip": "\n\nSfat: schimbă pagina cu `$prefix$helpCmd <număr pagină>`",
+            "ellipsis": ". [...]",
+            "usage": "Utilizare: ",
+            "examples": "Exemplu(e): ",
+            "aliases": "Aliasuri: ",
+            "subcommands": "Subcomenzi: ",
+            "arguments": "Argumente: ",
+            "allowedValues": "Valori permise: ",
+            "aliasesLabel": "Aliasuri: ",
+            "requirements": "Cerințe: ",
+            "permission": "Permisiunea `{{$permission}}`",
+            "optionCount": "{{$count}} opțiune(i)"
+        },
+        "invalidFlag": "Flag invalid `$invalidFlag`. Nu corespunde niciunei opțiuni a acestei comenzi.\n`$previousCmd $invalidFlag`",
+        "textWrapError": "Text incorect `{{$value}}`: lipsește ghilimeaua de închidere (`{{$quote}}`) după text.",
+        "page": {
+            "invalid": "{{number}} nu este un număr de pagină valid!"
+        },
+        "permissions": {
+            "message": "Te rog să-mi dai permisiunea {{permission}} în {{channel}} sau contactează un administrator al serverului. Nu pot funcționa fără ea."
+        }
+    },
+    "commands": {
+        "clear": "Șterge toate melodiile din coadă.",
+        "debug": "Comandă de depanare pentru diverse scopuri.",
+        "eval": "Evaluează cod JavaScript (doar proprietarul).",
+        "filter": "Deschide un selector interactiv de filtre — reacționează cu un emoji ca să aplici un efect audio.",
+        "forceleave": "Scoate Dj Mitica dintr-un canal chiar dacă tu nu ești în el.",
+        "invite": "Primești linkul ca să adaugi Dj Mitica pe serverul tău.",
+        "join": "Botul intră în canalul tău de voce sau în cel specificat.",
+        "leave": "Botul iese dintr-un canal de voce. Specifică un canal sau lasă gol pentru cel în care ești.",
+        "lastfm": "Conectează contul Last.fm, pornește/oprește scrobbling-ul sau vezi profilul.",
+        "list": "Afișează melodiile din coada canalului tău de voce.",
+        "loop": "Pornește/oprește repetarea cozii/melodiei.",
+        "lyrics": "Afișează versurile sincronizate de la NodeLink.",
+        "np": "Afișează numele și linkul melodiei care cântă acum.",
+        "pause": "Pune redarea pe pauză în canalul tău de voce.",
+        "ping": "Verifică latența botului și starea conexiunii.",
+        "play": "Redă o melodie sau un playlist dintr-un URL sau o căutare.\nSuportă YouTube, Spotify, SoundCloud, Deezer, Apple Music, Tidal, Bilibili și altele.\nCăutare implicită: YouTube Music. Folosește `-p <sursă>` sau un prefix în text, de ex. `sp: blinding lights`.",
+        "player": "Creează un panou interactiv de control al playerului, cu progres live.",
+        "playnext": "La fel ca $prefixplay, dar pune rezultatul la începutul cozii.",
+        "radio": "Redă un post de radio. Folosește `$prefixradio list` ca să vezi toate posturile.",
+        "reload": "Reîncarcă comenzile. Lasă gol ca să vezi toate țintele.",
+        "remove": "Scoate o anumită melodie din coadă.",
+        "resume": "Reia redarea în canalul tău de voce.",
+        "search": "Afișează rezultatele unei căutări și alege una de redat.\nSuportă toate sursele — folosește un prefix în text, de ex. `sp: melodie` sau `-p dz`.",
+        "servers": "Afișează lista serverelor în care se află botul.",
+        "settings": "Schimbă/vezi setările serverului curent.",
+        "shuffle": "Amestecă aleatoriu coada.",
+        "skip": "Sari peste melodia care cântă acum.",
+        "stats": "Afișează statistici despre bot, de exemplu de cât timp e pornit.",
+        "support": "Unde primești ajutor pentru Dj Mitica, raportezi erori sau propui funcții noi.",
+        "test": "Arată câte persoane sunt în fiecare canal de voce.",
+        "thumbnail": "Afișează imaginea melodiei care cântă acum.",
+        "volume": "Vezi sau schimbă volumul curent.",
+        "vote": "Vezi informații despre voturi sau cine a votat serverul/botul pe FluxerList",
+        "volumedefault": "Vezi sau setează volumul implicit al serverului. (Setarea cere permisiunea Manage Server)",
+        "seek": "Sari la o anumită poziție în melodia care cântă acum.",
+        "move": "Mută o melodie dintr-o poziție în alta în coadă.",
+        "autoplay": "Pornește/oprește autoplay — redă automat melodii asemănătoare când se termină coada.",
+        "trackopt": "Setează momente personalizate de început/sfârșit pentru melodii. Suportă aliasuri cu nume — salvează mai multe tăieturi pe melodie, pentru secțiuni diferite."
+    },
+    "options": {
+        "debug": {
+            "target": "Ținta care trebuie examinată."
+        },
+        "lastfm": {
+            "action": "Acțiunea de executat: link, confirm, unlink, np, profile, loved, top, recent, artists, love, unlove, scrobble",
+            "token": "Tokenul de autentificare de la Last.fm (folosit cu acțiunea 'confirm')"
+        },
+        "eval": {
+            "expression": "Expresia JavaScript de evaluat"
+        },
+        "filter": {
+            "name": "Numele filtrului"
+        },
+        "forceleave": {
+            "channelId": "Canalul din care trebuie să iasă."
+        },
+        "join": {
+            "channel": "Mențiune, ID sau nume de canal de voce în care să intre. Implicit, canalul tău curent."
+        },
+        "loop": {
+            "type": "Ce fel de repetare se pornește/oprește."
+        },
+        "play": {
+            "query": "O căutare, un URL sau o căutare cu prefix de sursă, de ex. `sp: nume melodie`.",
+            "provider": "Sursa căutării. Implicit: YouTube Music. Sau folosește un prefix în text: sp:, dz:, am:, yt:, sc: etc."
+        },
+        "playnext": {
+            "query": "O căutare, un URL sau o căutare cu prefix de sursă, de ex. `sp: nume melodie`.",
+            "provider": "Sursa căutării. Implicit: YouTube Music."
+        },
+        "radio": {
+            "station": "Numele postului, 'list' ca să vezi lista, sau lasă gol pentru postul implicit."
+        },
+        "reload": {
+            "target": "Numele comenzii/modulului sau: all | commands | src | audio"
+        },
+        "remove": {
+            "index": "Poziția melodiei în coadă. Pozițiile se văd cu comanda 'list'."
+        },
+        "search": {
+            "provider": "Sursa căutării. Implicit: YouTube Music.",
+            "query": "Textul de căutat sau o căutare cu prefix de sursă, de ex. `sp: nume melodie`."
+        },
+        "settings": {
+            "get": {
+                "setting": "Afișează valoarea curentă a unei setări."
+            },
+            "set": {
+                "setting": "Numele setării pe care vrei s-o schimbi.",
+                "value": "Noua valoare."
+            },
+            "reset": {
+                "setting": "Ce setare se resetează."
+            },
+            "help": {
+                "setting": "Lasă gol ca să vezi toate setările disponibile."
+            }
+        },
+        "volume": {
+            "volume": "Noul volum în procente (de ex. `30` sau `100`). Peste 100% calitatea poate scădea."
+        },
+        "vote": {
+            "action": "Acțiunea de executat: info, check, voters",
+            "type": "Tipul resursei: server sau bot"
+        },
+        "volumedefault": {
+            "volume": "Noul volum în % (0–200), salvat ca implicit pentru server. Lasă gol ca să vezi valoarea curentă."
+        },
+        "seek": {
+            "position": "Poziția la care să sară (de ex. 1:30, 90 sau 1:30:00 pentru ore)"
+        },
+        "move": {
+            "from": "Poziția curentă a melodiei în coadă (de la 1).",
+            "to": "Poziția nouă a melodiei (de la 1)."
+        },
+        "trackopt": {
+            "times": "Momentul de început și, opțional, de sfârșit, de ex. '0:30' sau '0:30 3:45'"
+        }
+    },
+    "pagination": {
+        "embed": {
+            "sclosedContent": "{{content}}\nSesiune închisă - schimbarea paginilor **nu mai funcționează** de aici.",
+            "sclosedTitle": "Sesiune închisă"
+        },
+        "error": {
+            "perms": {
+                "messages": "Nu pot trimite mesaje în {{channel}}. Te rog contactează un administrator al serverului să-mi dea permisiunea \"SendMessage\".",
+                "reactions": "Am nevoie de permisiunea de reacții ca să funcționez. Te rog contactează un administrator al serverului."
+            }
+        }
+    },
+    "subcommands": {
+        "settings": {
+            "get": "Afișează valoarea unei setări sau toate setările serverului.",
+            "set": "Setează valoarea unei setări.",
+            "reset": "Resetează o setare la valoarea implicită.",
+            "help": "Afișează ajutor pentru sistemul de setări sau explică o anumită setare."
+        }
+    },
+    "voice": {
+        "join": {
+            "cancelled": "Anulat!",
+            "error": {
+                "dc": "Se pare că nu suntem în același canal de voce.",
+                "invalid": "Canal de voce invalid. Încearcă din nou și verifică literele mari/mici! (`x` ca să anulezi)",
+                "perms": "Ceva n-a mers bine. Nu pot intra în {{channel}}. Am permisiunile necesare?"
+            },
+            "warning": {
+                "nc": "Se pare că nu ești conectat la {{channel}}. Ai uitat să intri?"
+            }
+        }
+    },
+    "responses": {
+        "_common": {
+            "nothingPlaying": "❌ Nu cântă nimic în acest moment!",
+            "serverOnlyForMusic": "🎵 Muzica are nevoie de un **canal de voce într-un server** — nu pot intra pe voce în mesaje private. Rulează comanda într-un server!",
+            "noVoiceChannel": "⚠️ Nu te găsesc într-un canal de voce. Intră mai întâi într-unul sau, dacă ești deja, verifică dacă am permisiunile **View Channel** și **Connect**.",
+            "noVoiceStrict": "⚠️ Nu te găsesc într-un canal de voce. Intră într-unul sau, dacă ești deja, verifică dacă am permisiunile **View Channel** și **Connect**.",
+            "alreadyInChannel": "⚠️ Cânt deja în {{channels}}. Intră în acel canal sau folosește `{{prefix}}play` ca să pornești muzica în canalul tău.",
+            "busyPlayingInOtherVoiceChannel": "🎵 **Cânt deja muzică în {{channels}}!**\n🎧 **Intră în acel canal** ca să asculți și tu.\n⏳ Mă vrei în canalul tău? Lasă coada să se termine sau golește-o cu `{{prefix}}clear`, apoi rulează din nou `{{prefix}}join`.\n🔧 Administratorii serverului pot forța oricând cu `{{prefix}}forceleave`.",
+            "busyStayingInOtherVoiceChannel": "🤖 **Stau în {{channels}} în modul 24/7.**\n🎧 Intră în acel canal ca să stai cu mine.\n🔧 Ca să mă aduci în canalul tău, oprește 24/7 acolo cu `{{prefix}}247 off` sau roagă un administrator să ruleze `{{prefix}}forceleave`.",
+            "notInVoice": "Nu sunt într-un canal de voce.",
+            "queueEmpty": "📭 Coada e goală. Folosește `{{prefix}}play` ca să adaugi melodii!",
+            "queueEnded": "🎵 Coada s-a terminat — nu mai e nimic de redat. Adaugă melodii cu `{{prefix}}play`!",
+            "queueRestored": "🔁 Botul a repornit — am readus **{{count}}** melodie(i) în coadă și m-am reconectat pe voce. Continui de unde am rămas.",
+            "notConnected": "Se pare că nu suntem în același canal de voce.",
+            "controlsExpired": "⌛ Controalele au expirat",
+            "sessionEnded": "Sesiune încheiată",
+            "navigateHint": "💡 ⬅️ ➡️ Navighează",
+            "voiceSelectionPrompt": "Alege unul dintre canalele de mai jos apăsând pe reacții",
+            "voiceSelectionHint": "trimite un mesaj cu canalul de voce! (Mențiune/ID/Nume)\nTrimite 'x' ca să anulezi.",
+            "voiceSelectionTimedOut": "⏱️ Timpul pentru alegerea canalului a expirat.",
+            "voiceConnectionLost": "❌ Conexiunea de voce s-a pierdut. Te rog reintră.",
+            "couldNotGetStream": "❌ Nu am putut obține fluxul audio pentru **{{title}}** — trec mai departe.",
+            "errorStreaming": "❌ Eroare la redarea **{{title}}** — trec mai departe.",
+            "successfullyLeft": "✅ Am ieșit din canal",
+            "voiceSelectionInvalid": "Canal de voce invalid. Încearcă din nou sau scrie `x`.",
+            "voiceChannelRequired": "❌ Nu te găsesc într-un canal de voce. Intră într-unul sau, dacă ești deja, verifică dacă am permisiunile **View Channel** și **Connect**!",
+            "joinPermissionError": "❌ Nu am permisiunea să intru în <#{{channel}}>. Te rog dă-mi permisiunea **Connect** în acel canal.",
+            "joinFailedPermissions": "❌ Nu am putut intra în canalul de voce — lipsesc permisiuni. Verifică dacă am permisiunile **Connect** și **Speak**.",
+            "joinFailedGeneric": "❌ Nu am putut intra în canalul de voce. Te rog încearcă din nou.",
+            "joinFailedNotFound": "❌ Nu am găsit acel canal de voce."
+        },
+        "clear": {
+            "cleared": "🗑️ Coada a fost golită."
+        },
+        "debug": {
+            "voiceTitle": "🔧 Depanare voce",
+            "summary": "📊 **Rezumat**",
+            "pageLabel": "Pagina {{page}}/{{total}}",
+            "navigateHint": "Folosește ⬅️➡️ ca să navighezi"
+        },
+        "eval": {
+            "resultTitle": "Rezultat eval",
+            "resultTitleError": "❌ Rezultat eval",
+            "resultTitleSuccess": "✅ Rezultat eval",
+            "typeLabel": "Tip:",
+            "timeLabel": "Timp:",
+            "pageLabel": "Pagina {{page}}/{{total}}",
+            "navigateHint": "• ⬅️ ➡️ Navighează • ❌ Șterge",
+            "deleteHint": "• ❌ Șterge",
+            "controlsExpired": "⌛ Controalele au expirat"
+        },
+        "filter": {
+            "pickerTitle": "🎛️ Selector de filtre audio",
+            "nothingPlaying": "❌ Nu cântă nimic acum.",
+            "nothingPlayingInline": "*Nu cântă nimic*",
+            "applyFailed": "❌ Nu am putut aplica **{{filter}}**: `{{reason}}`\n\nVerifică dacă nodul NodeLink are filtrele activate.",
+            "applied": "{{emoji}} **{{label}}** aplicat!",
+            "removed": "{{emoji}} **{{label}}** eliminat.",
+            "cleared": "🔇 Filtrele au fost șterse — sunetul original a revenit.",
+            "pendingCleared": "Filtru șters. Sunetul original va fi folosit de la următoarea melodie redabilă.",
+            "pendingApplied": "{{label}} salvat. Se va aplica de la următoarea melodie redabilă.",
+            "pendingRemoved": "{{label}} eliminat. Următoarea melodie redabilă va folosi filtrele actualizate.",
+            "noFilterActive": "🔇 Niciun filtru activ.",
+            "filtersActive": "✅ Filtre active: **{{filters}}**.",
+            "reactToToggle": "💡 Reacționează din nou ca să comuți, sau ❌ ca să închizi.",
+            "sessionTimedOut": "⌛ Sesiunea a expirat.",
+            "pickerClosed": "👋 Selectorul de filtre a fost închis.",
+            "footer": "Pagina {{page}}/{{total}} • Reacționează cu emoji-ul unui filtru ca să-l comuți",
+            "activeLabel": "**← activ**",
+            "closeHint": "❌ Închide"
+        },
+        "forceleave": {
+            "channelNotFound": "❌ Canalul nu a fost găsit.",
+            "wrongServer": "❌ Comanda trebuie rulată în același server cu canalul de voce.",
+            "playerNotFound": "❌ Playerul nu a fost găsit.",
+            "playerNotInit": "❌ Playerul nu este inițializat."
+        },
+        "gateway": {
+            "missingPermsFallback": "⚠️ Îmi lipsesc permisiuni de care am nevoie ca să funcționez corect! Lipsesc: **{{perms}}**. Roagă un administrator al serverului să mi le dea din Server Settings → Roles."
+        },
+        "invite": {
+            "title": "Invită {{name}}",
+            "addLink": "**[➕ Adaugă {{name}} pe serverul tău]({{url}})**\nAi nevoie de permisiunea **Manage Server** pe acel server.",
+            "description": "Vrei propria copie? Dj Mitica este open source și self-hosted: codul și ghidul de instalare sunt pe [GitHub](https://github.com/fakeen1/DjMiticaBOT)."
+        },
+        "join": {
+            "channelNotFound": "Nu am găsit canalul `{{channel}}`\nFolosește comanda help ca să afli mai multe. (`$prefixhelp join`)",
+            "alreadyJoined": "Sunt deja în <#{{channel}}>.",
+            "audioNodeConnecting": "⚠️ Nodul audio încă se conectează — te rog încearcă din nou în câteva secunde.",
+            "joining": "⏳ Intru în canal...",
+            "joined": "✅ Am intrat în <#{{channel}}>",
+            "joinFailed": "❌ Nu am putut intra: {{error}}",
+            "noVoiceChannel": "❌ Nu te găsesc într-un canal de voce. Intră mai întâi într-unul sau, dacă ești deja, verifică dacă am permisiunile **View Channel** și **Connect**. Poți specifica și un canal: `{{prefix}}join <#canal>`",
+            "voiceChannelNotFound": "❌ Nu am găsit acel canal de voce. Încearcă o mențiune ca `<#idcanal>` sau numele exact al canalului.",
+            "autoLeaveInactive": "Am ieșit din canalul <#{{channel}}> din cauza inactivității.",
+            "autoLeaveInactive247": "Am ieșit din canalul <#{{channel}}> din cauza inactivității.\nDacă vrei să rămân pe voce, folosește `{{prefix}}247 on` sau `{{prefix}}247 auto`\nFolosește `{{prefix}}247` ca să vezi și să gestionezi canalele salvate.",
+            "joinFailedPerms": "❌ Nu am permisiunea să intru în <#{{channel}}>. Verifică dacă am permisiunea **Connect**.",
+            "voiceChannelUnknown": "canal de voce necunoscut"
+        },
+        "leave": {
+            "noVoiceChannel": "⚠️ Nu te găsesc într-un canal de voce. Intră într-unul sau, dacă ești deja, verifică dacă am permisiunile **View Channel** și **Connect**. Poți specifica și un canal: `{{prefix}}leave <#canal>`",
+            "notInVoice": "Nu sunt într-un canal de voce.",
+            "joinChannel": "⚠️ Intră în {{channel}} ca să folosești această comandă.",
+            "multipleChannels": "⚠️ Cânt în mai multe canale! Intră într-unul dintre ele:\n{{channels}}",
+            "specifyChannel": "⚠️ Nu ești într-un canal de voce. Eu cânt în:\n{{channels}}\n\nFolosește `{{prefix}}leave <#canal>` ca să mă scoți dintr-un anumit canal.",
+            "noPlayerInChannel": "⚠️ Nu cânt în <#{{channel}}>. Sunt în:\n{{channels}}",
+            "playerNotInit": "Playerul nu este inițializat.",
+            "left": "✅ Am ieșit din canal",
+            "leftRejoin247": "✅ Am ieșit — revin în <#{{channel}}> în câteva secunde.\nCa să oprești definitiv modul 24/7, folosește `{{prefix}}247 off`.",
+            "left247On": "✅ Am ieșit.\nModul 24/7 este **pornit** — botul nu revine automat. Folosește `{{prefix}}play` ca să-l aduci înapoi sau `{{prefix}}247 off` ca să-l oprești complet.\nFolosește `{{prefix}}247` ca să vezi toate canalele salvate.",
+            "autoRejoinHint": "⚠️ Modul 24/7 este activ (auto) — revin în <#{{channel}}> în câteva secunde.\nCa să mă scoți definitiv, oprește mai întâi modul 24/7: `{{prefix}}247 off`"
+        },
+        "lastfm": {
+            "notConfigured": "❌ Integrarea Last.fm nu este configurată pe acest bot. Roagă proprietarul botului să adauge o cheie API Last.fm în config.",
+            "notLinked": "❌ Nu ai un cont Last.fm conectat. Folosește `{{prefix}}lastfm link` ca să începi.",
+            "linked": "✅ Contul Last.fm **[{{username}}](https://last.fm/user/{{username}})** a fost conectat! Scrobbling-ul este pornit implicit.",
+            "alreadyLinked": "✅ Ai deja conectat contul **{{username}}**! Folosește `{{prefix}}lastfm unlink` ca să-l deconectezi sau `{{prefix}}lastfm scrobble` ca să comuți scrobbling-ul.",
+            "unlinked": "✅ Contul Last.fm **{{username}}** a fost deconectat.",
+            "scrobbleEnabled": "✅ Scrobbling **pornit** — melodiile ascultate vor fi trimise către **{{username}}**.",
+            "scrobbleDisabled": "⏸️ Scrobbling **oprit** — melodiile nu vor mai fi trimise. Contul rămâne conectat.",
+            "authDM": "📧 Verifică mesajele private pentru linkul de autorizare Last.fm! După ce aprobi, rulează aici `{{prefix}}lastfm confirm <token>`.",
+            "authDMFailed": "⚠️ Nu ți-am putut trimite mesaj privat. [Apasă aici ca să autorizezi pe Last.fm]({{url}}), apoi rulează `{{prefix}}lastfm confirm <token>`.",
+            "authLinkTitle": "🎵 Conectează-ți contul Last.fm",
+            "confirmUsage": "❌ Utilizare: `{{prefix}}lastfm confirm <token>` — folosește tokenul din mesajul privat de autorizare.",
+            "confirmFailed": "❌ Nu am putut obține sesiunea: {{error}}\nVerifică dacă ai aprobat mai întâi tokenul pe Last.fm.",
+            "tokenFailed": "❌ Nu am putut obține tokenul de autorizare: {{error}}",
+            "noLoved": "❤️ Nu am găsit melodii favorite pentru **{{username}}**.",
+            "noTop": "📊 Nu am găsit top melodii pentru **{{username}}**.",
+            "noRecent": "🕐 Nu am găsit melodii recente pentru **{{username}}**.",
+            "lovedTitle": "❤️ Melodii favorite — {{username}}",
+            "topTitle": "📊 Top melodii — {{username}}",
+            "recentTitle": "🕐 Melodii recente — {{username}}",
+            "nowPlaying": "🎵 Cântă acum pe Last.fm",
+            "lastPlayed": "🕐 Ultima ascultată pe Last.fm",
+            "profileTitle": "Profil Last.fm: {{username}}",
+            "profileScrobbles": "🎵 **{{playcount}}** scrobble-uri",
+            "profileRegistered": "👤 Înregistrat: {{date}}",
+            "profileLink": "🔗 [Deschide profilul]({{url}})",
+            "noArtists": "🎤 Nu am găsit top artiști pentru **{{username}}**.",
+            "artistsTitle": "🎤 Top artiști — {{username}}",
+            "lovedTrack": "❤️ Ai adăugat la favorite **{{name}}** de **{{artist}}** pe Last.fm!",
+            "unlovedTrack": "💔 Ai scos de la favorite **{{name}}** de **{{artist}}** pe Last.fm.",
+            "loveFailed": "❌ Nu am putut adăuga melodia la favorite: {{error}}",
+            "unloveFailed": "❌ Nu am putut scoate melodia de la favorite: {{error}}",
+            "nothingPlayingLove": "❌ Nu cântă nimic acum. Pornește o melodie ca s-o adaugi la favorite!",
+            "fetchFailed": "❌ Nu am putut prelua datele de la Last.fm: {{error}}",
+            "authLinkBody": "Apasă linkul de mai jos ca să autorizezi Dj Mitica pe Last.fm:\n\n**[Autorizează pe Last.fm]({{url}})**\n\nDupă ce apeși \"Yes, allow access\", revino și rulează:\n`{{prefix}}lastfm confirm {{token}}`\n\n_Linkul expiră în 60 de minute._",
+            "npTrackInfo": "**{{name}}** de **{{artist}}**\n[Deschide pe Last.fm]({{url}})",
+            "npFooter": "Last.fm: {{username}}",
+            "profileScrobbleStatus": "🔄 Scrobbling: {{status}}",
+            "profileScrobbleEnabled": "✅ Pornit",
+            "profileScrobbleDisabled": "⏸️ Oprit",
+            "profileScrobbleFooter": "Folosește {{prefix}}lastfm scrobble ca să comuți scrobbling-ul",
+            "noPlaylists": "📋 Nu am găsit playlisturi pentru **{{username}}**.",
+            "playlistsTitle": "📋 Playlisturi — {{username}}",
+            "playlistsFooter": "💡 Folosește {{prefix}}lastfm play playlist <număr> ca să redai unul!",
+            "nothingPlayingUnlove": "❌ Nu cântă nimic acum. Pornește o melodie ca s-o scoți de la favorite!",
+            "nothingPlayingNoArtist": "❌ Nu cântă nimic acum și nu ai specificat un artist. Pornește o melodie sau scrie numele unui artist!",
+            "whoknowsChecking": "🔍 Verific cine ascultă **{{artist}}** în acest server...",
+            "whoknowsNobody": "👤 Nimeni din acest server nu a ascultat **{{artist}}** pe Last.fm.",
+            "whoknowsTitle": "👤 Cine îl știe pe {{artist}}?",
+            "whoknowsFooter": "{{count}} ascultător(i) · {{totalPlays}} ascultări în total",
+            "leaderboardEmpty": "🎵 Nu există încă scrobble-uri. Conectează-ți contul Last.fm cu `{{prefix}}lastfm link` și începe să asculți!",
+            "leaderboardControlsExpired": "Controalele au expirat",
+            "leaderboardTitleServer": "🎵 Clasamentul scrobble al serverului",
+            "leaderboardTitleGlobal": "🎵 Clasament scrobble (global)",
+            "leaderboardScrobbles": "scrobble-uri",
+            "leaderboardYou": "← tu",
+            "leaderboardFooterSync": "💡 Numerele sunt sincronizate live de pe Last.fm (cache ~10 min) · `{{prefix}}lastfm profile` ca să le sincronizezi pe ale tale",
+            "trackListFooter": "💡 Folosește `{{prefix}}lastfm play loved` ca să le redai!",
+            "plays": "ascultări",
+            "leaderboardPageFooter": "Pagina {{current}}/{{total}} • Folosește ◀️▶️ ca să navighezi",
+            "artistsFooter": "💡 Folosește {{prefix}}lastfm play top ca să redai top melodiile tale!",
+            "noArtistSpecified": "❌ Nu ai specificat un artist. Pornește o melodie sau scrie numele artistului în opțiunea token.",
+            "artistNotFound": "❌ Artistul **{{artist}}** nu a fost găsit pe Last.fm.",
+            "noAlbumSpecified": "❌ Nu ai specificat un album. Pornește o melodie sau scrie numele albumului (de ex. `artist - album`) în opțiunea token.",
+            "albumNotFound": "❌ Albumul **{{album}}** nu a fost găsit pe Last.fm.",
+            "noTrackSpecified": "❌ Nu ai specificat o melodie. Pornește o melodie sau scrie numele ei (de ex. `artist - melodie`) în opțiunea token.",
+            "trackNotFound": "❌ Melodia **{{track}}** de **{{artist}}** nu a fost găsită pe Last.fm.",
+            "noTopAlbums": "💿 Nu am găsit top albume pentru **{{username}}**.",
+            "topAlbumsTitle": "💿 Top albume{{period}} — {{username}}",
+            "topAlbumsFooter": "💡 Folosește {{prefix}}lastfm play albums ca să redai top albumele tale!",
+            "noTopTags": "🏷️ Nu am găsit top etichete pentru **{{username}}**.",
+            "topTagsTitle": "🏷️ Top etichete — {{username}}",
+            "topTagsFooter": "💡 Folosește {{prefix}}lastfm tag <nume> ca să vezi informații despre o etichetă!",
+            "tagProvideName": "❌ Scrie numele etichetei în opțiunea token. Exemplu: `{{prefix}}lastfm tag rock`",
+            "tagNotFound": "❌ Eticheta **{{tag}}** nu a fost găsită pe Last.fm.",
+            "compareSpecifyUser": "❌ Specifică alt utilizator cu care să compari. Exemplu: `{{prefix}}lastfm compare -user @utilizator`",
+            "compareUserNotLinked": "❌ Acel utilizator nu are un cont Last.fm conectat.",
+            "compareFailed": "❌ Nu am putut compara profilurile. Verifică dacă ambii utilizatori au contul conectat.",
+            "compareTitle": "🤝 Comparație de gusturi",
+            "coverNothingPlaying": "❌ Nu cântă nimic acum. Pornește o melodie ca să vezi coperta albumului!",
+            "coverNotFound": "🖼️ Nu am găsit coperta albumului pentru **{{track}}** de **{{artist}}**.",
+            "coverTitle": "🖼️ {{album}}",
+            "coverFooter": "🎵 {{track}} de {{artist}}",
+            "refreshFailed": "❌ Nu am putut accesa serverul.",
+            "refreshSuccess": "✅ Lista de membri a fost reîmprospătată! Am găsit **{{count}}** membri în acest server.",
+            "affinityNeedUsers": "👥 Sunt necesari cel puțin 2 utilizatori conectați în acest server ca să verific afinitatea.",
+            "affinityChecking": "🔍 Verific afinitatea muzicală dintre membrii serverului...",
+            "affinityNoCommon": "👥 Nu am găsit artiști comuni între membrii serverului.",
+            "affinityTitle": "👥 Afinitate muzicală",
+            "affinityFooter": "{{count}} membri verificați",
+            "crownsChecking": "👑 Verific coroanele tale de artist...",
+            "crownsNone": "👑 Nu deții nicio coroană de artist în acest server. Ascultă în continuare!",
+            "crownsTitle": "👑 Coroane de artist — {{username}}",
+            "crownsFooter": "{{count}} coroană(e) deținute",
+            "whoknowsTrackChecking": "🔍 Verific cine știe **{{track}}** de **{{artist}}** în acest server...",
+            "whoknowsTrackNobody": "👤 Nimeni din acest server nu a ascultat **{{track}}** de **{{artist}}** pe Last.fm.",
+            "whoknowsTrackTitle": "👤 Cine știe {{track}}?",
+            "whoknowsTrackFooter": "{{count}} ascultător(i) · {{totalPlays}} ascultări în total · de {{artist}}",
+            "whoknowsAlbumChecking": "🔍 Verific cine știe **{{album}}**{{artistClause}} în acest server...",
+            "whoknowsAlbumNobody": "👤 Nimeni din acest server nu a ascultat **{{album}}** pe Last.fm.",
+            "whoknowsAlbumTitle": "👤 Cine știe {{album}}?",
+            "noArtistTags": "🏷️ Nu am găsit etichete pentru artistul **{{artist}}**.",
+            "artistTagsTitle": "🏷️ Top etichete pentru {{artist}}",
+            "listeners": "ascultători",
+            "leaderboardYourRank": "📍 Locul tău: **#{{rank}}** ({{count}} scrobble-uri)"
+        },
+        "list": {
+            "empty": "📭 Coada e goală. Folosește `{{prefix}}play` ca să adaugi melodii!",
+            "emptyInline": "_Coada e goală._",
+            "nowPlaying": "🎵 **Cântă acum**",
+            "header": "📋 **{{count}} melodii în coadă** • ⏱️ `{{time}}`",
+            "upNext": " ▶",
+            "queueTitle": "🎧 Coada"
+        },
+        "loop": {
+            "invalidChoice": "'{{choice}}' nu este valid. Folosește `song` sau `queue`",
+            "songActivated": "🔂 Repetarea melodiei a fost pornită",
+            "songDisabled": "➡️ Repetarea melodiei a fost oprită",
+            "queueActivated": "🔁 Repetarea cozii a fost pornită",
+            "queueDisabled": "➡️ Repetarea cozii a fost oprită"
+        },
+        "queue": {
+            "empty": "Coada e goală.",
+            "indexOutOfBounds": "Poziție în afara cozii",
+            "removed": "Am scos **{{title}}** din coadă.",
+            "sourceOutOfBounds": "Poziția de pornire este în afara cozii",
+            "targetOutOfBounds": "Poziția țintă este în afara cozii",
+            "alreadyInPosition": "Melodia este deja pe acea poziție",
+            "moved": "Am mutat **{{title}}** de pe poziția {{from}} pe {{to}}."
+        },
+        "lyrics": {
+            "nothingPlaying": "❌ Nu cântă nimic în acest moment.",
+            "searching": "Loading frame Caut versurile pentru **{{title}}**...",
+            "noLyrics": "❌ Nu există versuri pentru **{{title}}**.\n\n💡 Pluginul de versuri NodeLink poate să nu aibă această melodie. Încearcă o melodie populară!",
+            "error": "❌ Eroare: {{error}}",
+            "syncedBadge": " ⏱️ Sincronizate",
+            "nodeLinkFooter": "NodeLink • {{lines}} versuri",
+            "sourceFooter": "{{source}} • {{lines}} versuri",
+            "controlsExpired": "⌛ Controalele au expirat • NodeLink • {{lines}} versuri",
+            "sessionClosed": "Sesiune închisă • NodeLink • {{lines}} versuri"
+        },
+        "messages": {
+            "missingCriticalPermsTitle": "Permisiuni lipsă — botul nu poate funcționa corect",
+            "missingCriticalPermsDesc": "Botului îi lipsesc **permisiuni esențiale** de care are nevoie. Roagă un administrator al serverului să i le dea.",
+            "missingOptionalPermsTitle": "Permisiuni opționale lipsă",
+            "missingOptionalPermsDesc": "Unele funcții pot să nu meargă fără aceste permisiuni, dar botul poate reda muzică în continuare.",
+            "permFooter": "Reinvită botul cu permisiunile corecte folosind linkul de invitație sau editează rolul botului din Server Settings → Roles.",
+            "needPermsFallback": "Am nevoie de următoarele permisiuni: **{{perms}}**. Roagă un administrator al serverului să mi le dea."
+        },
+        "np": {
+            "loading": "⏳ Se încarcă...",
+            "nothingPlaying": "Nu cântă nimic în acest moment.",
+            "nowPlayingIn": "🔊 **Cântă acum în:** <#{{channel}}>",
+            "playing": "🎵 Cântă: **[{{title}}]({{url}})** ({{elapsed}}/{{duration}})",
+            "volume": "Volum: {{volume}}%",
+            "queueLoop": "Repetare coadă: **{{state}}**",
+            "songLoop": "Repetare melodie: **{{state}}**",
+            "streaming": "📻 Transmite **[{{title}}]({{url}})**",
+            "playingBy": "Cântă **[{{title}}]({{url}})** de [{{artist}}]({{artistUrl}})"
+        },
+        "pause": {
+            "nothingPlaying": "❌ Nu cântă nimic în acest moment!",
+            "alreadyPaused": "❌ Este deja pe pauză!",
+            "paused": "⏸️ Pauză"
+        },
+        "ping": {
+            "title": "🏓  Pong!",
+            "measuring": "🏓  Măsor...",
+            "roundtrip": "📶  **Dus-întors**",
+            "gateway": "🌐  **Gateway**",
+            "node": "🎧  **NodeLink**"
+        },
+        "play": {
+            "searching": "🔍 Caut...",
+            "loading": "Se încarcă...",
+            "loadingFailed": "**Nu am putut încărca melodia.**",
+            "added": "Am adăugat [{{title}}]({{url}}) în coadă.",
+            "addedPlaylist": "Am adăugat **{{count}}** melodii în coadă.",
+            "nowPlaying": "🎵 Cântă acum [{{title}}]({{url}}) de {{author}} în <#{{channel}}>",
+            "noResults": "**Niciun rezultat pentru '{{query}}'.**",
+            "searchFailed": "**Căutarea a eșuat. Te rog încearcă din nou.**",
+            "noData": "Nu am putut încărca melodia - nu s-au primit date.",
+            "loadFailed": "Nu am putut încărca melodia.",
+            "unexpectedResult": "Rezultat neașteptat de la încărcătorul de melodii.",
+            "loadError": "A apărut o eroare la încărcarea melodiei.",
+            "searchingProvider": "Caut pe {{provider}}...",
+            "bilibiliResolving": "📺 Pregătesc videoclipul Bilibili...",
+            "bilibiliNoAudio": "❌ Nu există audio redabil pentru **{{title}}** — videoclipul poate fi blocat în regiune, doar pentru premium sau șters.",
+            "bilibiliError": "❌ Bilibili: {{message}}",
+            "bilibiliDisabled": "❌ Redarea Bilibili este dezactivată (config.json → bilibili.enabled)."
+        },
+        "playnext": {
+            "searching": "🔍 Caut..."
+        },
+        "player": {
+            "title": "🎧 Controale player muzică",
+            "inactiveTitle": "🎧 Player muzică (inactiv)",
+            "nowPlayingLabel": "Cântă acum",
+            "volumeLabel": "🔊 Volum: `{{volume}}%`",
+            "queueLabel": "📋 Coadă: `{{count}}` melodii",
+            "loopOff": "Repetare: ❌ Oprită",
+            "loopSong": "Repetare: 🎂 Melodie",
+            "loopQueue": "Repetare: 🔁 Coadă",
+            "filterOff": "Filtru: 🔇 Oprit",
+            "filterActive": "Filtru: {{emoji}} **{{label}}**",
+            "filterStacked": "Filtru: 🔥 **{{label}}**",
+            "reactHint": "💡 *Reacționează ca să controlezi redarea*",
+            "sessionExpires": "⏱️ Sesiunea expiră după {{minutes}} min de inactivitate",
+            "requestedBy": "Cerut de {{username}} • Controale active",
+            "controlsDisabled": "⌛ Controale dezactivate (reacționează ca să le reactivezi)",
+            "sessionClosed": "Sesiune închisă{{reason}}",
+            "closedByUser": "👋 Controalele playerului au fost închise",
+            "startedPlaying": "▶️ A pornit redarea",
+            "resumed": "▶️ Redarea continuă",
+            "pausedState": "⏸️ Pauză",
+            "stopped": "⏹️ Oprit",
+            "stoppedCleared": "⏹️ Oprit și coada golită",
+            "shuffled": "🔀 Coada a fost amestecată",
+            "added": "➕ Adăugat: {{title}}",
+            "volumeChanged": "🔊 Volum: {{volume}}%",
+            "filtersCleared": "🔇 Filtrele au fost șterse",
+            "filterApplied": "{{emoji}} Filtru: **{{label}}** aplicat",
+            "filterStackedApplied": "🔥 Filtre: **{{label}}** aplicate",
+            "songLoopEnabled": "🔂 Repetarea melodiei pornită",
+            "queueLoopEnabled": "🔁 Repetarea cozii pornită",
+            "loopDisabled": "❌ Repetarea oprită",
+            "alreadyPlaying": "▶️ Cântă deja",
+            "startingPlayback": "▶️ Pornesc redarea",
+            "previousNotImplemented": "⏮️ Melodia anterioară (neimplementat)",
+            "previousNotAvailable": "⏮️ Melodia anterioară nu este încă disponibilă.",
+            "errorGeneric": "⚠️ Eroare: {{error}}",
+            "openingFilterPicker": "🎛️ Deschid selectorul de filtre — verifică meniul de filtre de mai sus sau folosește comanda `filter`.",
+            "filterError": "⚠️ Eroare filtru: {{error}}",
+            "fetchingLyrics": "📜 Caut versurile...",
+            "noLyricsFound": "❌ Nu am găsit versuri în NodeLink",
+            "lyricsDisplayed": "Versuri afișate ({{lines}} versuri, {{pages}} pagini)",
+            "lyricsError": "⚠️ Eroare versuri: {{error}}"
+        },
+        "radio": {
+            "noStations": "❌ Nu este configurat niciun post de radio.",
+            "stationsTitle": "📻 **Posturi de radio (pagina {{page}}/{{total}})**",
+            "timedOut": "📻 Timpul pentru alegerea postului a expirat.",
+            "cancelled": "❌ Alegerea postului de radio a fost anulată.",
+            "unknownStation": "❌ Post necunoscut `{{station}}`. Disponibile: {{stations}}\n\nFolosește `$prefixradio list` ca să vezi lista.",
+            "nowPlaying": "📻 Transmit acum _{{title}}_ de [{{author}}]({{url}}) în <#{{channel}}>",
+            "skipHint": "_Folosește `$prefixskip` ca să oprești radioul sau `$prefixradio list` ca să schimbi postul._",
+            "prevNext": "⬅️ Înapoi   ➡️ Înainte   ❌ Anulează"
+        },
+        "reload": {
+            "indexNoReload": "❌ `index.mjs` nu poate fi reîncărcat din mers — repornește complet botul.",
+            "unknownCommand": "❌ Comandă necunoscută `{{name}}`",
+            "noFileTracked": "❌ Niciun fișier urmărit pentru `{{name}}`",
+            "noBuilder": "❌ `{{name}}` nu a returnat niciun builder",
+            "reloaded": "✅ `{{name}}`",
+            "moduleError": "❌ `{{label}}`: {{error}}",
+            "unknownTarget": "❌ Țintă necunoscută `{{target}}`.\nRulează `$prefixreload` fără argumente ca să vezi toate țintele.",
+            "availableTargetsTitle": "🔄 Reload — ținte disponibile",
+            "runHint": "Rulează `$prefixreload <țintă>` sau folosește un cuvânt pentru grup:",
+            "batchKeywords": "`all` · `commands`",
+            "resultsHeader": "✅ **{{ok}}** reîncărcate · ❌ **{{bad}}** eșuate"
+        },
+        "remove": {
+            "indexOutOfBounds": "Poziție în afara cozii",
+            "removed": "Am scos **{{title}}** din coadă."
+        },
+        "resume": {
+            "nothingPlaying": "❌ Nu cântă nimic în acest moment!",
+            "notPaused": "❌ Nu este pe pauză!",
+            "resumed": "▶️ Redarea continuă"
+        },
+        "search": {
+            "loadingResults": "⏳ Se încarcă rezultatele...",
+            "searching": "Caut pe {{provider}}...",
+            "noResults": "❌ Niciun rezultat.",
+            "resultsTitle": "{{provider}} — rezultatele căutării",
+            "reactHint": "Reacționează cu un număr ca s-o adaugi în coadă • ❌ ca să anulezi • expiră în 30s",
+            "cancelled": "❌ Anulat.",
+            "added": "✅ Am adăugat [{{title}}]({{url}}) în coadă!",
+            "timedOut": "⏰ Căutarea a expirat.",
+            "sessionClosed": "Sesiune închisă"
+        },
+        "servers": {
+            "noServers": "_Niciun server._",
+            "title": "🌐 Servere ({{count}})",
+            "pageTitle": "🌐 Servere ({{count}}) - pagina {{page}}/{{total}}",
+            "listComplete": "Listă completă"
+        },
+        "settings": {
+            "unknownSetting": "❌ Setare necunoscută `{{setting}}`.",
+            "availableSettings": "Disponibile: `{{settings}}`",
+            "setSuccess": "✅ **{{label}}** setat la {{value}}",
+            "resetSuccess": "🔄 `{{setting}}` a fost resetat la valoarea implicită: {{value}}",
+            "mustBeBool": "❌ `{{setting}}` trebuie să fie da/nu.\nAcceptat: `true`, `false`, `on`, `off`, `enable`, `disable`",
+            "volumeRange": "❌ Volumul trebuie să fie un număr între **1** și **200**.",
+            "voteSkipThresholdRange": "❌ Pragul pentru vot trebuie să fie un număr între **{{min}}** și **{{max}}**.",
+            "invalidLocale": "❌ `{{locale}}` nu este o limbă suportată.\nLimbi disponibile: {{locales}}",
+            "prefixLength": "❌ Prefixul trebuie să aibă între **1** și **5** caractere.",
+            "prefixSpaces": "❌ Prefixul nu poate conține spații.",
+            "invalid247": "❌ Valoare invalidă `{{value}}` pentru modul 24/7.\n\n**Opțiuni valide:**\n• `on` — rămâne conectat permanent, fără revenire automată după `{{prefix}}leave`\n• `auto` — rămâne conectat și revine automat după `{{prefix}}leave` sau deconectare\n• `off` — iese după inactivitate\n\nFiecare canal are propriul mod. Folosește `{{prefix}}247` ca să vezi toate canalele salvate.",
+            "noServer": "❌ Nu am putut detecta serverul tău.",
+            "noVoice247": "❌ Nu ești într-un canal de voce. Intră într-unul, apoi rulează din nou `{{prefix}}247 {{mode}}`.\n\n💡 Fiecare canal are propria setare 24/7.",
+            "247Disabled": "✅ Modul 24/7 a fost **oprit** pentru <#{{channel}}>. Botul a ieșit.\n💡 Folosește `{{prefix}}247` ca să vezi canalele rămase.",
+            "247DisabledAll": "✅ Modul 24/7 a fost **oprit** pentru toate canalele din acest server.\nBotul va ieși de pe voce după inactivitate.",
+            "247Set": "✅ Modul 24/7 setat la **{{mode}}** pentru <#{{channel}}>.\n{{summary}}\n\n💡 Folosește `{{prefix}}247` ca să vezi toate canalele salvate.",
+            "247Joined": "✅ Modul 24/7 setat la **{{mode}}** pentru <#{{channel}}>. Botul a intrat!\n{{summary}}\n\n💡 Folosește `{{prefix}}247` ca să vezi toate canalele salvate.",
+            "247JoinFailed": "⚠️ Modul 24/7 a fost salvat pentru <#{{channel}}>, dar nu am putut intra: {{error}}\n{{summary}}\n\nÎncearcă mai târziu `{{prefix}}join` sau `{{prefix}}play`, ori `{{prefix}}247 off` ca să-l elimini.",
+            "247Status": "♾️ **Mod 24/7**: {{status}}\n\nFolosește `{{prefix}}247 on` sau `{{prefix}}247 auto` ca să-l pornești — `{{prefix}}247 off` ca să-l oprești.",
+            "helpTitle": "⚙️ Ajutor setări",
+            "helpAvailable": "**Setări disponibile:** {{settings}}",
+            "helpSubcommands": "**Subcomenzi:**\n• `{{prefix}}settings get` — toate valorile curente\n• `{{prefix}}settings get <setare>` — o singură setare\n• `{{prefix}}settings set <setare> <valoare>` — schimbă o setare\n• `{{prefix}}settings reset <setare>` — revine la valoarea implicită\n• `{{prefix}}settings help <setare>` — descrie o setare",
+            "helpShortcuts": "**Scurtături:** `{{prefix}}prefix`, `{{prefix}}247`, `{{prefix}}voteskip`, `{{prefix}}voteskiplimit`",
+            "serverTitle": "⚙️ Setările serverului",
+            "serverHeader": "Server: **{{name}}**",
+            "shortcutsHint": "Scurtături: `{{prefix}}247`, `{{prefix}}prefix`, `{{prefix}}voteskip`, `{{prefix}}voteskiplimit`\nFolosește `{{prefix}}settings help <setare>` ca să afli despre orice setare.",
+            "enabled": "✅ pornit",
+            "disabled": "❌ oprit",
+            "label247": "Mod 24/7",
+            "labelPrefix": "Prefix",
+            "labelSongAnnouncements": "Anunțarea melodiilor",
+            "labelPfp": "Stilul avatarului botului",
+            "labelLocale": "Limbă",
+            "labelVolume": "Volum implicit",
+            "labelVoteSkip": "Vot pentru skip",
+            "labelVoteSkipThreshold": "Prag vot pentru skip",
+            "labelAnnouncementChannel": "Canal pentru anunțuri",
+            "labelRestrictVolume": "Restricționează volumul",
+            "labelAutojoinChannel": "Canal de intrare automată",
+            "noDescription": "Nicio descriere disponibilă.",
+            "validValues": "**Valori valide:** {{values}}",
+            "validRange": "**Interval valid:** {{min}}–{{max}}",
+            "currentValue": "**Valoare curentă:**",
+            "defaultValue": "**Implicit:**",
+            "settingTitle": "⚙️ {{setting}}",
+            "savedChannel": "Canal salvat: <#{{channel}}>",
+            "savedChannels": "Canale salvate ({{count}}): {{channels}}",
+            "statusDisabled": "❌ oprit",
+            "savedChannelsNone": "Canale salvate: niciunul",
+            "modeAuto": "🔄 Auto",
+            "modeOn": "✅ Pornit",
+            "modeOff": "❌ Oprit",
+            "channelsLabel": "{{count}} canal",
+            "channelsLabelPlural": "{{count}} canale",
+            "thisServer": "acest server",
+            "max247Channels": "Poți salva cel mult {{max}} canale de voce 24/7 într-un server. Folosește mai întâi `{{prefix}}247 off` într-unul dintre canalele salvate.",
+            "247Panel": {
+                "title": "♾️ Mod 24/7",
+                "noChannelsSaved": "Niciun canal de voce salvat.",
+                "gettingStarted": "Primii pași",
+                "gettingStartedValue": "• `{{prefix}}247 on` — rămâne permanent\n• `{{prefix}}247 auto` — rămâne și revine automat după deconectare",
+                "footer": "{{prefix}}247 on | {{prefix}}247 auto | {{prefix}}247 off",
+                "channelsSaved_one": "{{count}} canal salvat",
+                "channelsSaved_other": "{{count}} canale salvate",
+                "summaryOn": "✅ {{count}} pornit(e)",
+                "summaryAuto": "🔄 {{count}} auto",
+                "modeOn": "✅ Pornit",
+                "modeAuto": "🔄 Auto",
+                "modeOff": "❌ Oprit",
+                "enabledTitle": "♾️ 24/7 {{mode}}",
+                "enabledDescription": "{{channel}} → **{{mode}}** — {{summary}}",
+                "enabledFooter": "{{prefix}}247 off ca să-l oprești pentru un canal",
+                "savedChannels": "Canale salvate",
+                "currentMarker": " ←",
+                "disabledTitle": "♾️ 24/7 oprit",
+                "noChannelsSavedField": "Niciun canal salvat",
+                "allChannelsRemoved": "Toate canalele 24/7 au fost eliminate. Botul va ieși de pe voce după inactivitate.",
+                "channelRemoved": "<#{{channel}}> eliminat",
+                "channelsRemaining_one": "{{count}} canal rămas",
+                "channelsRemaining_other": "{{count}} canale rămase",
+                "reenableFooter": "{{prefix}}247 on | {{prefix}}247 auto ca să-l repornești",
+                "allChannelsLabel": "❌ Toate canalele",
+                "allChannelsDisabled": "Modul 24/7 a fost **oprit** pentru toate canalele din acest server.\nBotul va ieși de pe voce după inactivitate.",
+                "noChannelsSavedShort": "Niciun canal salvat",
+                "joinFailed": "⚠️ 24/7 {{mode}} salvat, dar nu am putut intra în <#{{channel}}>.\nEroare: `{{error}}`\n\nÎncearcă mai târziu `{{prefix}}join` sau `{{prefix}}play`.",
+                "statusConnected": "🟢 Conectat",
+                "statusReconnecting": "🟡 Se reconectează",
+                "statusOffline": "🔴 Offline",
+                "autoRecoveryLine": "♻️ Recuperare automată activă — canalele salvate sunt verificate la fiecare {{seconds}}s",
+                "autoRecoveryDisabledLine": "♻️ Recuperarea automată este în așteptare",
+                "enabledLine": "✅ 24/7 este **pornit** — botul rămâne conectat și revine automat dacă e deconectat.",
+                "disabledHint": "Intră într-un canal de voce și folosește `{{prefix}}247` ca să-l pornești.",
+                "footerLine": "{{prefix}}247 · comută · {{prefix}}247 off · oprește tot",
+                "confirmEnabled": "✅ 24/7 pornit în {{channel}} — botul rămâne conectat și revine automat dacă e deconectat.",
+                "confirmDisabled": "❌ 24/7 oprit în {{channel}} — botul va ieși când nu are ce cânta.",
+                "confirmDisabledAll": "❌ 24/7 oprit pentru toate canalele din acest server — botul va ieși când nu are ce cânta.",
+                "disabledLine": "❌ 24/7 este **oprit**",
+                "activeChannels_one": "✅ 24/7 activ în {{count}} canal:",
+                "activeChannels_other": "✅ 24/7 activ în {{count}} canale:"
+            }
+        },
+        "shuffle": {
+            "emptyQueue": "Nu e nimic de amestecat în coadă.",
+            "shuffled": "🔀 Coada a fost amestecată"
+        },
+        "skip": {
+            "nothingPlaying": "❌ Nu cântă nimic în acest moment!",
+            "skipped": "⏭️ Am trecut mai departe",
+            "skippedTrack": "⏭️ Am sărit peste [{{title}}]({{url}})",
+            "skippedToPosition": "⏭️ Am sărit la poziția {{position}}",
+            "voteAdded": "🗳️ Vot pentru skip: **{{votes}}/{{needed}}**. Rulează din nou comanda ca să votezi!",
+            "alreadyVoted": "🗳️ Ai votat deja pentru skip! **{{votes}}/{{needed}}** voturi până acum."
+        },
+        "stats": {
+            "title": "Dj Mitica Music Bot",
+            "servers": "📂  **Servere**",
+            "users": "👥  **Utilizatori**",
+            "players": "🎧  **Playere**",
+            "scrobbles": "🎵  **Scrobble-uri**",
+            "linkedUsers": "🔗  **Conturi Last.fm conectate**",
+            "ping": "🏓  **Ping**",
+            "gateway": "🌐  **Gateway**",
+            "uptime": "⏱️  **Pornit de**",
+            "build": "🔧  **Versiune**",
+            "lastRestart": "🪛  **Ultima repornire**",
+            "supportKofi": "⭐ [Dă o stea pe GitHub](https://github.com/fakeen1/DjMiticaBOT)",
+            "community": "💬 [Raportează o eroare sau propune o funcție](https://github.com/fakeen1/DjMiticaBOT/issues)"
+        },
+        "support": {
+            "title": "💬 Ajutor",
+            "description": "Pentru orice legat de Dj Mitica, deschide un issue pe GitHub:\n[github.com/fakeen1/DjMiticaBOT](https://github.com/fakeen1/DjMiticaBOT/issues)\n\nPentru întrebări despre copia botului din acest server, întreabă proprietarul serverului."
+        },
+        "test": {
+            "notInServer": "❌ Trebuie folosită într-un server.",
+            "noOneInVoice": "Nu e nimeni pe voce.",
+            "title": "🎙️ Membrii canalelor de voce",
+            "channelEntry": "🔊 **{{name}}**: {{count}} membri"
+        },
+        "thumbnail": {
+            "nothingPlaying": "Nu cântă nimic în acest moment.",
+            "noThumbnail": "Nu există imagine.",
+            "thumbnail": "Imaginea pentru [{{title}}]({{url}}):"
+        },
+        "volume": {
+            "current": "🔊 Volumul curent: `{{volume}}%`",
+            "outOfRange": "❌ Volumul trebuie să fie între `0` și `{{max}}%`.",
+            "changed": "🔊 Volumul a fost schimbat la `{{volume}}%` pentru această sesiune.",
+            "setPending": "Volum setat la `{{volume}}%` — se aplică la conectare."
+        },
+        "vote": {
+            "notConfigured": "❌ Integrarea FluxerList nu este configurată pe acest bot. Roagă proprietarul botului să adauge o cheie API FluxerList în config.",
+            "noResourceId": "❌ Nu este configurat un ID de {{type}}. Specifică-l cu `{{prefix}}vote check {{type}} <id-sau-slug>` sau setează-l în config.json.",
+            "infoTitle": "Vot FluxerList",
+            "infoDescription": "Votează acest bot/server pe [FluxerList]({{siteUrl}})!\n\nFluxerList este o platformă de listare pentru servere și boți, unde utilizatorii pot vota ca să ajute comunitatea să crească.\n\n**Comenzi:**\n`{{prefix}}vote info` — afișează aceste informații și linkul de vot\n`{{prefix}}vote info server` — linkul de vot pentru un server\n`{{prefix}}vote check` — verifică dacă ai votat\n`{{prefix}}vote voters` — lista celor care au votat (doar proprietarul)",
+            "voteTitle": "Votează pe FluxerList",
+            "supportDesc": "Susține acest {{type}} votând pe FluxerList!",
+            "voteLink": "**[Votează și vezi profilul]({{url}})**",
+            "findLink": "Intră pe [FluxerList]({{siteUrl}}) ca să găsești și să votezi acest {{type}}.",
+            "helpGrow": "Voturile tale ajută acest {{type}} să crească și să ajungă la mai mulți utilizatori.",
+            "fetchVotersFailed": "❌ Nu am putut prelua lista de votanți: {{error}}",
+            "noVotersYet": "Nimeni nu a votat încă acest {{type}}. Distribuie linkul de vot ca să începi!",
+            "serverVoters": "Votanții serverului",
+            "botVoters": "Votanții botului",
+            "noVotersOnPage": "Niciun votant pe această pagină.",
+            "controlsExpired": "Controalele au expirat",
+            "pageInfo": "Pagina {{page}}/{{totalPages}} din {{total}} votanți • Folosește ◀️▶️ ca să navighezi",
+            "voterTotal": "{{total}} votant(i) în total",
+            "defaultCommandsTitle": "**Comenzi de vot FluxerList:**",
+            "defaultCommandsList": "`{{prefix}}vote` — informații și link de vot\n`{{prefix}}vote info` — informații despre vot și link\n`{{prefix}}vote check` — verifică dacă ai votat\n`{{prefix}}vote voters` — lista celor care au votat (doar proprietarul)",
+            "optionsTitle": "**Opțiuni:**",
+            "optionsList": "`{{prefix}}vote check server` — verifică votul pentru un server\n`{{prefix}}vote check bot` — verifică votul pentru un bot",
+            "votedDate": "a votat {{date}}",
+            "unknownUser": "Utilizator#{{id}}",
+            "unknownDate": "Necunoscut",
+            "checkYes": "✅ **Ai un vot activ** pentru acest {{type}} — mulțumim!",
+            "checkNo": "❌ Nu ai votat încă acest {{type}} (sau votul a expirat).\n**[Votează acum!]({{url}})**",
+            "checkUnknown": "⚠️ Nu am putut verifica votul acum — încearcă din nou peste un minut."
+        },
+        "volumedefault": {
+            "title": "🔊 Setări volum",
+            "serverDefault": "• Implicit pe server: `{{volume}}%`",
+            "currentVolume": "• Volumul curent al playerului: `{{volume}}%`",
+            "changeHint": "Ca să schimbi valoarea implicită, folosește: `{{prefix}}volumedefault <0-{{max}}>`",
+            "noPermission": "⚠️ Ai nevoie de permisiunea **Manage Server** ca să schimbi valoarea implicită.",
+            "noPermissionSet": "❌ Ai nevoie de permisiunea **Manage Server** ca să setezi volumul implicit al serverului.",
+            "outOfRange": "❌ Volumul trebuie să fie între `0` și `{{max}}%`.",
+            "saved": "🔊 Volumul implicit al serverului a fost salvat: `{{volume}}%`."
+        },
+        "seek": {
+            "nothingPlaying": "❌ Nu cântă nimic în acest moment!",
+            "paused": "❌ Nu pot sări în melodie cât e pe pauză. Reia mai întâi redarea.",
+            "live": "❌ Este un stream live sau radio — nu poți sări în el.",
+            "invalidFormat": "❌ Format invalid. Folosește `mm:ss`, `hh:mm:ss` sau secunde (de ex. `1:30`, `90`).",
+            "exceedsDuration": "❌ Poziția depășește durata melodiei (**{{duration}}**).",
+            "seeked": "⏩ Am sărit la **{{position}}**",
+            "notSupported": "❌ Nodul audio curent nu suportă săritul în melodie.",
+            "failed": "❌ Nu am putut sări la poziție: {{error}}"
+        },
+        "autoplay": {
+            "enabled": "🔁 Autoplay **pornit** — melodii asemănătoare vor fi adăugate automat când se termină coada.",
+            "disabled": "➡️ Autoplay **oprit** — botul se oprește când se termină coada."
+        },
+        "trackopt": {
+            "notAvailable": "❌ Funcția de opțiuni pentru melodii nu este disponibilă.",
+            "nothingPlaying": "❌ Nu cântă nimic în acest moment!",
+            "invalidFormat": "❌ Format de timp invalid. Folosește `mm:ss`, `hh:mm:ss` sau secunde.",
+            "invalidEndAfterStart": "❌ Momentul de sfârșit trebuie să fie după cel de început.",
+            "startExceedsDuration": "❌ Momentul de început depășește durata melodiei (**{{duration}}**).",
+            "endExceedsDuration": "❌ Momentul de sfârșit depășește durata melodiei (**{{duration}}**).",
+            "saved": "✅ Opțiune salvată pentru **{{title}}**{{aliasLabel}}\n▶️ Început: **{{start}}** | ⏹️ Sfârșit: **{{end}}**\n\nSe aplică automat de fiecare dată când melodia cântă într-un canal în care ești.",
+            "savedAlias": "✅ Opțiune salvată pentru **{{title}}** [{{alias}}]\n▶️ Început: **{{start}}** | ⏹️ Sfârșit: **{{end}}**\n\nFolosește `{{prefix}}trackopt play {{alias}}` ca să aplici tăietura cât timp melodia cântă.",
+            "saveFailed": "❌ Nu am putut salva opțiunea.",
+            "notSet": "Nu sunt setați timpi personalizați pentru **{{title}}**.",
+            "current": "📎 Opțiuni pentru **{{title}}** ({{count}})",
+            "currentEntry": "• **{{alias}}** — {{start}} → {{end}}{{autoTag}}",
+            "removed": "🗑️ Am șters opțiunea pentru **{{title}}**.",
+            "removedAlias": "🗑️ Am șters aliasul **{{alias}}** pentru **{{title}}**.",
+            "removedAll": "🗑️ Am șters toate opțiunile pentru **{{title}}**.",
+            "notFound": "Nu am găsit timpi personalizați pentru **{{title}}**.",
+            "aliasNotFound": "❌ Nu există aliasul **{{alias}}** pentru **{{title}}**.\nAliasurile tale: {{names}}",
+            "applied": "✂️ Am aplicat aliasul **{{alias}}** — {{start}} → {{end}}",
+            "applyFailed": "❌ Nu am putut aplica aliasul: {{error}}",
+            "mustBePlaying": "❌ Playerul trebuie să cânte ca să aplici un alias.",
+            "invalidAlias": "❌ Nume de alias invalid. Folosește litere, cifre, cratime sau underscore.",
+            "provideAlias": "❌ Scrie numele aliasului. Utilizare: `{{prefix}}trackopt play <alias>`",
+            "listEmpty": "📭 Nu ai opțiuni salvate. Folosește `{{prefix}}trackopt set <început> [sfârșit]` ca să adaugi una!",
+            "listTitle": "📋 **Opțiunile tale pentru melodii** ({{count}})",
+            "listEntry": "• **{{title}}** — {{start}} → {{end}}",
+            "listHint": "Folosește `{{prefix}}trackopt play <alias>` ca să aplici o tăietură cu nume sau `{{prefix}}trackopt remove [alias]` ca s-o ștergi."
+        }
+    }
+}

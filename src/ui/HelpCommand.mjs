@@ -66,8 +66,8 @@ function _helpHomeContent(prefix) {
 function _helpSupportContent() {
   return (
       "If you need help with anything or encounter any issues, hop over to " +
-      "our GitHub page **[fakeen1/djmitica](https://github.com/fakeen1/djmitica)** " +
-      "and open an issue: [github.com/fakeen1/djmitica/issues](https://github.com/fakeen1/djmitica/issues)\n\n" +
+      "our GitHub page **[fakeen1/DjMiticaBOT](https://github.com/fakeen1/DjMiticaBOT)** " +
+      "and open an issue: [github.com/fakeen1/DjMiticaBOT/issues](https://github.com/fakeen1/DjMiticaBOT/issues)\n\n" +
       "For questions about this server's copy of the bot, ask the server owner."
   );
 }

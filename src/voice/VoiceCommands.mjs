@@ -1,29 +1,29 @@
 /**
  * @module src/voice/VoiceCommands
- * @description Comenzi vocale pentru Dj Mitica.
+ * @description Voice commands for Dj Mitica.
  *
- * Botul asculta (prin LiveKit) vocea fiecarui participant din canalul de voce
- * in care se afla, detecteaza cand cineva vorbeste (VAD simplu pe energie),
- * trimite fraza la un server Whisper (container "whisper" din docker-compose)
- * si, daca textul incepe cu cuvantul de activare ("dj"), executa comanda
- * exact ca si cum utilizatorul ar fi scris-o in chat:
+ * The bot listens (through LiveKit) to every participant in the voice channel
+ * it is in, detects when someone speaks (simple energy-based VAD), sends the
+ * phrase to a Whisper server (the "whisper" container in docker-compose) and,
+ * if the text starts with the wake word ("dj"), runs the command exactly as
+ * if the user had typed it in chat:
  *
  *     "DJ, skip"                   -> %skip
  *     "DJ play despacito"          -> %play despacito
  *     "DJ volume fifty"            -> %volume 50
  *
- * Configurare in config.json (toate optionale):
+ * Configuration in config.json (all optional):
  *   "voiceCommands": {
  *     "enabled": true,
  *     "whisperUrl": "http://whisper:9000",
  *     "language": "en",
  *     "wakeWord": "dj",
  *     "requireWakeWord": true,
- *     "echo": true,               // posteaza "🎙️ @user: %comanda" in chat
- *     "allowedUsers": [],         // gol = toata lumea
- *     "blockedCommands": [...],   // comenzi care NU se pot da vocal
- *     "energyThreshold": 700,     // sensibilitate VAD (mai mic = mai sensibil)
- *     "silenceMs": 900,           // cat tacere inseamna "am terminat fraza"
+ *     "echo": true,               // posts "🎙️ @user: %command" in chat
+ *     "allowedUsers": [],         // empty = everyone
+ *     "blockedCommands": [...],   // commands that can NOT be used by voice
+ *     "energyThreshold": 700,     // VAD sensitivity (lower = more sensitive)
+ *     "silenceMs": 900,           // how much silence ends a phrase
  *     "minSpeechMs": 400,
  *     "maxSpeechMs": 12000,
  *     "debug": false
@@ -57,7 +57,7 @@ const DEFAULTS = {
   debug: false,
 };
 
-/** Cuvinte auzite gresit des de Whisper -> numele real al comenzii. */
+/** Words Whisper often mishears -> the real command name. */
 const HOMOPHONES = {
   paws: "pause", pours: "pause", pose: "pause", pauses: "pause", paused: "pause",
   skipped: "skip", skips: "skip", skipping: "skip",
@@ -75,8 +75,8 @@ const HOMOPHONES = {
 };
 
 /**
- * Cum aude Whisper des unele cuvinte de activare. Cheia = cuvantul de activare
- * (normalizat), valoarea = variante acceptate in plus fata de potrivirea aproximativa.
+ * How Whisper often hears some wake words. Key = the wake word (normalized),
+ * value = extra variants accepted on top of the fuzzy match.
  */
 const WAKE_VARIANTS = {
   dj: ["dj", "deejay", "djay", "dejay", "dijay", "teejay", "djs", "dee", "deej"],
@@ -84,7 +84,7 @@ const WAKE_VARIANTS = {
   djmitica: ["djmitica", "djmitika", "deejaymitica", "deejaymitika", "djmetica"],
 };
 
-/** Comenzi la care argumentele "fifty" / "two" se transforma in cifre. */
+/** Commands whose arguments like "fifty" / "two" are converted to digits. */
 const NUMERIC_COMMANDS = new Set(["volume", "remove", "move", "seek", "volumedefault", "skip"]);
 
 const WAKE_PREFIXES = new Set(["hey", "hi", "ok", "okay", "yo", "hello", "please"]);
@@ -117,7 +117,7 @@ const SMALL = {
 };
 const TENS = { twenty: 20, thirty: 30, forty: 40, fifty: 50, sixty: 60, seventy: 70, eighty: 80, ninety: 90 };
 
-/** "one hundred fifty" -> "150", "fifty percent" -> "50". Lasa restul neschimbat. */
+/** "one hundred fifty" -> "150", "fifty percent" -> "50". Leaves everything else unchanged. */
 function wordsToNumbers(tokens) {
   const out = [];
   let acc = null;
@@ -170,18 +170,18 @@ export class VoiceCommands {
     this.djmitica = djmitica;
     this.cfg = { ...DEFAULTS, ...(djmitica.config?.voiceCommands ?? {}) };
     this.enabled = this.cfg.enabled !== false && !!djmitica.config?.voiceCommands;
-    /** @type {WeakSet<object>} conexiuni la care am pus listener de audioFrame */
+    /** @type {WeakSet<object>} connections that already have an audioFrame listener */
     this._conns = new WeakSet();
-    /** @type {WeakSet<object>} camere LiveKit la care am pus listener de track */
+    /** @type {WeakSet<object>} LiveKit rooms that already have a track listener */
     this._rooms = new WeakSet();
-    /** @type {Map<string, object>} participantId -> stare VAD */
+    /** @type {Map<string, object>} participantId -> VAD state */
     this._speakers = new Map();
-    /** @type {Map<string, number>} userId -> pana cand asteptam comanda dupa cuvantul de activare spus singur */
+    /** @type {Map<string, number>} userId -> until when we wait for a command after a lone wake word */
     this._armed = new Map();
     this._queue = Promise.resolve();
     this._queued = 0;
     this._timer = null;
-    // Botul trebuie sa NU fie "deafened" ca sa primeasca audio.
+    // The bot must NOT be "deafened" to receive audio.
     globalThis.__djmiticaVoiceCommands = this.enabled;
   }
 
@@ -191,16 +191,16 @@ export class VoiceCommands {
 
   start() {
     if (!this.enabled) {
-      logger.info(TAG, "Dezactivat (lipseste/enabled=false in config.voiceCommands).");
+      logger.info(TAG, "Disabled (missing or enabled=false in config.voiceCommands).");
       return this;
     }
-    logger.info(TAG, `Activ. Whisper: ${this.cfg.whisperUrl} | wake word: "${this.cfg.wakeWord}" (obligatoriu: ${this.cfg.requireWakeWord})`);
+    logger.info(TAG, `Active. Whisper: ${this.cfg.whisperUrl} | wake word: "${this.cfg.wakeWord}" (required: ${this.cfg.requireWakeWord})`);
     this._timer = setInterval(() => this._scan(), 1000);
     this._timer.unref?.();
     return this;
   }
 
-  /** Cauta conexiuni LiveKit noi (sau camere reconectate) si se ataseaza la ele. */
+  /** Finds new LiveKit connections (or reconnected rooms) and attaches to them. */
   _scan() {
     let vm;
     try { vm = getVoiceManager(this.client); } catch { return; }
@@ -212,11 +212,11 @@ export class VoiceCommands {
   }
 
   _attach(conn) {
-    if (typeof conn?.subscribeParticipantTrack !== "function") return; // doar LiveKit
+    if (typeof conn?.subscribeParticipantTrack !== "function") return; // LiveKit only
     if (!this._conns.has(conn)) {
       this._conns.add(conn);
       conn.on("audioFrame", (f) => this._onFrame(conn, f));
-      this.dbg("atasat la conexiunea canalului", conn.channel?.id);
+      this.dbg("attached to voice connection of channel", conn.channel?.id);
     }
     const room = conn.room;
     if (!room) return;
@@ -225,8 +225,8 @@ export class VoiceCommands {
       room.on("trackSubscribed", (track, _pub, participant) => this._sub(conn, participant, track));
       room.on("participantDisconnected", (participant) => this._speakers.delete(participant?.identity));
     }
-    // Biblioteca de voce sterge abonamentele de ascultare la fiecare stop()
-    // (skip / melodie noua), asa ca verificam mereu si ne reabonam.
+    // The voice library clears receive subscriptions on every stop()
+    // (skip / new track), so we keep checking and re-subscribe.
     for (const participant of room.remoteParticipants?.values?.() ?? []) {
       if (conn.receiveSubscriptions?.has?.(participant.identity)) continue;
       for (const pub of participant.trackPublications?.values?.() ?? []) {
@@ -239,7 +239,7 @@ export class VoiceCommands {
     try {
       if (!conn.isAudioTrack?.(track)) return;
       conn.subscribeParticipantTrack(participant, track, { autoSubscribe: true });
-      this.dbg("ascult pe", participant?.identity);
+      this.dbg("listening to", participant?.identity);
     } catch (e) { logger.warn(TAG, "subscribe error:", e?.message); }
   }
 
@@ -253,16 +253,16 @@ export class VoiceCommands {
       st = { speaking: false, chunks: [], samples: 0, pre: [], preSamples: 0, silentMs: 0, speechMs: 0,
              diagAt: Date.now(), diagFrames: 0, diagPeak: 0 };
       this._speakers.set(id, st);
-      logger.info(TAG, `primesc audio de la ${id} (rate=${f.sampleRate}, ch=${f.channels}, ${f.samples.length} samples/frame)`);
+      logger.info(TAG, `receiving audio from ${id} (rate=${f.sampleRate}, ch=${f.channels}, ${f.samples.length} samples/frame)`);
     }
     const frameMs = (f.samples.length / (f.sampleRate || IN_RATE)) * 1000;
     const level = rms(f.samples);
     const loud = level >= this.cfg.energyThreshold;
 
-    // diagnostic: nivelul maxim al vocii la fiecare 3 secunde (doar cu debug)
+    // diagnostics: peak voice level every 3 seconds (debug only)
     st.diagFrames++; if (level > st.diagPeak) st.diagPeak = level;
     if (this.cfg.debug && Date.now() - st.diagAt >= 3000) {
-      if (st.diagPeak >= 50) this.dbg(`nivel ${id}: max=${Math.round(st.diagPeak)} (prag=${this.cfg.energyThreshold}), cadre=${st.diagFrames}`);
+      if (st.diagPeak >= 50) this.dbg(`level ${id}: peak=${Math.round(st.diagPeak)} (threshold=${this.cfg.energyThreshold}), frames=${st.diagFrames}`);
       st.diagAt = Date.now(); st.diagFrames = 0; st.diagPeak = 0;
     }
     const copy = Int16Array.from(f.samples);
@@ -275,7 +275,7 @@ export class VoiceCommands {
       st.speaking = true;
       st.chunks = st.pre; st.samples = st.preSamples;
       st.pre = []; st.preSamples = 0; st.silentMs = 0; st.speechMs = 0;
-      this.dbg(`incepe fraza (${id})`);
+      this.dbg(`phrase started (${id})`);
       return;
     }
 
@@ -286,22 +286,22 @@ export class VoiceCommands {
     if (st.silentMs >= this.cfg.silenceMs || totalMs >= this.cfg.maxSpeechMs) {
       const chunks = st.chunks, samples = st.samples, speechMs = st.speechMs;
       st.speaking = false; st.chunks = []; st.samples = 0; st.silentMs = 0; st.speechMs = 0;
-      this.dbg(`sfarsit fraza (${id}): ${Math.round(totalMs)} ms total, ${Math.round(speechMs)} ms voce`);
-      if (speechMs < this.cfg.minSpeechMs) { this.dbg("prea scurta, ignor"); return; }
+      this.dbg(`phrase ended (${id}): ${Math.round(totalMs)} ms total, ${Math.round(speechMs)} ms speech`);
+      if (speechMs < this.cfg.minSpeechMs) { this.dbg("too short, ignored"); return; }
       this._enqueue(conn, id, chunks, samples);
     }
   }
 
   _enqueue(conn, participantId, chunks, samples) {
-    if (this._queued >= 4) { this.dbg("coada plina, ignor fraza"); return; }
+    if (this._queued >= 4) { this.dbg("queue full, phrase ignored"); return; }
     this._queued++;
     this._queue = this._queue
       .then(() => this._handleUtterance(conn, participantId, chunks, samples))
-      .catch((e) => logger.warn(TAG, "eroare:", e?.message))
+      .catch((e) => logger.warn(TAG, "error:", e?.message))
       .finally(() => { this._queued--; });
   }
 
-  /* ------------------------------------------------------ transcriere */
+  /* ---------------------------------------------------- transcription */
 
   _prompt() {
     const names = (this.djmitica.handler?.commands ?? []).map((c) => c.name).filter(Boolean).slice(0, 40);
@@ -328,7 +328,7 @@ export class VoiceCommands {
       try {
         const j = JSON.parse(body);
         if (j && typeof j === "object") return String(j.text ?? "").trim();
-      } catch { /* nu e JSON -> e text simplu */ }
+      } catch { /* not JSON -> plain text */ }
       return body;
     } finally { clearTimeout(t); }
   }
@@ -339,12 +339,12 @@ export class VoiceCommands {
     if (this.cfg.allowedUsers?.length && !this.cfg.allowedUsers.map(cleanId).includes(userId)) return;
 
     const t0 = Date.now();
-    this.dbg(`trimit ${Math.round(samples / IN_RATE * 1000)} ms audio la Whisper...`);
+    this.dbg(`sending ${Math.round(samples / IN_RATE * 1000)} ms of audio to Whisper...`);
     let text;
     try {
       text = await this._transcribe(toWav16k(chunks, samples));
     } catch (e) {
-      logger.warn(TAG, "Whisper indisponibil:", e?.name === "AbortError" ? "timeout" : e?.message);
+      logger.warn(TAG, "Whisper unavailable:", e?.name === "AbortError" ? "timeout" : e?.message);
       return;
     }
     this.dbg(`(${Date.now() - t0} ms) ${participantId}: "${text}"`);
@@ -354,16 +354,16 @@ export class VoiceCommands {
     const parsed = this._parse(text, armed);
     if (parsed?.wakeOnly) {
       this._armed.set(userId, Date.now() + (this.cfg.armedMs ?? 6000));
-      this.dbg(`am auzit "${this.cfg.wakeWord}", astept comanda de la ${userId}...`);
+      this.dbg(`heard "${this.cfg.wakeWord}", waiting for a command from ${userId}...`);
       return;
     }
     this._armed.delete(userId);
     if (!parsed) return;
-    logger.info(TAG, `${userId} a spus "${text}" -> ${parsed.command} ${parsed.args.join(" ")}`.trim());
+    logger.info(TAG, `${userId} said "${text}" -> ${parsed.command} ${parsed.args.join(" ")}`.trim());
     await this._execute(conn, userId, parsed);
   }
 
-  /* -------------------------------------------------------- parsare */
+  /* -------------------------------------------------------- parsing */
 
   _isWake(word) {
     const w = norm(word), target = norm(this.cfg.wakeWord);
@@ -380,7 +380,7 @@ export class VoiceCommands {
       .filter(Boolean);
     if (!tokens.length) return null;
 
-    // cuvantul de activare (in primele ~4 cuvinte; accepta si "re mix", "we mix")
+    // the wake word (within the first ~4 words; also accepts it split in two, e.g. "dee jay")
     let start = -1;
     for (let i = 0; i < Math.min(tokens.length, 4); i++) {
       if (WAKE_PREFIXES.has(norm(tokens[i])) && start === -1) continue;
@@ -403,11 +403,11 @@ export class VoiceCommands {
       const close = names.filter((n) => n.length >= 4 && levenshtein(n, cmdWord) <= 1);
       if (close.length === 1) command = close[0];
     }
-    if (!command) { this.dbg(`comanda necunoscuta: "${tokens[0]}"`); return null; }
+    if (!command) { this.dbg(`unknown command: "${tokens[0]}"`); return null; }
 
     const real = this.djmitica.handler.commands.find((c) => c.aliases?.includes(command));
     if (real && this.cfg.blockedCommands?.includes(real.name)) {
-      this.dbg(`comanda blocata vocal: ${real.name}`);
+      this.dbg(`command blocked for voice: ${real.name}`);
       return null;
     }
 
@@ -418,7 +418,7 @@ export class VoiceCommands {
     return { command, args };
   }
 
-  /* ------------------------------------------------------ executie */
+  /* ------------------------------------------------------ execution */
 
   _textChannelFor(conn) {
     const voiceId = cleanId(conn.channel?.id);
@@ -446,7 +446,7 @@ export class VoiceCommands {
 
   async _execute(conn, userId, { command, args }) {
     const textChannel = this._textChannelFor(conn);
-    if (!textChannel) { logger.warn(TAG, "Nu gasesc canalul text pentru raspuns; ignor comanda."); return; }
+    if (!textChannel) { logger.warn(TAG, "No text channel found to reply in; command ignored."); return; }
 
     const guildId = cleanId(conn.channel?.guildId ?? textChannel.guildId);
     const guild = this.client.guilds?.get?.(guildId) ?? textChannel.guild ?? null;
@@ -460,7 +460,7 @@ export class VoiceCommands {
       ? textChannel.send(opts)
       : this.client.channels.send(textChannel.id, opts);
 
-    // Mesaj "fals" care arata ca si cum utilizatorul a scris comanda in canalul text.
+    // A synthetic message that looks as if the user typed the command in the text channel.
     const raw = {
       id: `voice-${Date.now()}`,
       content,
@@ -488,7 +488,7 @@ export class VoiceCommands {
     try {
       await handler.messageHandler(msg);
     } catch (e) {
-      logger.warn(TAG, "Comanda vocala a esuat:", e?.message);
+      logger.warn(TAG, "Voice command failed:", e?.message);
     }
   }
 }

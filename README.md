@@ -5,8 +5,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/fakeen1/djmitica/issues">Report a Bug</a> &middot;
-  <a href="https://github.com/fakeen1/djmitica/issues">Request a Feature</a>
+  <a href="https://github.com/fakeen1/DjMiticaBOT/issues">Report a Bug</a> &middot;
+  <a href="https://github.com/fakeen1/DjMiticaBOT/issues">Request a Feature</a>
 </p>
 
 <p align="center">
@@ -22,26 +22,28 @@
 
 ## Table of Contents
 
-- [About The Project](#-about-the-project)
-- [How Audio Playback Works](#-how-audio-playback-works)
-- [Features](#-features)
+- [About The Project](#about-the-project)
+- [How Audio Playback Works](#how-audio-playback-works)
+- [Features](#features)
 - [What Dj Mitica Adds](#what-dj-mitica-adds)
 - [Getting Started](#getting-started)
-- [Commands](#-commands)
-- [Self-Hosting](#-self-hosting-the-bot)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
-  - [Database Setup](#-database-setup)
+- [Commands](#commands)
+- [Self-Hosting](#self-hosting-the-bot)
+  - [Quick Start with Docker](#quick-start-with-docker-recommended)
+  - [Manual Installation](#manual-installation-without-docker)
+  - [Database Setup](#database-setup)
+  - [Crossfade](#crossfade)
   - [Web Control Panel](#web-control-panel)
   - [Voice Commands](#voice-commands)
   - [Self-Hosted Fluxer Instance](#self-hosted-fluxer-instance)
-  - [Dashboard Setup (Optional)](#-dashboard-setup-optional)
-  - [Configuration Reference](#-configuration-reference)
-- [Project Architecture](#-project-architecture)
-- [The Layered Codebase](#-the-layered-codebase)
-- [Localization](#-localization)
-- [Scripts](#-npm-scripts)
-- [Credits](#-credits--license)
+  - [Invite Link](#invite-link)
+  - [Dashboard Setup (Optional)](#dashboard-setup-optional)
+- [Configuration Reference](#configuration-reference)
+- [Project Architecture](#project-architecture)
+- [The Layered Codebase](#the-layered-codebase)
+- [Localization](#localization)
+- [npm Scripts](#npm-scripts)
+- [Credits & License](#credits--license)
 
 ---
 
@@ -49,7 +51,7 @@
 
 Dj Mitica is a free and open-source music bot for [Fluxer](https://fluxer.app), built with [`@fluxerjs/core`](https://github.com/fluxerjs/core) for the Fluxer API and [`@fluxerjs/voice`](https://github.com/fluxerjs/voice) for LiveKit voice connections. Track search and streaming are handled by [`lavalink-client`](https://www.npmjs.com/package/lavalink-client) talking to a [NodeLink](https://github.com/PerformanC/NodeLink) audio node (Lavalink-compatible), and the bot publishes Opus audio to LiveKit as a participant — with a custom WebM/Opus pipeline (zero-re-encode passthrough and remux where possible).
 
-Dj Mitica is based on [Remix](https://github.com/remix-bot/fluxer) by the Remix team (see [Credits](#-credits--license)) and adds voice commands, smooth crossfades between songs and a built-in web panel on top of it.
+Dj Mitica is based on [Remix](https://github.com/remix-bot/fluxer) by the Remix team (see [Credits](#credits--license)) and adds voice commands, smooth crossfades between songs and a built-in web panel on top of it.
 
 We believe music features shouldn't be locked behind paywalls — **all commands on Dj Mitica are 100% free and always will be.**
 
@@ -99,7 +101,9 @@ Understanding the pipeline helps when debugging or contributing:
             │     • OggS            → OggDemuxer → WebMOpusMuxer (remux, no re-encode)
             │     • raw PCM         → OpusEncoder (opusscript)
             │                          → WebMOpusMuxer → LiveKit
-            └─ conn.play() → @fluxerjs/voice LiveKit connection (bot publishes audio
+            └─ conn.play() → Crossfade mixer (one persistent LiveKit audio track;
+                             the old and the new song are mixed during a fade)
+                           → @fluxerjs/voice LiveKit connection (bot publishes audio
                              as a LiveKit participant)
 ```
 
@@ -109,6 +113,7 @@ A few things worth knowing:
 - **Seek / pause / resume** work by stopping the current stream and re-requesting it at an offset from NodeLink.
 - **Filters** (bassboost, nightcore, etc.) are applied server-side by NodeLink, so they take effect on the next track that starts.
 - **Volume** is applied client-side by the LiveKit connection (1–200).
+- **Crossfade** is done by the bot itself (`src/music/audio/Crossfade.mjs`), not by NodeLink — see [Crossfade](#crossfade).
 - Radio metadata (StreamTitle) is read with **ffprobe** (`ffprobe-static`).
 - **Bilibili playback (fully anonymous — no cookies)** — `%play https://www.bilibili.com/video/BV…` (b23.tv short links and `?p=` parts included) resolves the video through Bilibili's web API and feeds it to the node through a signed localhost proxy that attaches the Referer/User-Agent headers Bilibili's CDN requires. Multi-part videos queue like a playlist. Requests use Bilibili's WBI-signed endpoints (derived anonymously from the nav payload), which survive the HTTP 412 risk-control blocks that reject plain unsigned API calls on many hosting IPs; on any WBI failure the bot automatically retries through the legacy unsigned endpoints. Playurl calls carry the anonymous `try_look=1` flag and prefer the best DASH audio stream (~130–170 kbps AAC) — real DASH audio works without login — falling back to the html5 progressive mp4 for videos without DASH audio, and multi-segment progressive streams are served back-to-back through the proxy's concatenating mode with Range/seek support. The bot generates and manages its Bilibili device fingerprint (buvid3/buvid4/b_nut) automatically and retries once with a fresh fingerprint when risk control interferes. The proxy binds `127.0.0.1` by default — set `bilibili.advertiseHost` (and `bind: "0.0.0.0"`) when your node runs on another machine.
 
@@ -130,7 +135,7 @@ A few things worth knowing:
 - **Audio filters** — bassboost, speed, nightcore and more (applied server-side by NodeLink)
 - **Server settings** — per-guild configuration (prefix, volume, locale, 24/7 channels, …) stored in MySQL
 - **Dashboard backend** — optional Redis-RPC backend that an external web frontend uses to monitor players and control playback remotely
-- **Multi-language support** — English, Arabic, German, Kurdish (Sorani), and Brazilian Portuguese
+- **Multi-language support** — English (default), Romanian, Arabic, German, Kurdish (Sorani), Brazilian Portuguese and Turkish
 - **Configurable logging** — granular control over which log categories appear in the console
 - **Graceful shutdown** — destroys players and closes MySQL/Redis/NodeLink sessions cleanly on SIGINT/SIGTERM/SIGUSR2
 - **Module system** — pluggable module architecture for extending bot functionality (`storage/modules.json`)
@@ -143,13 +148,14 @@ A few things worth knowing:
 - **Crossfade** — the ending song fades out while the next one fades in (configurable, default 6 s), and skips fade too (default 3 s). Everything is mixed into a single audio track, so Fluxer clients play it cleanly.
 - **Web control panel** — player with progress and volume, queue with drag & drop, search across providers, join/leave voice channels, every bot and server setting, live status and logs. Password protected, works on phones, can be served behind your Fluxer domain (e.g. `https://your-domain/djmitica/`).
 - **Autoplay on by default** — when the queue ends the bot keeps playing similar songs (can be turned off per server).
-- **Silent messages** — bot messages don't trigger notification sounds.
+- **Silent messages** — bot messages don't trigger notification sounds (set `SILENT_MESSAGES = false` in `src/ui/MessageHandler.mjs` to turn this off).
+- **English by default, Romanian built in** — the bot and the web panel speak English out of the box; switch a server to Romanian with `%settings set locale ro` (or from the panel), and the panel itself under *Settings → Web panel → Panel language*.
 
 ---
 
 ## Getting Started
 
-Dj Mitica is **self-hosted**: you run your own copy of the bot for your Fluxer server or instance. Follow [Self-Hosting](#-self-hosting-the-bot) below — with Docker it takes a few minutes.
+Dj Mitica is **self-hosted**: you run your own copy of the bot for your Fluxer server or instance. Follow [Self-Hosting](#self-hosting-the-bot) below — with Docker it takes a few minutes.
 
 Once it's running:
 
@@ -200,8 +206,8 @@ Below is the complete list of Dj Mitica's commands. The default prefix is `%`.
 | :--- | :--- | :--- | :--- |
 | `settings` | View or change server settings (requires Manage Server) | `%settings set` | `prefix`, `pfx`, `247` |
 | `stats` | Display bot stats (uptime, ping, player count, stored scrobbles) | `%stats` | `info` |
-| `invite` | Get the bot invite link | `%invite` | `addbot`, `djmitica` |
-| `support` | Get an invite to the support server | `%support` | `server` |
+| `invite` | Get the link that adds the bot to another server (plus the GitHub page) | `%invite` | `addbot`, `djmitica` |
+| `support` | Where to get help, report bugs or suggest features (GitHub issues) | `%support` | `server` |
 | `lastfm` | Link Last.fm, toggle scrobbling, view profile, love/unlove tracks, top artists, play tracks, leaderboard | `%lastfm link` / `%lastfm love` / `%lastfm artists` / `%lastfm lb` | `lf`, `lfm` |
 | `vote` | Check FluxerList voters for the bot | `%vote` | |
 | `reload` | Reload commands or modules at runtime (owner) | `%reload` | |
@@ -218,8 +224,8 @@ Everything — the bot, MySQL, Redis, NodeLink and (optionally) Whisper — runs
 
 1. **Clone and configure:**
    ```bash
-   git clone https://github.com/fakeen1/djmitica.git
-   cd djmitica/docker
+   git clone https://github.com/fakeen1/DjMiticaBOT.git
+   cd DjMiticaBOT/docker
    cp config_example.json config.json
    cp .env.example .env   # optional — compose has working defaults
    ```
@@ -253,6 +259,7 @@ The bot connects to MySQL (tables are created automatically), connects to NodeLi
 docker/
 ├── Dockerfile              # Multi-stage build (Node 22 + tini, non-root user, healthcheck)
 ├── docker-entrypoint.sh    # Writes config.json from CONFIG_JSON env var on first boot
+├── healthcheck.mjs         # Container healthcheck
 ├── docker-compose.yml      # bot + MySQL + Redis + NodeLink (+ Whisper with --profile voice)
 ├── .env.example            # Compose env template (MySQL creds, ports, Whisper model, TZ)
 ├── config_example.json     # Docker-friendly config template
@@ -315,12 +322,12 @@ The entrypoint will write it to `/app/config.json` on first boot if no config fi
 - **[NodeLink](https://github.com/PerformanC/NodeLink)** instance (Lavalink-compatible audio node)
 - **Redis** (optional — required only for the dashboard backend)
 
-### Installation
+#### Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/fakeen1/djmitica.git
-   cd djmitica
+   git clone https://github.com/fakeen1/DjMiticaBOT.git
+   cd DjMiticaBOT
    ```
 
 2. **Install dependencies:**
@@ -340,7 +347,7 @@ The entrypoint will write it to `/app/config.json` on first boot if no config fi
    - `lastfm` — (optional) Last.fm API credentials for scrobbling/autoplay features
    - `owners` — array of Fluxer user IDs with owner-only command access
 
-4. **Set up the database:** *(See [Database Setup](#-database-setup) below)*
+4. **Set up the database:** *(See [Database Setup](#database-setup) below)*
 
 5. **Start the bot:**
    ```bash
@@ -390,24 +397,79 @@ Dj Mitica requires a MySQL database to store per-guild settings and user data.
    npm run migrate
    ```
 
-### Web Control Panel
+### Crossfade
 
-The bot serves its own control panel on port `8080` inside the container (`8090` on the host by default). It is disabled until you set a password:
+Dj Mitica fades songs into each other instead of cutting between them:
+
+- **At the end of a song** — the next song starts fading in over the last seconds of the current one, which fades out (default **6 s**, range 0–15 s). The fade starts only once the next song is actually playing, so it also works with autoplay and slow-loading tracks.
+- **On skip** — `%skip`, voice *"DJ, skip"*, the web panel's skip button or picking a song in the queue fade the current song out over **3 s** by default (range 0–10 s) while the next one fades in.
+- Songs shorter than three times the crossfade length (jingles, very short clips) end without a crossfade.
+- `0` turns either fade off (hard cut, like the original bot).
+
+Configure it in `config.json`:
 
 ```json
-"web": { "enabled": true, "port": 8080, "password": "choose-a-password", "sessionDays": 30 }
+"audio": {
+  "allowLoadstream": false,
+  "crossfadeSeconds": 6,
+  "skipCrossfadeSeconds": 3
+}
 ```
 
-Restart the bot and open `http://<your-machine>:8090`. From the panel you can:
+or live from the web panel (*Settings → Playback*) — changes apply to the next transition, no restart needed.
 
-- control the player (pause, skip, seek, volume, repeat, autoplay) and see who is listening;
-- search YouTube Music, YouTube, SoundCloud, Spotify and more, and add songs to the end, next or play them now;
-- reorder the queue by drag & drop, remove or jump to songs;
-- make the bot join or leave voice channels;
-- change every bot setting (crossfade, voice commands, timers, status messages, logging, Last.fm, panel password) and every per-server setting (prefix, language, default volume, autoplay, announcements, vote skip, 24/7 channel), with a restart button for the few settings that need it;
-- watch the status of the bot, NodeLink and Whisper, and the live logs.
+How it works: the voice library normally creates a new LiveKit audio track for every song, which makes a real overlap impossible. `Crossfade.mjs` replaces `play()`/`stop()` on the voice connection with a small mixer that keeps **one** published audio track for the whole session, decodes every song (WebM/Opus → PCM) as its own "voice" with its own gain, and mixes the voices in 10 ms frames with equal-power fade curves. Fluxer clients therefore only ever see one steady track. If the audio modules cannot be loaded, the mixer is not installed and playback works exactly as before, without crossfade.
 
-Login attempts are rate-limited (5 wrong passwords lock the address for 15 minutes) and sessions use signed, HttpOnly cookies.
+### Web Control Panel
+
+The bot serves its own control panel on port `8080` inside the container (`8090` on the host by default, change it with `WEB_PORT` in `docker/.env`). It is disabled until you set a password:
+
+```json
+"web": {
+  "enabled": true,
+  "port": 8080,
+  "password": "choose-a-password",
+  "sessionDays": 30,
+  "trustProxy": true,
+  "language": "en"
+}
+```
+
+| Key | Default | Description |
+| :--- | :--- | :--- |
+| `enabled` | `true` | Set to `false` to turn the panel off completely |
+| `port` | `8080` | Port inside the container / process |
+| `password` | — | **Required.** The panel does not start without it |
+| `sessionDays` | `30` | How long a login stays valid |
+| `trustProxy` | `true` | Read the client IP from `X-Forwarded-For` (for login rate limiting behind a reverse proxy) |
+| `language` | `en` | Panel language: `en` or `ro` |
+| `sessionSecret` | generated | Cookie signing key, generated and saved to `config.json` on first start |
+
+Restart the bot and open `http://<your-machine>:8090`. The panel has three tabs and updates live (Server-Sent Events, with automatic polling as a fallback). It works on phones too.
+
+**Player**
+
+- voice channels of every server with the people listening; one click makes the bot join a channel;
+- now playing with cover, progress bar (drag to seek), play/pause, skip, stop, volume (0–200%), repeat song / repeat queue, autoplay and "remove the bot from the channel";
+- search YouTube Music, YouTube, SoundCloud, Spotify, Deezer, Apple Music, Bandcamp (or paste a link / playlist) and add a song at the end, as next, or play it now;
+- the queue: drag & drop to reorder, move up/down, play now, remove, shuffle and clear.
+
+**Settings**
+
+- **Per server:** prefix, bot language, default volume, autoplay on by default, song announcements, vote to skip and its threshold, the 24/7 channel. Applied immediately.
+- **Bot settings** (saved to `config.json`): default prefix, embed color, owners, stats footer, crossfade, loadstream, voice commands (on/off, wake word, sensitivity, allowed users, Whisper address, debug), timers, status messages, log categories, Last.fm keys, panel password, session length and panel language. Most apply live; the few that need a restart are marked *after restart*, and a **Restart the bot** button is at the bottom of the page.
+- The bot token, database, NodeLink and Fluxer instance settings are intentionally **not** editable from the panel — a mistake there would take the bot (and the panel) down. Edit them in `config.json`.
+
+**Status**
+
+- bot uptime, memory, servers and active players; NodeLink connection; Whisper / voice commands state; current crossfade settings;
+- the live bot log with a text filter, a level filter (all / warnings / errors) and auto-follow.
+
+The **Restart the bot** button exits the bot process; Docker brings it back automatically (`restart: unless-stopped`) and playback resumes where it stopped. Without Docker, run the bot under a process manager (pm2, systemd, …) so it is started again.
+
+The panel is in English by default. To use it in Romanian, open *Settings → Web panel → Panel language* and pick **Română** (or set `"language": "ro"` in the `web` section). The change applies immediately, no restart needed. The language of the bot's replies in chat is a separate, per-server setting (*Settings → Server settings → Bot language*).
+
+**Security:** login attempts are rate-limited (5 wrong passwords lock the address for 15 minutes), sessions use signed, HttpOnly, SameSite=Strict cookies, every change requires a custom request header (CSRF protection), the page is served with a strict Content-Security-Policy, and passwords/tokens are masked in the log view. If you expose the panel on the internet, put it behind HTTPS (see below) and use a strong password.
 
 #### Serving the panel on your domain (Caddy)
 
@@ -431,12 +493,43 @@ Then restart the proxy (`docker compose restart edge` in your Fluxer folder). On
 2. Set `voiceCommands.enabled` to `true` in `config.json` (or in the panel) and restart the bot.
 3. In a voice channel with the bot, say the wake word and a command: *"DJ, skip"*, *"DJ, pause"*, *"DJ, play Despacito"*. You can also say *"DJ"*, pause, then the command.
 
+```json
+"voiceCommands": {
+  "enabled": true,
+  "whisperUrl": "http://whisper:9000",
+  "language": "en",
+  "wakeWord": "dj",
+  "requireWakeWord": true,
+  "echo": true,
+  "allowedUsers": [],
+  "energyThreshold": 700,
+  "silenceMs": 900,
+  "minSpeechMs": 250,
+  "maxSpeechMs": 12000,
+  "debug": false
+}
+```
+
+| Key | Description |
+| :--- | :--- |
+| `wakeWord` | Word said before the command: `dj` by default, or `mitica` / `djmitica` to call the bot by name |
+| `requireWakeWord` | If `false`, any phrase starting with a command name is executed |
+| `echo` | Post the recognized command in chat (`🎙️ @user: %skip`) before the reply |
+| `allowedUsers` | User IDs allowed to use voice commands (empty = everyone in the channel) |
+| `energyThreshold` | Voice level needed to start listening — lower if the bot doesn't hear you, raise it if noise triggers it |
+| `silenceMs` / `minSpeechMs` / `maxSpeechMs` | How much silence ends a phrase, shortest phrase accepted, longest phrase recorded |
+| `blockedCommands` | Commands that can't be used by voice (default: `eval`, `reload`, `debug`, `logtest`, `test`, `servers`, `settings`, `forceleave`) |
+| `debug` | Log voice levels and every phrase heard — useful to tune `energyThreshold` |
+
+All of these (except `enabled`) can also be changed live from the web panel (*Settings → Voice commands*).
+
 Notes:
 
 - Command names are the normal English ones (`play`, `skip`, `pause`, `resume`, `volume`, …). Number words are converted (*"volume fifty"* → `%volume 50`).
 - The wake word is configurable (`voiceCommands.wakeWord`). Short, common English words are recognized best.
 - `WHISPER_MODEL=base.en` is fast; `small.en` is more accurate but slower on CPU.
 - Risky commands (`eval`, `reload`, `debug`, `settings`, …) can't be used by voice.
+- Common mishearings are corrected (*"paws"* → `pause`, *"skeep"* → `skip`, …) and the bot keeps listening after a skip or a new song.
 - While voice commands are enabled the bot is not self-deafened (it has to hear you).
 
 ### Self-Hosted Fluxer Instance
@@ -462,6 +555,28 @@ To use the bot on your own Fluxer instance, add an `instance` block to `fluxer.j
   }
 }
 ```
+
+### Invite Link
+
+`%invite` (and the web panel's *Status* tab, or the player page while the bot isn't in any server yet) gives a link that adds **your** bot to another server:
+
+```
+https://<your Fluxer web app>/oauth2/authorize?client_id=<bot id>&scope=bot&permissions=<needed permissions>
+```
+
+It is built automatically: the host comes from `fluxer.js.instance.webapp` (or `https://fluxer.app`), the client ID is the bot's own ID, and the permissions are exactly the ones the bot needs (View Channels, Send Messages, Embed Links, Add Reactions, Read Message History, Manage Messages, Attach Files, Connect, Speak). Whoever opens it needs the **Manage Server** permission on the target server.
+
+If your application ID differs from the bot's user ID, or you want a different link (for example a bot listing page), set it in `config.json`:
+
+```json
+"invite": {
+  "url": "",
+  "clientId": "",
+  "permissions": ""
+}
+```
+
+`url` replaces the whole link; `clientId` and `permissions` override just those parts. Leave them empty to use the automatic link.
 
 ### Dashboard Setup (Optional)
 
@@ -508,20 +623,24 @@ Key configuration options in `config.json`:
 | `logging` | object | — | Per-category log toggles: `enabled`, `warn`, and 14 categories (`player`, `inactivity`, `aloneCheck`, `voiceState`, `voice247`, `voice`, `mediaplayer`, `commands`, `guild`, `recovery`, `settings`, `lavalink`, `dashboard`, `redis`) |
 | `timers` | object | — | Timing values in ms: `inactivityTimeout`, `aloneCheckInterval`, `aloneCheckDebounce`, `rejoin247Delay`, `leave247RejoinDelay`, `playerUpdateInterval`, `searchSessionTimeout`, `playerSessionTimeout`, `intentionalLeaveTTL` |
 | `fluxer.js` | object | — | Fluxer.js REST options (`timeout`, `retries`) |
+| `invite` | object | — | Invite link overrides: `url`, `clientId`, `permissions` (all optional — the link is built automatically) |
+| `web` | object | — | Web control panel: `enabled`, `port`, `password`, `sessionDays`, `trustProxy`, `language` (`en` default, or `ro`) |
+| `voiceCommands` | object | — | Voice commands: `enabled`, `wakeWord`, `whisperUrl`, `language`, `requireWakeWord`, `echo`, `allowedUsers`, `blockedCommands`, VAD tuning (`energyThreshold`, `silenceMs`, `minSpeechMs`, `maxSpeechMs`), `debug` |
+| `audio` | object | — | Audio: `allowLoadstream`, `crossfadeSeconds`, `skipCrossfadeSeconds` |
 
 ---
 
 ## Project Architecture
 
 ```
-djmitica/
+DjMiticaBOT/
 ├── index.mjs                    # Entry point — creates the Dj Mitica instance, process-level
 │                                #   error guards, and signal-based graceful shutdown
 ├── shard.mjs                    # OPTIONAL sharding supervisor (@fluxerjs/sharding) — forks
 │                                #   one child process per shard slice, each running index.mjs
 ├── config_example.json          # Configuration template
 ├── package.json
-├── commands/                    # 37 command entry files (one per command); the three
+├── commands/                    # 39 command entry files (one per command); the three
 │   │   # largest (lastfm, settings, debug) are split into action-family
 │   │   #   modules inside commands/<name>/ subdirectories
 │   ├── lastfm/                 # lastfm action families (account, playback, listening,
@@ -646,7 +765,7 @@ index.mjs
         └── dashboard/   ──── Redis-RPC backend
 ```
 
-**God classes were eliminated.** The five largest modules (Player, PlayerManager,
+**God classes were eliminated.** The largest modules (Player, PlayerManager,
 GatewayHandler, FluxerAudioBridge, LastFmManager, Dashboard) are each split into a
 small base class plus **concern mixins** — one file per responsibility, applied onto
 the class at load time via `src/utils/mixins.mjs` (`applyMixins`). All methods keep
@@ -666,8 +785,7 @@ if (ACCOUNT_ACTIONS.has(action))
 ```
 
 The loader only reads top-level `*.mjs` files, so the subdirectories are invisible
-to command discovery; case bodies and helpers were moved verbatim (verified by
-per-command runtime parity harnesses under `scripts/`), and every entry file keeps
+to command discovery; case bodies and helpers were moved verbatim, and every entry file keeps
 its original exports (`playLastFmCategory` is still importable from
 `commands/lastfm.mjs`). `commands/player.mjs` intentionally stays single-file: it
 is one cohesive interactive UI flow (a single 500-line `run()` closure) with no
@@ -700,13 +818,14 @@ Currently supported languages:
 | Code | Language |
 | :--- | :--- |
 | `en` | English (default) |
+| `ro` | Romanian |
 | `ar-SA` | Arabic |
 | `de-DE` | German |
 | `ckb` | Kurdish (Sorani) |
 | `pt-BR` | Brazilian Portuguese |
 | `tr` | Turkish |
 
-To add a new language, place a JSON file in `storage/locales/bot/` following the same key structure as `en.json`, then set the locale per guild with `%settings set locale <code>`.
+To add a new language, place a JSON file in `storage/locales/bot/` following the same key structure as `en.json`, then set the locale per guild with `%settings set locale <code>` (or from the web panel's server settings). For example, `%settings set locale ro` switches a server to Romanian.
 
 ---
 
