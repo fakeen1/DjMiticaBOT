@@ -82,7 +82,8 @@
         "seek": "Sari la o anumită poziție în melodia care cântă acum.",
         "move": "Mută o melodie dintr-o poziție în alta în coadă.",
         "autoplay": "Pornește/oprește autoplay — redă automat melodii asemănătoare când se termină coada.",
-        "trackopt": "Setează momente personalizate de început/sfârșit pentru melodii. Suportă aliasuri cu nume — salvează mai multe tăieturi pe melodie, pentru secțiuni diferite."
+        "trackopt": "Setează momente personalizate de început/sfârșit pentru melodii. Suportă aliasuri cu nume — salvează mai multe tăieturi pe melodie, pentru secțiuni diferite.",
+        "donate": "Susține Dj Mitica cu o donație voluntară. Botul rămâne gratuit pentru toată lumea."
     },
     "options": {
         "debug": {
@@ -826,6 +827,11 @@
             "listTitle": "📋 **Opțiunile tale pentru melodii** ({{count}})",
             "listEntry": "• **{{title}}** — {{start}} → {{end}}",
             "listHint": "Folosește `{{prefix}}trackopt play <alias>` ca să aplici o tăietură cu nume sau `{{prefix}}trackopt remove [alias]` ca s-o ștergi."
+        },
+        "donate": {
+            "title": "☕ Susține Dj Mitica",
+            "description": "Dj Mitica este **gratuit** și va rămâne așa — toate comenzile, pentru toată lumea.\n\nDacă îți place și vrei să ajuți cu timpul și hostingul, poți să-i faci dezvoltatorului cinste cu o cafea:\n**[❤️ Donează pe Revolut]({{url}})**\n\nDonațiile sunt complet voluntare și nu deblochează nimic. Mulțumim! 🎶",
+            "disabled": "Donațiile sunt dezactivate pentru această copie a botului."
         }
     }
 }

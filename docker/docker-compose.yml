@@ -1,3 +1,7 @@
+# Fixed project name: containers, network and volumes are named djmitica-* / djmitica_*,
+# whatever the folder is called, so this stack never mixes with other compose projects.
+name: djmitica
+
 services:
   bot:
     build:

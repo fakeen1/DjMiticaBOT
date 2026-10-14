@@ -32,6 +32,7 @@
         <button type="submit" class="btn btn-primary btn-block" data-i18n="login.submit">Open the panel</button>
       </div>
       <p id="login-error" class="form-error" role="alert"></p>
+      <p class="muted small login-donate" id="login-donate" hidden><span data-i18n="donate.free">Dj Mitica is free.</span> <a id="donate-login" href="#" target="_blank" rel="noopener noreferrer" data-i18n="donate.support">Support it with a donation ❤</a></p>
     </form>
   </main>
 
@@ -49,6 +50,7 @@
         <button role="tab" class="tab" data-tab="status" aria-selected="false" data-i18n="tab.status" data-owner>Status</button>
       </nav>
       <div class="who">
+        <a id="donate-top" class="btn btn-ghost btn-sm donate-btn" href="#" target="_blank" rel="noopener noreferrer" hidden><span aria-hidden="true">❤</span> <span data-i18n="donate.btn">Donate</span></a>
         <span id="who" class="who-name" hidden></span>
         <button id="logout" class="btn btn-ghost btn-sm" type="button" data-i18n="top.logout">Log out</button>
       </div>

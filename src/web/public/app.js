@@ -24,6 +24,7 @@
   const I18N = {
     en: {
       "login.intro": "Enter the panel password to control the bot.", "login.password": "Password", "login.submit": "Open the panel",
+      "donate.btn": "Donate", "donate.free": "Dj Mitica is free.", "donate.support": "Support it with a donation ❤", "donate.title": "Dj Mitica is free — donations are voluntary and unlock nothing.",
       "login.oauthIntro": "Log in with your Fluxer account to control the bot on the servers you manage.", "login.oauthBtn": "Login with Fluxer", "login.ownerSep": "Bot owner",
       "login.failed": "Fluxer login failed. Please try again.", "login.cancelled": "Login cancelled.", "login.disabled": "Fluxer login is not enabled on this panel.",
       "g.noServersUser": "None of the servers you manage (Manage Server permission) has this bot yet.",
@@ -79,6 +80,7 @@
     },
     ro: {
       "login.intro": "Introdu parola panoului ca să controlezi botul.", "login.password": "Parolă", "login.submit": "Intră în panou",
+      "donate.btn": "Donează", "donate.free": "Dj Mitica este gratuit.", "donate.support": "Susține-l cu o donație ❤", "donate.title": "Dj Mitica este gratuit — donațiile sunt voluntare și nu deblochează nimic.",
       "login.oauthIntro": "Loghează-te cu contul Fluxer ca să controlezi botul pe serverele pe care le administrezi.", "login.oauthBtn": "Logare cu Fluxer", "login.ownerSep": "Proprietarul botului",
       "login.failed": "Logarea cu Fluxer a eșuat. Încearcă din nou.", "login.cancelled": "Logare anulată.", "login.disabled": "Logarea cu Fluxer nu este activată pe acest panou.",
       "g.noServersUser": "Niciunul dintre serverele pe care le administrezi (permisiunea Manage Server) nu are încă acest bot.",
@@ -240,6 +242,7 @@
     $("#login-oauth").hidden = !s.oauth;
     $("#login-pass-box").hidden = s.password === false;
     $("#login-sep").hidden = s.password === false;
+    setDonate(s.donate);
     S.admin = s.authenticated ? s.admin !== false : true;
     S.user = s.user ?? null;
     document.body.classList.toggle("not-owner", !S.admin);
@@ -247,6 +250,14 @@
     who.hidden = !S.user;
     who.textContent = S.user?.name ?? "";
     if (!S.admin && S.tab === "status") setTab("player");
+  }
+  /** Show the donate links when the bot has a donation URL (config.json -> donate). */
+  function setDonate(url) {
+    const ok = typeof url === "string" && /^https?:\/\//i.test(url);
+    for (const id of ["#donate-top", "#donate-login"]) { const a = $(id); if (ok) a.href = url; }
+    $("#donate-top").hidden = !ok;
+    $("#donate-top").title = T("donate.title");
+    $("#login-donate").hidden = !ok;
   }
   function showLogin() {
     S.es?.close(); S.es = null;
@@ -323,6 +334,7 @@
     S.state = st;
     S.receivedAt = Date.now();
     if (st.bot) {
+      if ("donate" in st.bot) setDonate(st.bot.donate);
       $("#bot-name").textContent = st.bot.name;
       if (st.bot.avatar) $("#bot-avatar").src = st.bot.avatar;
     }

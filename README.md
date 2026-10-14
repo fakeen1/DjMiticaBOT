@@ -231,6 +231,7 @@ Below is the complete list of Dj Mitica's commands. The default prefix is `%`.
 | `stats` | Display bot stats (uptime, ping, player count, stored scrobbles) | `%stats` | `info` |
 | `invite` | Get the link that adds the bot to another server (plus the GitHub page) | `%invite` | `addbot`, `djmitica` |
 | `support` | Where to get help, report bugs or suggest features (GitHub issues) | `%support` | `server` |
+| `donate` | Show the donation link — the bot stays free, donations unlock nothing | `%donate` | `donation`, `tip`, `coffee` |
 | `lastfm` | Link Last.fm, toggle scrobbling, view profile, love/unlove tracks, top artists, play tracks, leaderboard | `%lastfm link` / `%lastfm love` / `%lastfm artists` / `%lastfm lb` | `lf`, `lfm` |
 | `vote` | Check FluxerList voters for the bot | `%vote` | |
 | `reload` | Reload commands or modules at runtime (owner) | `%reload` | |
@@ -661,6 +662,7 @@ Key configuration options in `config.json`:
 | `logging` | object | — | Per-category log toggles: `enabled`, `warn`, and 14 categories (`player`, `inactivity`, `aloneCheck`, `voiceState`, `voice247`, `voice`, `mediaplayer`, `commands`, `guild`, `recovery`, `settings`, `lavalink`, `dashboard`, `redis`) |
 | `timers` | object | — | Timing values in ms: `inactivityTimeout`, `aloneCheckInterval`, `aloneCheckDebounce`, `rejoin247Delay`, `leave247RejoinDelay`, `playerUpdateInterval`, `searchSessionTimeout`, `playerSessionTimeout`, `intentionalLeaveTTL` |
 | `fluxer.js` | object | — | Fluxer.js REST options (`timeout`, `retries`) |
+| `donate` | object | — | Donation link for `%donate` and the panel button: `url`, `enabled` (default: the developer's Revolut page) |
 | `invite` | object | — | Invite link overrides: `url`, `clientId`, `permissions` (all optional — the link is built automatically) |
 | `web` | object | — | Web control panel: `enabled`, `port`, `password`, `sessionDays`, `trustProxy`, `language` (`en` default, or `ro`), `oauth` (Login with Fluxer: `enabled`, `clientSecret`, `redirectUri`, `clientId`) |
 | `voiceCommands` | object | — | Voice commands: `enabled`, `wakeWord`, `whisperUrl`, `language`, `requireWakeWord`, `echo`, `allowedUsers`, `blockedCommands`, VAD tuning (`energyThreshold`, `silenceMs`, `minSpeechMs`, `maxSpeechMs`), `debug` |
@@ -678,7 +680,7 @@ DjMiticaBOT/
 │                                #   one child process per shard slice, each running index.mjs
 ├── config_example.json          # Configuration template
 ├── package.json
-├── commands/                    # 39 command entry files (one per command); the three
+├── commands/                    # 40 command entry files (one per command); the three
 │   │   # largest (lastfm, settings, debug) are split into action-family
 │   │   #   modules inside commands/<name>/ subdirectories
 │   ├── lastfm/                 # lastfm action families (account, playback, listening,
@@ -887,6 +889,8 @@ Dj Mitica is free and always will be. If it makes your server better and you'd l
 </p>
 
 Revolut tag: **@cristiz7ac** · [revolut.me/cristiz7ac](https://revolut.me/cristiz7ac)
+
+The same link is available in chat with `%donate` and as the **❤ Donate** button in the web panel. Running your own copy? Point it to your own page with `donate.url` in `config.json`, or hide it with `"donate": { "enabled": false }`.
 
 Not in the mood to donate? A ⭐ on GitHub helps too.
 

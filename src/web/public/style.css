@@ -359,3 +359,10 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
 .who { display: flex; align-items: center; gap: 10px; margin-left: auto; min-width: 0; }
 .who-name { color: var(--muted); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
 .not-owner .owner-only, .not-owner [data-owner] { display: none !important; }
+
+/* donate */
+.donate-btn { color: var(--coral); border-color: color-mix(in srgb, var(--coral) 45%, var(--line)); }
+.donate-btn span[aria-hidden] { margin-right: 2px; }
+.login-donate { text-align: center; margin-top: 4px; }
+.login-donate a { color: var(--coral); }
+@media (max-width: 720px) { .donate-btn [data-i18n] { display: none; } }

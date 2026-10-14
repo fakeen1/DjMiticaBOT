@@ -81,6 +81,11 @@
     "maxSpeechMs": 12000,
     "debug": false
   },
+  "donate": {
+    "Comment": "Link shown by %donate and the Donate button in the web panel. The bot stays free; donations unlock nothing. Set enabled to false to hide it, or put your own link in url.",
+    "enabled": true,
+    "url": "https://revolut.me/cristiz7ac"
+  },
   "invite": {
     "Comment": "Optional. %invite builds the add-to-server link automatically (your Fluxer web app + the bot ID + the needed permissions). Set url to replace the whole link, or clientId / permissions to override just those parts.",
     "url": "",

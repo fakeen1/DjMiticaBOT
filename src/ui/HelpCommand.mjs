@@ -68,7 +68,8 @@ function _helpSupportContent() {
       "If you need help with anything or encounter any issues, hop over to " +
       "our GitHub page **[fakeen1/DjMiticaBOT](https://github.com/fakeen1/DjMiticaBOT)** " +
       "and open an issue: [github.com/fakeen1/DjMiticaBOT/issues](https://github.com/fakeen1/DjMiticaBOT/issues)\n\n" +
-      "For questions about this server's copy of the bot, ask the server owner."
+      "For questions about this server's copy of the bot, ask the server owner.\n\n" +
+      "Dj Mitica is free. If you'd like to support it, use the `donate` command. ❤️"
   );
 }
 

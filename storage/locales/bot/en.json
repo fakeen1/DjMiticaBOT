@@ -82,7 +82,8 @@
         "seek": "Seek to a specific position in the currently playing track.",
         "move": "Move a track from one position to another in the queue.",
         "autoplay": "Toggle autoplay — automatically play similar tracks when the queue ends.",
-        "trackopt": "Set custom start/end times for tracks. Supports named aliases — save multiple trims per track for different sections."
+        "trackopt": "Set custom start/end times for tracks. Supports named aliases — save multiple trims per track for different sections.",
+        "donate": "Support Dj Mitica with a voluntary donation. The bot stays free for everyone."
     },
     "options": {
         "debug": {
@@ -826,6 +827,11 @@
             "listTitle": "📋 **Your Track Options** ({{count}})",
             "listEntry": "• **{{title}}** — {{start}} → {{end}}",
             "listHint": "Use `{{prefix}}trackopt play <alias>` to apply a named trim, or `{{prefix}}trackopt remove [alias]` to delete one."
+        },
+        "donate": {
+            "title": "☕ Support Dj Mitica",
+            "description": "Dj Mitica is **free** and always will be — every command, for everyone.\n\nIf you enjoy it and want to help cover the time and the hosting, you can buy the developer a coffee:\n**[❤️ Donate on Revolut]({{url}})**\n\nDonations are completely voluntary and don't unlock anything. Thank you! 🎶",
+            "disabled": "Donations are turned off for this copy of the bot."
         }
     }
 }

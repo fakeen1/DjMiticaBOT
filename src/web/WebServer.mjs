@@ -33,6 +33,7 @@ import { configureAudio, getAudioSettings } from "../music/audio/AudioSettings.m
 import { PROVIDERS, PROVIDER_NAMES } from "../music/providers.mjs";
 import { configView, validateChanges, applyToConfig, applyLive, panelLanguage } from "./ConfigSchema.mjs";
 import { buildInviteUrl } from "../utils/Invite.mjs";
+import { getDonateUrl } from "../utils/Donate.mjs";
 import { PermissionFlags } from "@fluxerjs/core";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -584,7 +585,7 @@ export class WebServer {
       return this._json(res, 200, {
         authenticated: !!sess, admin: this._isAdmin(sess), language: this.lang,
         user: sess?.uid ? { id: sess.uid, name: sess.name ?? null, avatar: sess.avatar ?? null } : null,
-        oauth: this._oauthEnabled(), password: !!this.cfg.password,
+        oauth: this._oauthEnabled(), password: !!this.cfg.password, donate: getDonateUrl(this.djmitica.config),
       });
     }
 
@@ -808,7 +809,7 @@ export class WebServer {
     }
     const me = this.client.user;
     return {
-      bot: me ? { id: String(me.id), name: me.globalName ?? me.username ?? "Dj Mitica", avatar: this._avatar(me), invite: buildInviteUrl(this.djmitica) } : null,
+      bot: me ? { id: String(me.id), name: me.globalName ?? me.username ?? "Dj Mitica", avatar: this._avatar(me), invite: buildInviteUrl(this.djmitica), donate: getDonateUrl(this.djmitica.config) } : null,
       now: Date.now(),
       guilds,
       players: this._playerList().map(([id, p]) => this.serializePlayer(id, p)),
