@@ -12,10 +12,14 @@
  *    behind a reverse proxy).
  *  - Panel language: English by default, Romanian with web.language = "ro"
  *    (changeable from the panel: Settings -> Web panel).
+ *  - Optional "Login with Fluxer" (OAuth2, config.json -> web.oauth): server managers
+ *    log in with their Fluxer account and only see / control the servers where they
+ *    have Manage Server. The password login and the bot owners keep full access.
  *
  * Config (config.json -> web):
  *   { "enabled": true, "port": 8080, "password": "...", "sessionSecret": "(generated)",
- *     "trustProxy": true, "sessionDays": 30, "language": "en" }
+ *     "trustProxy": true, "sessionDays": 30, "language": "en",
+ *     "oauth": { "enabled": false, "clientId": "", "clientSecret": "", "redirectUri": "" } }
  */
 
 import http from "node:http";
@@ -29,11 +33,14 @@ import { configureAudio, getAudioSettings } from "../music/audio/AudioSettings.m
 import { PROVIDERS, PROVIDER_NAMES } from "../music/providers.mjs";
 import { configView, validateChanges, applyToConfig, applyLive, panelLanguage } from "./ConfigSchema.mjs";
 import { buildInviteUrl } from "../utils/Invite.mjs";
+import { PermissionFlags } from "@fluxerjs/core";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = path.join(__dirname, "public");
 const CONFIG_PATH = path.resolve("config.json");
 const COOKIE = "djmitica_web";
+const OAUTH_COOKIE = "djmitica_oauth";
+const ALLOWED_TTL = 60_000;
 const MAX_BODY = 64 * 1024;
 const LOG_MAX = 1500;
 const QUEUE_LIMIT = 300;
@@ -164,7 +171,7 @@ const TXT = {
     apOn: "Autoplay on", apOff: "Autoplay off", apNA: "Autoplay unavailable: ", cleared: "Queue cleared.",
     noChange: "No change.", startingPicked: "Starting the chosen song.", missingSong: "Missing song",
     textLong: "Text too long", badAddr: "Invalid address", added: "Added.", left: "The bot left the channel.",
-    action: "Unknown action",
+    action: "Unknown action", forbidden: "Only the bot owner can do this.", notYours: "You don't manage this server.",
   },
   ro: {
     internal: "Eroare internă", unauth: "Neautentificat", csrf: "Cerere respinsă (CSRF)", route: "Rută necunoscută",
@@ -186,7 +193,7 @@ const TXT = {
     apOn: "Autoplay pornit", apOff: "Autoplay oprit", apNA: "Autoplay indisponibil: ", cleared: "Coada a fost golită.",
     noChange: "Nicio schimbare.", startingPicked: "Pornesc melodia aleasă.", missingSong: "Lipsește melodia",
     textLong: "Text prea lung", badAddr: "Adresă invalidă", added: "Adăugat.", left: "Botul a ieșit din canal.",
-    action: "Acțiune necunoscută",
+    action: "Acțiune necunoscută", forbidden: "Doar proprietarul botului poate face asta.", notYours: "Nu administrezi acest server.",
   },
 };
 
@@ -240,8 +247,8 @@ export class WebServer {
       return this;
     }
     this._ensureSecrets();
-    if (!this.cfg.password) {
-      logger.warn("[Web] No password set (config.json -> web.password). The web panel will NOT start.");
+    if (!this.cfg.password && !this._oauthEnabled()) {
+      logger.warn("[Web] No password set (config.json -> web.password) and Fluxer login is off. The web panel will NOT start.");
       return this;
     }
     this.server = http.createServer((req, res) => {
@@ -255,7 +262,7 @@ export class WebServer {
     const port = Number(this.cfg.port) || 8080;
     this.server.listen(port, "0.0.0.0", () => logger.info(`[Web] Web panel listening on port ${port}.`));
 
-    this.logs.listeners.add((entry) => this._broadcast("log", entry));
+    this.logs.listeners.add((entry) => this._broadcast("log", entry, true));
     this._tick = setInterval(() => this._pushState(), 1000);
     this._tick.unref?.();
     this._ping = setInterval(() => { for (const c of this.sse) { try { c.res.write("event: ping\ndata: 1\n\n"); } catch (_) {} } }, 10000);
@@ -299,22 +306,191 @@ export class WebServer {
     return crypto.createHmac("sha256", key).update(payload).digest("base64url");
   }
 
-  _makeSession() {
+  /**
+   * Create a signed session token.
+   * @param {{id: string, name: string, avatar: string|null}|null} user - Fluxer user, or null for the password (owner) login.
+   */
+  _makeSession(user = null) {
     const exp = Date.now() + (Number(this.cfg.sessionDays) || 30) * 86400_000;
-    const payload = `${exp}.${crypto.randomBytes(9).toString("base64url")}`;
+    const data = { e: exp, r: crypto.randomBytes(6).toString("base64url") };
+    if (user) Object.assign(data, { u: String(user.id), nm: String(user.name ?? "").slice(0, 64), av: user.avatar ?? null });
+    const payload = Buffer.from(JSON.stringify(data)).toString("base64url");
     return `${payload}.${this._sign(payload)}`;
   }
 
-  _validSession(req) {
-    const raw = String(req.headers.cookie ?? "").split(";").map((s) => s.trim()).find((s) => s.startsWith(COOKIE + "="));
-    if (!raw) return false;
-    const tok = decodeURIComponent(raw.slice(COOKIE.length + 1));
+  _cookie(req, name) {
+    const raw = String(req.headers.cookie ?? "").split(";").map((s) => s.trim()).find((s) => s.startsWith(name + "="));
+    return raw ? decodeURIComponent(raw.slice(name.length + 1)) : null;
+  }
+
+  /** @returns {{exp: number, uid: string|null, name?: string, avatar?: string|null}|null} the session, or null. */
+  _session(req) {
+    const tok = this._cookie(req, COOKIE);
+    if (!tok) return null;
     const i = tok.lastIndexOf(".");
-    if (i < 0) return false;
+    if (i < 0) return null;
     const payload = tok.slice(0, i), sig = tok.slice(i + 1);
     const good = this._sign(payload);
-    if (sig.length !== good.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(good))) return false;
-    return Number(payload.split(".")[0]) > Date.now();
+    if (sig.length !== good.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(good))) return null;
+    if (/^\d+\.[\w-]+$/.test(payload)) {
+      // sessions created before Fluxer login existed (password login)
+      const exp = Number(payload.split(".")[0]);
+      return exp > Date.now() ? { exp, uid: null } : null;
+    }
+    try {
+      const d = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+      if (!(Number(d.e) > Date.now())) return null;
+      return { exp: Number(d.e), uid: d.u ? String(d.u) : null, name: d.nm, avatar: d.av ?? null };
+    } catch { return null; }
+  }
+
+  _validSession(req) { return !!this._session(req); }
+
+  /** Password login, or a Fluxer user listed in config.json -> owners. */
+  _isAdmin(sess) {
+    if (!sess) return false;
+    if (!sess.uid) return true;
+    return (this.djmitica.config?.owners ?? []).map(String).includes(sess.uid);
+  }
+
+  /**
+   * Guild IDs this session may see and control: null = all (admin), otherwise the
+   * servers where the user is the owner or has Manage Server / Administrator.
+   * @returns {Promise<Set<string>|null>}
+   */
+  async _allowedGuilds(sess) {
+    if (this._isAdmin(sess)) return null;
+    const cache = (this._allowedCache ??= new Map());
+    const hit = cache.get(sess.uid);
+    if (hit && Date.now() - hit.at < ALLOWED_TTL) return hit.set;
+    const set = new Set();
+    const MANAGE = PermissionFlags?.ManageGuild ?? (1n << 5n);
+    const ADMIN = PermissionFlags?.Administrator ?? (1n << 3n);
+    for (const g of listValues(this.client.guilds)) {
+      try {
+        const gid = String(g.id);
+        if (String(g.ownerId ?? g.owner_id ?? "") === sess.uid) { set.add(gid); continue; }
+        let member = g.members?.get?.(sess.uid) ?? null;
+        if (!member) {
+          member = typeof g.fetchMember === "function" ? await g.fetchMember(sess.uid).catch(() => null)
+            : typeof g.members?.fetch === "function" ? await g.members.fetch(sess.uid).catch(() => null) : null;
+        }
+        const perms = member?.permissions;
+        if (perms?.has?.(ADMIN) || perms?.has?.(MANAGE)) set.add(gid);
+      } catch (_) { /* skip this guild */ }
+    }
+    cache.set(sess.uid, { set, at: Date.now() });
+    if (cache.size > 500) cache.delete(cache.keys().next().value);
+    return set;
+  }
+
+  /** Remove the guilds (and their players) the session may not see. */
+  _filterState(st, allowed) {
+    if (!allowed) return st;
+    return {
+      ...st,
+      guilds: st.guilds.filter((g) => allowed.has(g.id)),
+      players: st.players.filter((p) => allowed.has(String(p.guildId))),
+    };
+  }
+
+  /* --------------------------------------------------------- Fluxer login */
+
+  _oauthCfg() { return this.djmitica.config?.web?.oauth ?? {}; }
+
+  _oauthClientId() {
+    const o = this._oauthCfg();
+    return String(o.clientId || this.client?.application?.id || this.client?.user?.id || "").trim();
+  }
+
+  _oauthEnabled() {
+    const o = this._oauthCfg();
+    return o.enabled === true && !!o.clientSecret && /^https?:\/\//i.test(String(o.redirectUri ?? "")) && !!this._oauthClientId();
+  }
+
+  _fluxerWebBase() {
+    const inst = this.djmitica.config?.["fluxer.js"]?.instance ?? {};
+    return String(this._oauthCfg().webBase || inst.webapp || "https://web.fluxer.app").replace(/\/+$/, "");
+  }
+
+  _fluxerApiBase() {
+    const inst = this.djmitica.config?.["fluxer.js"]?.instance ?? {};
+    return String(this._oauthCfg().apiBase || inst.api || "https://api.fluxer.app").replace(/\/+$/, "");
+  }
+
+  /** Redirects the browser to Fluxer's authorization page. */
+  _oauthLogin(req, res) {
+    if (!this._oauthEnabled()) { res.writeHead(302, this._headers({ Location: "../../?login=disabled" })); return res.end(); }
+    const state = crypto.randomBytes(16).toString("base64url");
+    const q = new URLSearchParams({
+      response_type: "code", client_id: this._oauthClientId(), redirect_uri: this._oauthCfg().redirectUri,
+      scope: "identify", state,
+    });
+    const lax = this._cookieAttrs(req).replace("SameSite=Strict", "SameSite=Lax");
+    res.writeHead(302, this._headers({
+      Location: `${this._fluxerWebBase()}/oauth2/authorize?${q}`,
+      "Set-Cookie": `${OAUTH_COOKIE}=${state}; Max-Age=600${lax}`,
+    }));
+    res.end();
+  }
+
+  async _fluxerFetch(paths, init) {
+    let last = null;
+    for (const p of paths) {
+      try {
+        const r = await fetch(this._fluxerApiBase() + p, { ...init, signal: AbortSignal.timeout(10_000) });
+        if (r.ok) return await r.json();
+        last = `HTTP ${r.status} on ${p}`;
+        if (r.status !== 404 && r.status !== 405) break;
+      } catch (e) { last = e?.message ?? String(e); }
+    }
+    throw new Error(last ?? "request failed");
+  }
+
+  /** Fluxer sends the user back here with ?code&state. */
+  async _oauthCallback(req, res, url) {
+    const back = (q) => { res.writeHead(302, this._headers({ Location: "../../" + (q ? "?login=" + q : ""), "Set-Cookie": `${OAUTH_COOKIE}=; Max-Age=0${this._cookieAttrs(req).replace("SameSite=Strict", "SameSite=Lax")}` })); res.end(); };
+    if (!this._oauthEnabled()) return back("disabled");
+    const code = url.searchParams.get("code");
+    const state = url.searchParams.get("state");
+    const expected = this._cookie(req, OAUTH_COOKIE);
+    if (!code || !state || !expected || state.length !== expected.length ||
+        !crypto.timingSafeEqual(Buffer.from(state), Buffer.from(expected))) {
+      if (url.searchParams.get("error")) return back("cancelled");
+      logger.warn("[Web] Fluxer login: invalid state (expired or not started from this panel).");
+      return back("failed");
+    }
+    const o = this._oauthCfg();
+    try {
+      const clientId = this._oauthClientId();
+      const tok = await this._fluxerFetch(["/v1/oauth2/token", "/oauth2/token"], {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+          Authorization: "Basic " + Buffer.from(`${clientId}:${o.clientSecret}`).toString("base64"),
+        },
+        body: new URLSearchParams({ grant_type: "authorization_code", code, redirect_uri: o.redirectUri, client_id: clientId, client_secret: o.clientSecret }),
+      });
+      if (!tok?.access_token) throw new Error("no access_token in the token response");
+      const me = await this._fluxerFetch(["/v1/users/@me", "/users/@me"], {
+        headers: { Authorization: `${tok.token_type || "Bearer"} ${tok.access_token}` },
+      });
+      if (!me?.id) throw new Error("no user id in /users/@me");
+      const user = { id: String(me.id), name: me.global_name ?? me.globalName ?? me.username ?? "User", avatar: this._avatar(me) };
+      const maxAge = (Number(this.cfg.sessionDays) || 30) * 86400;
+      res.writeHead(302, this._headers({
+        Location: "../../",
+        "Set-Cookie": [
+          `${COOKIE}=${encodeURIComponent(this._makeSession(user))}; Max-Age=${maxAge}${this._cookieAttrs(req)}`,
+          `${OAUTH_COOKIE}=; Max-Age=0${this._cookieAttrs(req).replace("SameSite=Strict", "SameSite=Lax")}`,
+        ],
+      }));
+      res.end();
+      logger.info(`[Web] Fluxer login: ${user.name} (${user.id})${this._isAdmin({ uid: user.id }) ? " [owner]" : ""}`);
+    } catch (e) {
+      logger.warn("[Web] Fluxer login failed:", e?.message);
+      return back("failed");
+    }
   }
 
   _cookieAttrs(req) {
@@ -324,6 +500,7 @@ export class WebServer {
   }
 
   _checkPassword(given) {
+    if (!this.cfg.password) return false;
     const a = crypto.createHash("sha256").update(String(given ?? "")).digest();
     const b = crypto.createHash("sha256").update(String(this.cfg.password)).digest();
     return crypto.timingSafeEqual(a, b);
@@ -400,28 +577,59 @@ export class WebServer {
       res.writeHead(200, this._headers({ "Set-Cookie": `${COOKIE}=; Max-Age=0${this._cookieAttrs(req)}`, "Content-Type": "application/json" }));
       return res.end("{}");
     }
-    if (p === "/api/session") return this._json(res, 200, { authenticated: this._validSession(req), language: this.lang });
+    if (p === "/api/oauth/login" && method === "GET") return this._oauthLogin(req, res);
+    if (p === "/api/oauth/callback" && method === "GET") return this._oauthCallback(req, res, url);
+    const sess = this._session(req);
+    if (p === "/api/session") {
+      return this._json(res, 200, {
+        authenticated: !!sess, admin: this._isAdmin(sess), language: this.lang,
+        user: sess?.uid ? { id: sess.uid, name: sess.name ?? null, avatar: sess.avatar ?? null } : null,
+        oauth: this._oauthEnabled(), password: !!this.cfg.password,
+      });
+    }
 
-    if (!this._validSession(req)) return this._json(res, 401, { error: this.t("unauth") });
+    if (!sess) return this._json(res, 401, { error: this.t("unauth") });
     if (method !== "GET" && req.headers["x-requested-with"] !== "djmitica-web") {
       return this._json(res, 403, { error: this.t("csrf") });
     }
+    const admin = this._isAdmin(sess);
+    const allowed = await this._allowedGuilds(sess);
+    const ownerOnly = () => this._json(res, 403, { error: this.t("forbidden") });
 
     // --- routes
-    if (p === "/api/events" && method === "GET") return this._events(req, res);
-    if (p === "/api/state" && method === "GET") return this._json(res, 200, this.state());
+    if (p === "/api/events" && method === "GET") return this._events(req, res, sess, allowed);
+    if (p === "/api/state" && method === "GET") return this._json(res, 200, this._filterState(this.state(), allowed));
+    if (p === "/api/search" && method === "GET") return this._search(res, url.searchParams);
+    if (p === "/api/settings" && method === "GET") {
+      const gid = cleanId(url.searchParams.get("guild") ?? "");
+      if (allowed && gid && !allowed.has(gid)) return this._json(res, 403, { error: this.t("notYours") });
+      return this._json(res, 200, this.settings(gid));
+    }
+    if (p === "/api/settings" && method === "POST") {
+      const body = await this._body(req);
+      if (!admin && body.audio) return ownerOnly();
+      if (allowed && body.server && !allowed.has(cleanId(body.server.guildId ?? ""))) return this._json(res, 403, { error: this.t("notYours") });
+      return await this._saveSettings(res, body);
+    }
+    if (p === "/api/join" && method === "POST") return this._join(res, await this._body(req), allowed);
+
+    const m = p.match(/^\/api\/player\/(\d+)\/([a-z]+)$/);
+    if (m && method === "POST") {
+      if (allowed) {
+        const pl = this._findPlayer(m[1]);
+        if (pl && !allowed.has(cleanId(pl._guildId))) return this._json(res, 403, { error: this.t("notYours") });
+      }
+      return this._playerAction(res, m[1], m[2], await this._body(req));
+    }
+
+    // --- owner only
+    const ownerRoutes = ["/api/status", "/api/logs", "/api/config", "/api/restart"];
+    if (ownerRoutes.includes(p) && !admin) return ownerOnly();
     if (p === "/api/status" && method === "GET") return this._json(res, 200, await this.status());
     if (p === "/api/logs" && method === "GET") return this._json(res, 200, { lines: this.logs.since(Number(url.searchParams.get("since") ?? 0)) });
-    if (p === "/api/search" && method === "GET") return this._search(res, url.searchParams);
-    if (p === "/api/settings" && method === "GET") return this._json(res, 200, this.settings(url.searchParams.get("guild")));
-    if (p === "/api/settings" && method === "POST") return await this._saveSettings(res, await this._body(req));
-    if (p === "/api/join" && method === "POST") return this._join(res, await this._body(req));
     if (p === "/api/config" && method === "GET") return this._json(res, 200, { sections: configView(this.djmitica.config) });
     if (p === "/api/config" && method === "POST") return this._saveGlobal(req, res, await this._body(req));
     if (p === "/api/restart" && method === "POST") return this._restart(res);
-
-    const m = p.match(/^\/api\/player\/(\d+)\/([a-z]+)$/);
-    if (m && method === "POST") return this._playerAction(res, m[1], m[2], await this._body(req));
 
     return this._json(res, 404, { error: this.t("route") });
   }
@@ -456,35 +664,54 @@ export class WebServer {
 
   /* ------------------------------------------------------------ live (SSE) */
 
-  _events(req, res) {
+  _events(req, res, sess, allowed) {
     res.writeHead(200, this._headers({
       "Content-Type": "text/event-stream; charset=utf-8",
       "Connection": "keep-alive",
       "X-Accel-Buffering": "no",
     }));
     res.write("retry: 3000\n\n");
-    const client = { res };
+    const client = { res, sess, allowed, admin: this._isAdmin(sess), allowedAt: Date.now(), lastKey: "" };
     this.sse.add(client);
-    const state = JSON.stringify(this.state());
+    const state = JSON.stringify(this._filterState(this.state(), allowed));
     res.write(`event: state\ndata: ${state}\n\n`);
     req.on("close", () => this.sse.delete(client));
   }
 
-  _broadcast(event, data) {
+  /** @param {boolean} [adminOnly] - only send to owner sessions (logs). */
+  _broadcast(event, data, adminOnly = false) {
     if (!this.sse.size) return;
     const msg = `event: ${event}\ndata: ${typeof data === "string" ? data : JSON.stringify(data)}\n\n`;
-    for (const c of this.sse) { try { c.res.write(msg); } catch (_) {} }
+    for (const c of this.sse) {
+      if (adminOnly && !c.admin) continue;
+      try { c.res.write(msg); } catch (_) {}
+    }
+  }
+
+  /** Make the next tick send the state to every client, even if nothing changed. */
+  _forcePush() {
+    for (const c of this.sse) c.lastKey = "";
   }
 
   _pushState() {
     if (!this.sse.size) return;
-    let json;
-    try { json = JSON.stringify(this.state()); } catch (e) { return; }
-    // the position advances in the browser; only push when something else changes
-    const key = json.replace(/"positionMs":\d+/g, "").replace(/"now":\d+/, "");
-    if (key === this._lastStateJson) return;
-    this._lastStateJson = key;
-    this._broadcast("state", json);
+    let st;
+    try { st = this.state(); } catch (e) { return; }
+    const cache = new Map();
+    for (const c of this.sse) {
+      if (!c.admin && Date.now() - c.allowedAt > ALLOWED_TTL) {
+        c.allowedAt = Date.now();
+        this._allowedGuilds(c.sess).then((a) => { c.allowed = a; c.lastKey = ""; }).catch(() => {});
+      }
+      const ck = c.allowed ? [...c.allowed].sort().join(",") : "*";
+      let json = cache.get(ck);
+      if (!json) { json = JSON.stringify(this._filterState(st, c.allowed)); cache.set(ck, json); }
+      // the position advances in the browser; only push when something else changes
+      const key = json.replace(/"positionMs":\d+/g, "").replace(/"now":\d+/, "");
+      if (key === c.lastKey) continue;
+      c.lastKey = key;
+      try { c.res.write(`event: state\ndata: ${json}\n\n`); } catch (_) {}
+    }
   }
 
   /* ---------------------------------------------------------------- state */
@@ -823,9 +1050,13 @@ export class WebServer {
     return listValues(guild?.channels).find(isText) ?? null;
   }
 
-  async _join(res, body) {
+  async _join(res, body, allowed = null) {
     const channelId = cleanId(body.channelId ?? "");
     if (!channelId) return this._json(res, 400, { error: this.t("noChannel") });
+    if (allowed) {
+      const ch = this.client.channels?.get?.(channelId);
+      if (!ch || !allowed.has(cleanId(ch.guildId))) return this._json(res, 403, { error: this.t("notYours") });
+    }
     if (this._findPlayer(channelId)) return this._json(res, 200, { ok: true, message: this.t("alreadyIn") });
     const channel = this.client.channels?.get?.(channelId) ?? await this.client.channels?.fetch?.(channelId).catch(() => null);
     if (!channel || channel.type !== 2) return this._json(res, 404, { error: this.t("channelNotFound") });
@@ -879,7 +1110,7 @@ export class WebServer {
       if (this.lang === "ro") for (const [re, ro] of PLAYER_RO) if (re.test(t)) { t = t.replace(re, ro); break; }
       return t;
     };
-    const ok = (message) => { this._lastStateJson = ""; setTimeout(() => this._pushState(), 50); return this._json(res, 200, { ok: true, message: clean(message) }); };
+    const ok = (message) => { this._forcePush(); setTimeout(() => this._pushState(), 50); return this._json(res, 200, { ok: true, message: clean(message) }); };
     const fail = (code, error) => this._json(res, code, { error });
     const hasCurrent = !!p.queue?.getCurrent?.();
 

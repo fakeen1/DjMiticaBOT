@@ -142,6 +142,14 @@ export const SECTIONS = [
       { path: "web.password", label: "Panel password", type: "secret", minLength: 3, live: true,
         help: "After changing it you will have to log in again on other devices." },
       { path: "web.sessionDays", label: "Stay logged in for", type: "number", min: 1, max: 365, step: 1, unit: "days", live: true },
+      { path: "web.oauth.enabled", label: "Login with Fluxer", type: "bool", live: true,
+        help: "Server managers log in with their Fluxer account and can only control their own servers (where they have Manage Server). Needs the client secret and redirect URI below, and the panel served over HTTPS." },
+      { path: "web.oauth.clientSecret", label: "OAuth2 client secret", type: "secret", live: true,
+        help: "From the bot's application page on Fluxer (OAuth2 section)." },
+      { path: "web.oauth.redirectUri", label: "Redirect URI", type: "text", maxLength: 300, optional: true, live: true,
+        help: "The panel address + /api/oauth/callback, e.g. https://your-domain/djmitica/api/oauth/callback. Add the exact same URI in the application's OAuth2 settings." },
+      { path: "web.oauth.clientId", label: "Application ID", type: "text", maxLength: 30, optional: true, live: true,
+        help: "Leave empty to use the bot's own ID." },
     ],
   },
 ];
@@ -202,6 +210,10 @@ const RO = {
     "web.language": ["Limba panoului", "Limba acestui panou web. Limba botului în chat se alege pe fiecare server, mai sus."],
     "web.password": ["Parola panoului", "După schimbare va trebui să te autentifici din nou pe celelalte dispozitive."],
     "web.sessionDays": ["Rămâi autentificat"],
+    "web.oauth.enabled": ["Logare cu Fluxer", "Administratorii de servere se loghează cu contul Fluxer și pot controla doar serverele lor (unde au Manage Server). Are nevoie de client secret și redirect URI de mai jos, iar panoul trebuie servit prin HTTPS."],
+    "web.oauth.clientSecret": ["OAuth2 client secret", "Din pagina aplicației botului pe Fluxer (secțiunea OAuth2)."],
+    "web.oauth.redirectUri": ["Redirect URI", "Adresa panoului + /api/oauth/callback, de ex. https://domeniul-tau/djmitica/api/oauth/callback. Pune exact aceeași adresă în setările OAuth2 ale aplicației."],
+    "web.oauth.clientId": ["Application ID", "Lasă gol ca să se folosească ID-ul botului."],
   },
   units: { days: "zile" },
 };
@@ -261,7 +273,7 @@ const DEFAULTS = {
   "timers.inactivityTimeout": 180000, "timers.aloneCheckInterval": 30000, "timers.aloneCheckDebounce": 500,
   "timers.rejoin247Delay": 3000, "timers.leave247RejoinDelay": 5000, "timers.intentionalLeaveTTL": 10000,
   "presenceContents": [], "presenceInterval": 30000, "lastfm.scrobbleThreshold": 0.5, "lastfm.scrobbleMinMs": 240000,
-  "web.sessionDays": 30, "web.language": "en", "embedColor": "0xe9196c", "owners": [], "customStatsFooter": "", "prefix": "%",
+  "web.sessionDays": 30, "web.language": "en", "web.oauth.enabled": false, "embedColor": "0xe9196c", "owners": [], "customStatsFooter": "", "prefix": "%",
   "audio.crossfadeSeconds": 0, "audio.skipCrossfadeSeconds": 0, "audio.allowLoadstream": false,
   "logging.enabled": true,
 };
@@ -358,6 +370,8 @@ export function validateChanges(config, changes, lang = panelLanguage(config)) {
         if (f.maxLength && s.length > f.maxLength) { errors.push(M.maxLen(name, f.maxLength)); break; }
         if (f.noSpaces && /\s/.test(s)) { errors.push(M.spaces(name)); break; }
         if (path === "voiceCommands.whisperUrl" && !/^https?:\/\/[^\s]+$/i.test(s)) { errors.push(M.url(name)); break; }
+        if (path === "web.oauth.redirectUri" && s && !/^https?:\/\/[^\s]+$/i.test(s)) { errors.push(M.url(name)); break; }
+        if (path === "web.oauth.clientId" && s && !/^\d{5,25}$/.test(s)) { errors.push(M.number(name)); break; }
         updates.push([path, s]);
         break;
       }

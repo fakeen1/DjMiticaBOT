@@ -180,6 +180,13 @@
     "password": "",
     "trustProxy": true,
     "sessionDays": 30,
-    "language": "en"
+    "language": "en",
+    "oauth": {
+      "Comment": "Optional Login with Fluxer for server managers (they only see servers where they have Manage Server). Needs HTTPS, the application client secret and the redirect URI <panel address>/api/oauth/callback registered on Fluxer.",
+      "enabled": false,
+      "clientSecret": "",
+      "redirectUri": "",
+      "clientId": ""
+    }
   }
 }

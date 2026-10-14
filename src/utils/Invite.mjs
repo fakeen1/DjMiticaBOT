@@ -5,7 +5,7 @@
  *
  * Every self-hosted copy gets a link for its own bot: the client ID defaults to
  * the bot's own application / user ID and the host to the configured Fluxer
- * instance (or fluxer.app).
+ * instance (or web.fluxer.app).
  *
  * Optional config.json -> invite:
  *   {
@@ -45,7 +45,7 @@ export function buildInviteUrl(bot) {
   const clientId = String(cfg.clientId || bot?.client?.application?.id || bot?.client?.user?.id || "").trim();
   if (!/^\d{5,25}$/.test(clientId)) return null;
   const inst = bot?.config?.["fluxer.js"]?.instance ?? {};
-  const base = String(inst.webapp || "https://fluxer.app").replace(/\/+$/, "");
+  const base = String(inst.webapp || "https://web.fluxer.app").replace(/\/+$/, "");
   const perms = /^\d+$/.test(String(cfg.permissions ?? "")) ? String(cfg.permissions) : requiredPermissionBits();
   return `${base}/oauth2/authorize?client_id=${clientId}&scope=bot&permissions=${perms}`;
 }

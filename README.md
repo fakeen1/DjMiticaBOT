@@ -10,6 +10,11 @@
 </p>
 
 <p align="center">
+  <a href="https://web.fluxer.app/oauth2/authorize?client_id=1559846142420725760&scope=bot&permissions=3271744"><img src="https://img.shields.io/badge/Add%20to%20your%20server-Fluxer-F4B740?style=for-the-badge" alt="Add Dj Mitica to your Fluxer server"></a>
+  <a href="https://fakeen.go.ro/djmitica/"><img src="https://img.shields.io/badge/Web%20Dashboard-Open-5FD3A3?style=for-the-badge" alt="Open the web dashboard"></a>
+</p>
+
+<p align="center">
   <a href="https://revolut.me/cristiz7ac"><img src="https://img.shields.io/badge/Donate-Revolut%20%40cristiz7ac-0075EB?style=for-the-badge&logo=revolut&logoColor=white" alt="Donate with Revolut"></a>
 </p>
 
@@ -30,6 +35,7 @@
 - [How Audio Playback Works](#how-audio-playback-works)
 - [Features](#features)
 - [What Dj Mitica Adds](#what-dj-mitica-adds)
+- [Use the Public Bot](#use-the-public-bot)
 - [Getting Started](#getting-started)
 - [Commands](#commands)
 - [Self-Hosting](#self-hosting-the-bot)
@@ -38,6 +44,7 @@
   - [Database Setup](#database-setup)
   - [Crossfade](#crossfade)
   - [Web Control Panel](#web-control-panel)
+    - [Login with Fluxer](#login-with-fluxer-for-server-managers)
   - [Voice Commands](#voice-commands)
   - [Self-Hosted Fluxer Instance](#self-hosted-fluxer-instance)
   - [Invite Link](#invite-link)
@@ -155,6 +162,17 @@ A few things worth knowing:
 - **Autoplay on by default** — when the queue ends the bot keeps playing similar songs (can be turned off per server).
 - **Silent messages** — bot messages don't trigger notification sounds (set `SILENT_MESSAGES = false` in `src/ui/MessageHandler.mjs` to turn this off).
 - **English by default, Romanian built in** — the bot and the web panel speak English out of the box; switch a server to Romanian with `%settings set locale ro` (or from the panel), and the panel itself under *Settings → Web panel → Panel language*.
+
+---
+
+## Use the Public Bot
+
+Don't want to host it yourself? Add the public Dj Mitica (running on **fluxer.app**) to your server:
+
+- **[➕ Invite Dj Mitica to your server](https://web.fluxer.app/oauth2/authorize?client_id=1559846142420725760&scope=bot&permissions=3271744)** — you need the *Manage Server* permission on that server.
+- **[🎛️ Open the web dashboard](https://fakeen.go.ro/djmitica/)** — click **Login with Fluxer** and control the bot on the servers you manage: player, queue, search and that server's settings.
+
+The public bot works on servers hosted on fluxer.app. If you run your own Fluxer instance, host your own copy instead — see [Self-Hosting](#self-hosting-the-bot).
 
 ---
 
@@ -438,7 +456,7 @@ The bot serves its own control panel on port `8080` inside the container (`8090`
 | :--- | :--- | :--- |
 | `enabled` | `true` | Set to `false` to turn the panel off completely |
 | `port` | `8080` | Port inside the container / process |
-| `password` | — | **Required.** The panel does not start without it |
+| `password` | — | Owner password. The panel needs a password or [Login with Fluxer](#login-with-fluxer-for-server-managers) to start |
 | `sessionDays` | `30` | How long a login stays valid |
 | `trustProxy` | `true` | Read the client IP from `X-Forwarded-For` (for login rate limiting behind a reverse proxy) |
 | `language` | `en` | Panel language: `en` or `ro` |
@@ -469,6 +487,27 @@ The **Restart the bot** button exits the bot process; Docker brings it back auto
 The panel is in English by default. To use it in Romanian, open *Settings → Web panel → Panel language* and pick **Română** (or set `"language": "ro"` in the `web` section). The change applies immediately, no restart needed. The language of the bot's replies in chat is a separate, per-server setting (*Settings → Server settings → Bot language*).
 
 **Security:** login attempts are rate-limited (5 wrong passwords lock the address for 15 minutes), sessions use signed, HttpOnly, SameSite=Strict cookies, every change requires a custom request header (CSRF protection), the page is served with a strict Content-Security-Policy, and passwords/tokens are masked in the log view. If you expose the panel on the internet, put it behind HTTPS (see below) and use a strong password.
+
+#### Login with Fluxer (for server managers)
+
+If other servers use your bot, their managers can get their own access to the panel **without your password**: they log in with their Fluxer account and only see and control the servers where they have the **Manage Server** permission (player, queue, search, joining voice channels and that server's settings). The bot's global settings, the Status tab, the logs and the restart button stay owner-only — for the password login and for Fluxer accounts listed in `owners`.
+
+1. Serve the panel over HTTPS on a public address (see the Caddy example below), e.g. `https://your-domain/djmitica/`.
+2. On Fluxer, open your bot's application → **OAuth2**: copy the **client secret** and add the redirect URI `https://your-domain/djmitica/api/oauth/callback`.
+3. In the panel (*Settings → Web panel*) or in `config.json`:
+
+```json
+"web": {
+  "oauth": {
+    "enabled": true,
+    "clientSecret": "your-client-secret",
+    "redirectUri": "https://your-domain/djmitica/api/oauth/callback",
+    "clientId": ""
+  }
+}
+```
+
+`clientId` can stay empty (the bot's ID is used). The login page then shows a **Login with Fluxer** button above the owner password. Only the `identify` scope is requested; the bot checks Manage Server itself on the servers it is in. The Fluxer addresses come from `fluxer.js.instance` (or web.fluxer.app / api.fluxer.app by default).
 
 #### Serving the panel on your domain (Caddy)
 
@@ -563,7 +602,7 @@ To use the bot on your own Fluxer instance, add an `instance` block to `fluxer.j
 https://<your Fluxer web app>/oauth2/authorize?client_id=<bot id>&scope=bot&permissions=<needed permissions>
 ```
 
-It is built automatically: the host comes from `fluxer.js.instance.webapp` (or `https://fluxer.app`), the client ID is the bot's own ID, and the permissions are exactly the ones the bot needs (View Channels, Send Messages, Embed Links, Add Reactions, Read Message History, Manage Messages, Attach Files, Connect, Speak). Whoever opens it needs the **Manage Server** permission on the target server.
+It is built automatically: the host comes from `fluxer.js.instance.webapp` (or `https://web.fluxer.app`), the client ID is the bot's own ID, and the permissions are exactly the ones the bot needs (View Channels, Send Messages, Embed Links, Add Reactions, Read Message History, Manage Messages, Attach Files, Connect, Speak). Whoever opens it needs the **Manage Server** permission on the target server.
 
 If your application ID differs from the bot's user ID, or you want a different link (for example a bot listing page), set it in `config.json`:
 
@@ -623,7 +662,7 @@ Key configuration options in `config.json`:
 | `timers` | object | — | Timing values in ms: `inactivityTimeout`, `aloneCheckInterval`, `aloneCheckDebounce`, `rejoin247Delay`, `leave247RejoinDelay`, `playerUpdateInterval`, `searchSessionTimeout`, `playerSessionTimeout`, `intentionalLeaveTTL` |
 | `fluxer.js` | object | — | Fluxer.js REST options (`timeout`, `retries`) |
 | `invite` | object | — | Invite link overrides: `url`, `clientId`, `permissions` (all optional — the link is built automatically) |
-| `web` | object | — | Web control panel: `enabled`, `port`, `password`, `sessionDays`, `trustProxy`, `language` (`en` default, or `ro`) |
+| `web` | object | — | Web control panel: `enabled`, `port`, `password`, `sessionDays`, `trustProxy`, `language` (`en` default, or `ro`), `oauth` (Login with Fluxer: `enabled`, `clientSecret`, `redirectUri`, `clientId`) |
 | `voiceCommands` | object | — | Voice commands: `enabled`, `wakeWord`, `whisperUrl`, `language`, `requireWakeWord`, `echo`, `allowedUsers`, `blockedCommands`, VAD tuning (`energyThreshold`, `silenceMs`, `minSpeechMs`, `maxSpeechMs`), `debug` |
 | `audio` | object | — | Audio: `allowLoadstream`, `crossfadeSeconds`, `skipCrossfadeSeconds` |
 

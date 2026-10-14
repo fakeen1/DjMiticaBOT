@@ -20,11 +20,18 @@
     <form id="login-form" class="login-card" autocomplete="on">
       <img src="favicon.svg" alt="" class="login-logo" width="56" height="56">
       <h1>Dj Mitica</h1>
-      <p class="muted" data-i18n="login.intro">Enter the panel password to control the bot.</p>
-      <label for="login-pass" class="field-label" data-i18n="login.password">Password</label>
-      <input id="login-pass" name="password" type="password" autocomplete="current-password" required autofocus>
+      <div id="login-oauth" hidden>
+        <p class="muted" data-i18n="login.oauthIntro">Log in with your Fluxer account to control the bot on the servers you manage.</p>
+        <a id="login-oauth-btn" class="btn btn-primary btn-block" href="api/oauth/login" data-i18n="login.oauthBtn">Login with Fluxer</a>
+        <div id="login-sep" class="login-sep"><span data-i18n="login.ownerSep">Bot owner</span></div>
+      </div>
+      <div id="login-pass-box">
+        <p class="muted" data-i18n="login.intro">Enter the panel password to control the bot.</p>
+        <label for="login-pass" class="field-label" data-i18n="login.password">Password</label>
+        <input id="login-pass" name="password" type="password" autocomplete="current-password">
+        <button type="submit" class="btn btn-primary btn-block" data-i18n="login.submit">Open the panel</button>
+      </div>
       <p id="login-error" class="form-error" role="alert"></p>
-      <button type="submit" class="btn btn-primary btn-block" data-i18n="login.submit">Open the panel</button>
     </form>
   </main>
 
@@ -39,9 +46,12 @@
       <nav class="tabs" role="tablist" data-i18n-aria="top.sections" aria-label="Sections">
         <button role="tab" class="tab" data-tab="player" aria-selected="true" data-i18n="tab.player">Player</button>
         <button role="tab" class="tab" data-tab="settings" aria-selected="false" data-i18n="tab.settings">Settings</button>
-        <button role="tab" class="tab" data-tab="status" aria-selected="false" data-i18n="tab.status">Status</button>
+        <button role="tab" class="tab" data-tab="status" aria-selected="false" data-i18n="tab.status" data-owner>Status</button>
       </nav>
-      <button id="logout" class="btn btn-ghost btn-sm" type="button" data-i18n="top.logout">Log out</button>
+      <div class="who">
+        <span id="who" class="who-name" hidden></span>
+        <button id="logout" class="btn btn-ghost btn-sm" type="button" data-i18n="top.logout">Log out</button>
+      </div>
     </header>
 
     <!-- PLAYER -->
@@ -90,13 +100,13 @@
           <p class="muted small sec-desc" data-i18n="set.serverDesc">Applies only to the selected server and takes effect immediately.</p>
           <div id="server-settings"></div>
         </section>
-        <div id="global-settings"></div>
-        <section class="panel" id="sec-restart">
+        <div id="global-settings" class="owner-only"></div>
+        <section class="panel owner-only" id="sec-restart">
           <h2 class="panel-title" data-i18n="set.restartTitle">Restart</h2>
           <p class="muted small sec-desc" data-i18n="set.restartDesc">Settings marked “after restart” only apply once the bot starts again. A restart takes 10–20 seconds and the music resumes on its own.</p>
           <div class="row-end"><button id="restart-bot" class="btn danger-solid" type="button" data-i18n="set.restartBtn">Restart the bot</button></div>
         </section>
-        <p class="muted small" data-i18n-html="set.footer">The bot token, database and NodeLink connection can only be changed in <code>docker/config.json</code>. A mistake there would stop the bot, including this panel.</p>
+        <p class="muted small owner-only" data-i18n-html="set.footer">The bot token, database and NodeLink connection can only be changed in <code>docker/config.json</code>. A mistake there would stop the bot, including this panel.</p>
       </div>
     </section>
 
@@ -123,7 +133,7 @@
     <nav class="bottombar" data-i18n-aria="top.sections" aria-label="Sections">
       <button class="tab" data-tab="player" data-i18n="tab.player">Player</button>
       <button class="tab" data-tab="settings" data-i18n="tab.settings">Settings</button>
-      <button class="tab" data-tab="status" data-i18n="tab.status">Status</button>
+      <button class="tab" data-tab="status" data-i18n="tab.status" data-owner>Status</button>
     </nav>
   </div>
 

@@ -349,3 +349,13 @@ code { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; backgr
 /* invite link buttons */
 .invite-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .invite-row a.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+
+/* Fluxer login + roles */
+#login-oauth, #login-pass-box { display: grid; gap: 10px; }
+#login-oauth[hidden], #login-pass-box[hidden], .login-sep[hidden] { display: none; }
+a.btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.login-sep { display: flex; align-items: center; gap: 10px; margin: 8px 0 2px; color: var(--muted); font-size: 13px; }
+.login-sep::before, .login-sep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.who { display: flex; align-items: center; gap: 10px; margin-left: auto; min-width: 0; }
+.who-name { color: var(--muted); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
+.not-owner .owner-only, .not-owner [data-owner] { display: none !important; }

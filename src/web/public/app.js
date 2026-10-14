@@ -24,6 +24,9 @@
   const I18N = {
     en: {
       "login.intro": "Enter the panel password to control the bot.", "login.password": "Password", "login.submit": "Open the panel",
+      "login.oauthIntro": "Log in with your Fluxer account to control the bot on the servers you manage.", "login.oauthBtn": "Login with Fluxer", "login.ownerSep": "Bot owner",
+      "login.failed": "Fluxer login failed. Please try again.", "login.cancelled": "Login cancelled.", "login.disabled": "Fluxer login is not enabled on this panel.",
+      "g.noServersUser": "None of the servers you manage (Manage Server permission) has this bot yet.",
       "top.live": "Live connection", "top.sections": "Sections", "top.logout": "Log out",
       "tab.player": "Player", "tab.settings": "Settings", "tab.status": "Status",
       "rail.title": "Voice channels",
@@ -76,6 +79,9 @@
     },
     ro: {
       "login.intro": "Introdu parola panoului ca să controlezi botul.", "login.password": "Parolă", "login.submit": "Intră în panou",
+      "login.oauthIntro": "Loghează-te cu contul Fluxer ca să controlezi botul pe serverele pe care le administrezi.", "login.oauthBtn": "Logare cu Fluxer", "login.ownerSep": "Proprietarul botului",
+      "login.failed": "Logarea cu Fluxer a eșuat. Încearcă din nou.", "login.cancelled": "Logare anulată.", "login.disabled": "Logarea cu Fluxer nu este activată pe acest panou.",
+      "g.noServersUser": "Niciunul dintre serverele pe care le administrezi (permisiunea Manage Server) nu are încă acest bot.",
       "top.live": "Conectare live", "top.sections": "Secțiuni", "top.logout": "Ieși",
       "tab.player": "Player", "tab.settings": "Setări", "tab.status": "Status",
       "rail.title": "Canale de voce",
@@ -227,11 +233,26 @@
   };
 
   /* -------------------------------------------------------- login */
+  S.admin = true; S.user = null;
+  /** Apply the login options and the role from api/session. */
+  function applySession(s) {
+    if (!s) return;
+    $("#login-oauth").hidden = !s.oauth;
+    $("#login-pass-box").hidden = s.password === false;
+    $("#login-sep").hidden = s.password === false;
+    S.admin = s.authenticated ? s.admin !== false : true;
+    S.user = s.user ?? null;
+    document.body.classList.toggle("not-owner", !S.admin);
+    const who = $("#who");
+    who.hidden = !S.user;
+    who.textContent = S.user?.name ?? "";
+    if (!S.admin && S.tab === "status") setTab("player");
+  }
   function showLogin() {
     S.es?.close(); S.es = null;
     $("#app").hidden = true;
     $("#login").hidden = false;
-    setTimeout(() => $("#login-pass").focus(), 50);
+    setTimeout(() => { if (!$("#login-pass-box").hidden) $("#login-pass").focus(); }, 50);
   }
   async function showApp() {
     $("#login").hidden = true;
@@ -241,12 +262,14 @@
   }
   $("#login-form").addEventListener("submit", async (e) => {
     e.preventDefault();
-    const btn = e.submitter ?? $("#login-form button");
+    if ($("#login-pass-box").hidden || !$("#login-pass").value) return;
+    const btn = e.submitter ?? $("#login-pass-box button");
     btn.disabled = true;
     $("#login-error").textContent = "";
     try {
       await api("api/login", { password: $("#login-pass").value });
       $("#login-pass").value = "";
+      try { applySession(await api("api/session")); } catch (_) {}
       showApp();
     } catch (err) {
       $("#login-error").textContent = err.message;
@@ -254,11 +277,13 @@
   });
   $("#logout").addEventListener("click", async () => {
     try { await api("api/logout", {}); } catch (_) {}
+    try { applySession(await api("api/session")); } catch (_) {}
     showLogin();
   });
 
   /* ---------------------------------------------------------- tabs */
   function setTab(t) {
+    if (t === "status" && !S.admin) t = "player";
     S.tab = t;
     $$(".tab").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
     for (const v of ["player", "settings", "status"]) $("#tab-" + v).hidden = v !== t;
@@ -284,7 +309,7 @@
     es.addEventListener("state", (ev) => { S.lastSse = Date.now(); applyState(JSON.parse(ev.data)); });
     es.addEventListener("log", (ev) => addLog(JSON.parse(ev.data)));
     es.addEventListener("ping", () => { S.lastSse = Date.now(); });
-    loadLogs();
+    if (S.admin) loadLogs();
   }
 
   // fallback: if live events don't arrive (a proxy blocking them), poll the state
@@ -330,7 +355,7 @@
           ${people ? `<div class="people">${people}</div>` : ""}</div>`;
       }).join("") || `<p class="muted small">${T("g.noVoice")}</p>`;
       return `<div class="guild"><div class="guild-head"><span class="guild-icon">${icon}</span><span>${esc(g.name)}</span></div>${vcs}</div>`;
-    }).join("") || `<p class="muted">${T("g.noServers")}</p>${st.bot?.invite ? `<p class="muted small">${T("g.inviteHint")}</p>${inviteButtons(st.bot.invite)}` : ""}`;
+    }).join("") || `<p class="muted">${T(S.admin ? "g.noServers" : "g.noServersUser")}</p>${st.bot?.invite ? `<p class="muted small">${T("g.inviteHint")}</p>${inviteButtons(st.bot.invite)}` : ""}`;
     $("#guilds").innerHTML = html;
   }
   $("#guilds").addEventListener("click", async (e) => {
@@ -633,6 +658,7 @@
 
   async function loadSettings() {
     loadServerSettings();
+    if (!S.admin) { renderNav([]); $("#global-settings").innerHTML = ""; return; }
     try {
       const r = await api("api/config");
       renderGlobal(r.sections);
@@ -640,7 +666,9 @@
   }
 
   function renderNav(sections) {
-    const items = [["sec-server", T("nav.server")], ...sections.map((s) => ["sec-" + s.id, s.title]), ["sec-restart", T("nav.restart")]];
+    const items = S.admin
+      ? [["sec-server", T("nav.server")], ...sections.map((s) => ["sec-" + s.id, s.title]), ["sec-restart", T("nav.restart")]]
+      : [["sec-server", T("nav.server")]];
     $("#settings-nav").innerHTML = items.map(([id, t]) => `<a href="#${id}" data-goto="${id}">${esc(t)}</a>`).join("");
   }
   $("#settings-nav").addEventListener("click", (e) => {
@@ -869,11 +897,18 @@
   /* ---------------------------------------------------------- start */
   (async () => {
     const h = location.hash.slice(1);
-    if (["player", "settings", "status"].includes(h)) setTab(h);
+    const loginResult = new URLSearchParams(location.search).get("login");
+    if (loginResult) history.replaceState(null, "", location.pathname + location.hash);
     try {
       const s = await api("api/session");
       if (s.language) setLanguage(s.language);
-      if (s.authenticated) showApp(); else showLogin();
+      applySession(s);
+      if (["player", "settings", "status"].includes(h)) setTab(h);
+      if (s.authenticated) showApp();
+      else {
+        showLogin();
+        if (loginResult) $("#login-error").textContent = T("login." + (["failed", "cancelled", "disabled"].includes(loginResult) ? loginResult : "failed"));
+      }
     } catch (_) { showLogin(); }
   })();
 })();
