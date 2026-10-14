@@ -233,6 +233,29 @@ export class RemoteSettingsManager extends SettingsManager {
   }
 
   /**
+   * Create the `settings` table on a fresh database (no manual SQL needed).
+   * Runs once per process; existing tables are left untouched.
+   * @returns {Promise<void>}
+   * @private
+   */
+  async _ensureTable() {
+    if (this._tableChecked) return;
+    const res = await this.query(
+      "CREATE TABLE IF NOT EXISTS `settings` ("
+      + "`id` varchar(70) NOT NULL, "
+      + "`data` json NOT NULL, "
+      + "`bot_id` varchar(32) NOT NULL DEFAULT '', "
+      + "PRIMARY KEY (`id`, `bot_id`)"
+      + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4"
+    );
+    if (res.error) {
+      logger.error('[Settings] Could not create the settings table:', res.error?.message ?? res.error);
+      return;
+    }
+    this._tableChecked = true;
+  }
+
+  /**
    * Ensure the `bot_id` column exists in the settings table and is part of the primary key.
    * Auto-migrates legacy tables that lack the column.
    * @returns {Promise<void>}
@@ -350,6 +373,7 @@ export class RemoteSettingsManager extends SettingsManager {
    * @returns {Promise<void>}
    */
   async load() {
+    await this._ensureTable();
     const res = await this.query(`SELECT * FROM settings WHERE 1=1${this._botIdWhere()}`);
     if (res.error) {
       this._loadAttempts++;

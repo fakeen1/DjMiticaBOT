@@ -407,7 +407,7 @@ export class MessageHandler {
       opts = { ...message };
     }
     const __sent = await replyingTo.reply(quiet(opts), { ping: false });
-    if (!globalThis.__quietLogged) { globalThis.__quietLogged = true; logger.info("[Silent] flag trimis=" + SILENT_FLAG + " flags primite=" + String(__sent?.flags?.bitfield ?? __sent?.flags)); }
+    if (!globalThis.__quietLogged) { globalThis.__quietLogged = true; logger.info("[Silent] flag sent=" + SILENT_FLAG + " flags received=" + String(__sent?.flags?.bitfield ?? __sent?.flags)); }
     return new Message(__sent, this);
   }
 

@@ -384,20 +384,14 @@ Dj Mitica requires a MySQL database to store per-guild settings and user data.
    }
    ```
 
-3. Create the required `settings` table:
-   ```sql
-   CREATE TABLE `settings` (
-     `id` varchar(70) NOT NULL,
-     `data` json NOT NULL
-   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
-   ```
-
-4. Everything else is **auto-created on startup** if missing:
+3. That's it — every table is **auto-created on startup** if missing:
+   - `settings` — per-server settings (prefix, language, volume, 24/7 channels, …)
    - `track_options` — per-user per-track start/end times (`%trackopt`)
    - `lastfm_users` — Last.fm session keys and scrobble opt-ins
    - `lastfm_stats` — stored scrobble/link counts
+   - `player_state` — the queues saved across restarts
 
-5. *(Optional)* If you need to clone or repair the settings table across bot IDs, run:
+4. *(Optional)* If you need to clone or repair the settings table across bot IDs, run:
    ```bash
    npm run migrate
    ```
