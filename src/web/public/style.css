@@ -366,3 +366,16 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
 .login-donate { text-align: center; margin-top: 4px; }
 .login-donate a { color: var(--coral); }
 @media (max-width: 720px) { .donate-btn [data-i18n] { display: none; } }
+
+/* history */
+.view-history { max-width: 1100px; margin: 0 auto; }
+.history-panel .panel-head { flex-wrap: wrap; }
+.history-panel #history-filter { width: 180px; }
+.history .t-title a { color: inherit; text-decoration: none; }
+.history .t-title a:hover { text-decoration: underline; }
+.history .result:hover { background: color-mix(in srgb, var(--line) 30%, transparent); }
+@media (max-width: 720px) {
+  .history .result { grid-template-columns: 40px minmax(0, 1fr); }
+  .history .result-actions { grid-column: 1 / -1; justify-content: flex-end; }
+  .history-panel #history-filter { width: 100%; }
+}

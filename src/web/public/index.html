@@ -46,6 +46,7 @@
       </div>
       <nav class="tabs" role="tablist" data-i18n-aria="top.sections" aria-label="Sections">
         <button role="tab" class="tab" data-tab="player" aria-selected="true" data-i18n="tab.player">Player</button>
+        <button role="tab" class="tab" data-tab="history" aria-selected="false" data-i18n="tab.history">History</button>
         <button role="tab" class="tab" data-tab="settings" aria-selected="false" data-i18n="tab.settings">Settings</button>
         <button role="tab" class="tab" data-tab="status" aria-selected="false" data-i18n="tab.status" data-owner>Status</button>
       </nav>
@@ -91,6 +92,21 @@
     </section>
 
     <!-- SETTINGS -->
+    <section id="tab-history" class="view view-history" role="tabpanel" hidden>
+      <section class="panel history-panel">
+        <div class="panel-head">
+          <h2 class="panel-title" data-i18n="hist.title">History</h2>
+          <select id="history-guild" aria-label="Server"></select>
+          <div class="panel-actions">
+            <input id="history-filter" type="search" data-i18n-placeholder="hist.filter" placeholder="Filter" data-i18n-aria="hist.filter" aria-label="Filter">
+            <button id="history-clear" class="btn btn-ghost btn-sm danger" type="button" data-i18n="hist.clear">Clear history</button>
+          </div>
+        </div>
+        <p id="history-hint" class="muted small sec-desc"></p>
+        <div id="history" class="results history" aria-live="polite"></div>
+      </section>
+    </section>
+
     <section id="tab-settings" class="view view-settings" role="tabpanel" hidden>
       <nav class="settings-nav" data-i18n-aria="set.sections" aria-label="Settings sections" id="settings-nav"></nav>
       <div class="settings-body">
@@ -134,6 +150,7 @@
 
     <nav class="bottombar" data-i18n-aria="top.sections" aria-label="Sections">
       <button class="tab" data-tab="player" data-i18n="tab.player">Player</button>
+      <button class="tab" data-tab="history" data-i18n="tab.history">History</button>
       <button class="tab" data-tab="settings" data-i18n="tab.settings">Settings</button>
       <button class="tab" data-tab="status" data-i18n="tab.status" data-owner>Status</button>
     </nav>

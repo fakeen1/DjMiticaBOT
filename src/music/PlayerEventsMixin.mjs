@@ -105,6 +105,7 @@ const PlayerEventsMixin = {
     });
 
     player.on("startplay", (song) => {
+      try { this.commands?.client?._djmitica?.history?.add(player._guildId, song ?? player.queue?.current); } catch (_) {}
       emit("startplay", Dashboard.convertVideo(song ?? player.queue?.current));
       emit("streamStartPlay", Date.now());
       this.dashboard.playerUpdate({ type: "startplay" }, player);

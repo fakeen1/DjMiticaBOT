@@ -29,7 +29,13 @@
       "login.failed": "Fluxer login failed. Please try again.", "login.cancelled": "Login cancelled.", "login.disabled": "Fluxer login is not enabled on this panel.",
       "g.noServersUser": "None of the servers you manage (Manage Server permission) has this bot yet.",
       "top.live": "Live connection", "top.sections": "Sections", "top.logout": "Log out",
-      "tab.player": "Player", "tab.settings": "Settings", "tab.status": "Status",
+      "tab.player": "Player", "tab.settings": "Settings", "tab.status": "Status", "tab.history": "History",
+      "hist.title": "History", "hist.filter": "Filter", "hist.clear": "Clear history", "hist.clearConfirm": "Clear this server's history?",
+      "hist.empty": "Nothing played on this server yet. Songs appear here as soon as they start playing.",
+      "hist.none": "No songs match the filter.", "hist.noServers": "No servers to show.",
+      "hist.needPlayer": "To play from history, first put the bot in a voice channel on this server (Player tab).",
+      "hist.hint": "Recently played songs on this server, newest first. Play one again, add it next or at the end of the queue.",
+      "hist.plays": (n) => n === 1 ? "1 play" : `${n} plays`,
       "rail.title": "Voice channels",
       "add.title": "Add music", "add.placeholder": "Song name, artist or YouTube / Spotify link", "add.search": "Search", "add.source": "Source",
       "queue.title": "Queue", "queue.shuffle": "Shuffle", "queue.clear": "Clear",
@@ -85,7 +91,13 @@
       "login.failed": "Logarea cu Fluxer a eșuat. Încearcă din nou.", "login.cancelled": "Logare anulată.", "login.disabled": "Logarea cu Fluxer nu este activată pe acest panou.",
       "g.noServersUser": "Niciunul dintre serverele pe care le administrezi (permisiunea Manage Server) nu are încă acest bot.",
       "top.live": "Conectare live", "top.sections": "Secțiuni", "top.logout": "Ieși",
-      "tab.player": "Player", "tab.settings": "Setări", "tab.status": "Status",
+      "tab.player": "Player", "tab.settings": "Setări", "tab.status": "Status", "tab.history": "Istoric",
+      "hist.title": "Istoric", "hist.filter": "Filtrează", "hist.clear": "Șterge istoricul", "hist.clearConfirm": "Ștergi istoricul acestui server?",
+      "hist.empty": "Încă nu s-a cântat nimic pe acest server. Melodiile apar aici imediat ce pornesc.",
+      "hist.none": "Nicio melodie nu se potrivește filtrului.", "hist.noServers": "Niciun server de afișat.",
+      "hist.needPlayer": "Ca să redai din istoric, pune întâi botul într-un canal de voce pe acest server (tabul Player).",
+      "hist.hint": "Melodiile cântate recent pe acest server, cele mai noi primele. Poți reda una din nou, o poți pune următoarea sau la finalul cozii.",
+      "hist.plays": (n) => n === 1 ? "o dată" : `de ${n} ori`,
       "rail.title": "Canale de voce",
       "add.title": "Adaugă muzică", "add.placeholder": "Nume melodie, artist sau link YouTube / Spotify", "add.search": "Caută", "add.source": "Sursă",
       "queue.title": "Coada", "queue.shuffle": "Amestecă", "queue.clear": "Golește",
@@ -297,8 +309,9 @@
     if (t === "status" && !S.admin) t = "player";
     S.tab = t;
     $$(".tab").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
-    for (const v of ["player", "settings", "status"]) $("#tab-" + v).hidden = v !== t;
+    for (const v of ["player", "history", "settings", "status"]) $("#tab-" + v).hidden = v !== t;
     if (t === "status") { loadStatus(); renderLogs(true); }
+    if (t === "history") loadHistory();
     if (t === "settings") loadSettings();
     history.replaceState(null, "", "#" + t);
   }
@@ -348,6 +361,10 @@
     renderDeck();
     if (!S.dragging) renderQueue();
     fillGuildSelect();
+    if (S.tab === "history") {
+      const key = ps.map((p) => p.guildId + ":" + (p.current?.title ?? "")).join("|");
+      if (key !== S.histKey) { S.histKey = key; loadHistory(); }
+    }
   }
 
   /* ----------------------------------------------------- channels */
@@ -658,7 +675,76 @@
     sel.innerHTML = gs.map((g) => `<option value="${esc(g.id)}">${esc(g.name)}</option>`).join("");
     if (prev && gs.some((g) => g.id === prev)) sel.value = prev;
     if (S.tab === "settings") loadServerSettings();
+    const hs = $("#history-guild"), hprev = hs.value || currentPlayer()?.guildId;
+    hs.innerHTML = sel.innerHTML;
+    if (hprev && gs.some((g) => g.id === hprev)) hs.value = hprev;
+    if (S.tab === "history") loadHistory();
   }
+
+  /* -------------------------------------------------------- history */
+  let historyEntries = [];
+  const ago = (t) => {
+    const s = Math.round((t - Date.now()) / 1000), rtf = new Intl.RelativeTimeFormat(LOCALE(), { numeric: "auto" });
+    const a = Math.abs(s);
+    if (a < 60) return rtf.format(s, "second");
+    if (a < 3600) return rtf.format(Math.round(s / 60), "minute");
+    if (a < 86400) return rtf.format(Math.round(s / 3600), "hour");
+    return rtf.format(Math.round(s / 86400), "day");
+  };
+  const historyPlayer = () => {
+    const gid = $("#history-guild").value;
+    const ps = (S.state?.players ?? []).filter((p) => String(p.guildId) === gid);
+    return ps.find((p) => p.channelId === S.selected) ?? ps[0] ?? null;
+  };
+  async function loadHistory() {
+    const gid = $("#history-guild").value;
+    const box = $("#history");
+    if (!gid) { box.innerHTML = `<p class="muted small">${T("hist.noServers")}</p>`; return; }
+    try {
+      const r = await api("api/history?guild=" + encodeURIComponent(gid));
+      historyEntries = r.entries ?? [];
+      renderHistory();
+    } catch (e) { box.innerHTML = `<p class="form-error">${esc(e.message)}</p>`; }
+  }
+  function renderHistory() {
+    const box = $("#history");
+    const p = historyPlayer();
+    $("#history-hint").textContent = p ? T("hist.hint") : T("hist.needPlayer");
+    $("#history-clear").disabled = !historyEntries.length;
+    if (!historyEntries.length) { box.innerHTML = `<p class="muted small">${T("hist.empty")}</p>`; return; }
+    const f = $("#history-filter").value.trim().toLowerCase();
+    const rows = historyEntries.map((t, i) => [t, i]).filter(([t]) => !f || `${t.title ?? ""} ${t.author ?? ""}`.toLowerCase().includes(f));
+    if (!rows.length) { box.innerHTML = `<p class="muted small">${T("hist.none")}</p>`; return; }
+    const dis = p ? "" : "disabled";
+    box.innerHTML = rows.map(([t, i]) => `
+      <div class="result">
+        ${t.thumbnail ? `<img class="thumb" src="${esc(t.thumbnail)}" alt="" loading="lazy" data-fb="hide">` : `<span class="thumb"></span>`}
+        <div class="t-main"><div class="t-title" title="${esc(title(t))}">${t.url ? `<a href="${esc(t.url)}" target="_blank" rel="noopener noreferrer">${esc(title(t))}</a>` : esc(title(t))}</div>
+          <div class="t-sub">${esc(t.author ?? "")}${t.author ? " · " : ""}${t.live ? "LIVE" : fmt(t.durationMs)} · ${esc(ago(t.at))}${t.plays > 1 ? " · " + esc(T("hist.plays", t.plays)) : ""}</div></div>
+        <div class="result-actions">
+          <button class="btn btn-sm btn-ghost" data-h="${i}" data-mode="now" ${dis} title="${T("s.nowTitle")}">${T("s.now")}</button>
+          <button class="btn btn-sm btn-ghost" data-h="${i}" data-mode="next" ${dis}>${T("s.next")}</button>
+          <button class="btn btn-sm btn-primary" data-h="${i}" data-mode="end" ${dis}>${T("s.queue")}</button>
+        </div>
+      </div>`).join("");
+  }
+  $("#history").addEventListener("click", async (e) => {
+    const b = e.target.closest("button[data-h]"); const p = historyPlayer();
+    if (!b || !p) return;
+    const t = historyEntries[Number(b.dataset.h)];
+    if (!t?.play) return;
+    b.disabled = true;
+    await act(`api/player/${p.channelId}/add`, { query: t.play, mode: b.dataset.mode });
+    b.disabled = false;
+  });
+  $("#history-guild").addEventListener("change", loadHistory);
+  $("#history-filter").addEventListener("input", renderHistory);
+  $("#history-clear").addEventListener("click", async () => {
+    const gid = $("#history-guild").value;
+    if (!gid || !confirm(T("hist.clearConfirm"))) return;
+    try { const r = await api("api/history?guild=" + encodeURIComponent(gid), {}, "DELETE"); toast(r.message); } catch (e) { toast(e.message, true); }
+    loadHistory();
+  });
 
   const LANG = { en: "English", "de-DE": "Deutsch", "pt-BR": "Português (Brasil)", tr: "Türkçe", "ar-SA": "العربية", ckb: "کوردی", ro: "Română" };
   const rowHtml = (label, help, control, extra = "") => `
@@ -915,7 +1001,7 @@
       const s = await api("api/session");
       if (s.language) setLanguage(s.language);
       applySession(s);
-      if (["player", "settings", "status"].includes(h)) setTab(h);
+      if (["player", "history", "settings", "status"].includes(h)) setTab(h);
       if (s.authenticated) showApp();
       else {
         showLogin();

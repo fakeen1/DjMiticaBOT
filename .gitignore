@@ -19,3 +19,6 @@ Thumbs.db
 .idea
 .vscode
 
+
+# Recently played songs (web panel History tab)
+storage/history.json

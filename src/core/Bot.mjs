@@ -34,6 +34,7 @@ import { applyMixins } from "../utils/mixins.mjs";
 import BotVoiceMixin from "./BotVoiceMixin.mjs";
 import { VoiceCommands } from "../voice/VoiceCommands.mjs";
 import { WebServer } from "../web/WebServer.mjs";
+import { History } from "../web/History.mjs";
 
 /**
  * Create a Map-like view object that proxies bot voice-state lookups through
@@ -338,6 +339,9 @@ class DjMitica {
     } catch (e) {
       logger.warn("[VoiceCmd] Failed to start:", e?.message);
     }
+
+    // Recently played songs per server, for the web panel's History tab
+    this.history = new History();
 
     // Web control panel (see src/web/WebServer.mjs and config.web)
     try {

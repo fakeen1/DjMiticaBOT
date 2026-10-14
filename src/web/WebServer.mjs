@@ -172,7 +172,7 @@ const TXT = {
     apOn: "Autoplay on", apOff: "Autoplay off", apNA: "Autoplay unavailable: ", cleared: "Queue cleared.",
     noChange: "No change.", startingPicked: "Starting the chosen song.", missingSong: "Missing song",
     textLong: "Text too long", badAddr: "Invalid address", added: "Added.", left: "The bot left the channel.",
-    action: "Unknown action", forbidden: "Only the bot owner can do this.", notYours: "You don't manage this server.",
+    action: "Unknown action", forbidden: "Only the bot owner can do this.", historyCleared: "History cleared.", notYours: "You don't manage this server.",
   },
   ro: {
     internal: "Eroare internă", unauth: "Neautentificat", csrf: "Cerere respinsă (CSRF)", route: "Rută necunoscută",
@@ -194,7 +194,7 @@ const TXT = {
     apOn: "Autoplay pornit", apOff: "Autoplay oprit", apNA: "Autoplay indisponibil: ", cleared: "Coada a fost golită.",
     noChange: "Nicio schimbare.", startingPicked: "Pornesc melodia aleasă.", missingSong: "Lipsește melodia",
     textLong: "Text prea lung", badAddr: "Adresă invalidă", added: "Adăugat.", left: "Botul a ieșit din canal.",
-    action: "Acțiune necunoscută", forbidden: "Doar proprietarul botului poate face asta.", notYours: "Nu administrezi acest server.",
+    action: "Acțiune necunoscută", forbidden: "Doar proprietarul botului poate face asta.", historyCleared: "Istoricul a fost șters.", notYours: "Nu administrezi acest server.",
   },
 };
 
@@ -601,6 +601,16 @@ export class WebServer {
     if (p === "/api/events" && method === "GET") return this._events(req, res, sess, allowed);
     if (p === "/api/state" && method === "GET") return this._json(res, 200, this._filterState(this.state(), allowed));
     if (p === "/api/search" && method === "GET") return this._search(res, url.searchParams);
+    if (p === "/api/history" && (method === "GET" || method === "DELETE")) {
+      const gid = cleanId(url.searchParams.get("guild") ?? "");
+      if (!gid) return this._json(res, 400, { error: this.t("unknownServer") });
+      if (allowed && !allowed.has(gid)) return this._json(res, 403, { error: this.t("notYours") });
+      if (method === "DELETE") {
+        this.djmitica.history?.clear(gid);
+        return this._json(res, 200, { ok: true, message: this.t("historyCleared") });
+      }
+      return this._json(res, 200, { guildId: gid, entries: this.djmitica.history?.list(gid) ?? [] });
+    }
     if (p === "/api/settings" && method === "GET") {
       const gid = cleanId(url.searchParams.get("guild") ?? "");
       if (allowed && gid && !allowed.has(gid)) return this._json(res, 403, { error: this.t("notYours") });

@@ -158,7 +158,7 @@ A few things worth knowing:
 
 - **Voice commands** — say the wake word followed by any command name in the voice channel (*"DJ, skip"*, *"DJ, play Bohemian Rhapsody"*, *"DJ, volume fifty"*). Speech is recognized locally by a [Whisper](https://github.com/ahmetoner/whisper-asr-webservice) container, nothing is sent to third parties.
 - **Crossfade** — the ending song fades out while the next one fades in (configurable, default 6 s), and skips fade too (default 3 s). Everything is mixed into a single audio track, so Fluxer clients play it cleanly.
-- **Web control panel** — player with progress and volume, queue with drag & drop, search across providers, join/leave voice channels, every bot and server setting, live status and logs. Password protected, works on phones, can be served behind your Fluxer domain (e.g. `https://your-domain/djmitica/`).
+- **Web control panel** — player with progress and volume, queue with drag & drop, search across providers, a per-server **history** of played songs you can replay with one click, join/leave voice channels, every bot and server setting, live status and logs. Server managers can log in with their Fluxer account. Password protected, works on phones, can be served behind your Fluxer domain (e.g. `https://your-domain/djmitica/`).
 - **Autoplay on by default** — when the queue ends the bot keeps playing similar songs (can be turned off per server).
 - **Silent messages** — bot messages don't trigger notification sounds (set `SILENT_MESSAGES = false` in `src/ui/MessageHandler.mjs` to turn this off).
 - **English by default, Romanian built in** — the bot and the web panel speak English out of the box; switch a server to Romanian with `%settings set locale ro` (or from the panel), and the panel itself under *Settings → Web panel → Panel language*.
@@ -463,7 +463,7 @@ The bot serves its own control panel on port `8080` inside the container (`8090`
 | `language` | `en` | Panel language: `en` or `ro` |
 | `sessionSecret` | generated | Cookie signing key, generated and saved to `config.json` on first start |
 
-Restart the bot and open `http://<your-machine>:8090`. The panel has three tabs and updates live (Server-Sent Events, with automatic polling as a fallback). It works on phones too.
+Restart the bot and open `http://<your-machine>:8090`. The panel has four tabs and updates live (Server-Sent Events, with automatic polling as a fallback). It works on phones too.
 
 **Player**
 
@@ -471,6 +471,13 @@ Restart the bot and open `http://<your-machine>:8090`. The panel has three tabs 
 - now playing with cover, progress bar (drag to seek), play/pause, skip, stop, volume (0–200%), repeat song / repeat queue, autoplay and "remove the bot from the channel";
 - search YouTube Music, YouTube, SoundCloud, Spotify, Deezer, Apple Music, Bandcamp (or paste a link / playlist) and add a song at the end, as next, or play it now;
 - the queue: drag & drop to reorder, move up/down, play now, remove, shuffle and clear.
+
+**History**
+
+- the last 100 songs played on each server, newest first, with artist, length, when it was played and how many times;
+- **Play now**, **Next** and **Queue it** buttons on every song (the bot has to be in a voice channel on that server);
+- a filter by title or artist, and a **Clear history** button;
+- updates by itself when a new song starts and is kept across restarts (`storage/history.json`). Users logged in with Fluxer only see the history of the servers they manage.
 
 **Settings**
 
@@ -751,6 +758,7 @@ DjMiticaBOT/
     ├── web/                     # Built-in web control panel
     │   ├── WebServer.mjs        # HTTP server, auth, JSON API, live events (SSE)
     │   ├── ConfigSchema.mjs     # Editable bot settings: schema, validation, live apply
+    │   ├── History.mjs          # Recently played songs per server (History tab)
     │   └── public/              # Panel frontend (HTML/CSS/JS, no build step)
     ├── services/                # Integrations
     │   ├── FluxerListManager.mjs   # FluxerList voters API client (TTL cache)
@@ -776,7 +784,9 @@ DjMiticaBOT/
     │   ├── Utils.mjs            # Formatting, validation, ID cleaning
     │   ├── API.mjs              # REST call helpers (status/error wrapping)
     │   ├── UI.mjs               # Shared UI constants (colors)
-    │   └── Helpers247.mjs       # 24/7 channel-mode helpers
+    │   ├── Helpers247.mjs       # 24/7 channel-mode helpers
+    │   ├── Invite.mjs           # Builds the add-to-server invite link (%invite, web panel)
+    │   └── Donate.mjs           # Donation link (%donate, web panel button)
     └── dashboard/               # Dashboard backend
         ├── index.mjs           # Public surface
         ├── Dashboard.mjs       # Redis RPC routing, player/user broadcasts
