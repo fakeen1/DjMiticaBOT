@@ -12,6 +12,7 @@
 <p align="center">
   <a href="https://web.fluxer.app/oauth2/authorize?client_id=1559846142420725760&scope=bot&permissions=3271744"><img src="https://img.shields.io/badge/Add%20to%20your%20server-Fluxer-F4B740?style=for-the-badge" alt="Add Dj Mitica to your Fluxer server"></a>
   <a href="https://fakeen.go.ro/djmitica/"><img src="https://img.shields.io/badge/Web%20Dashboard-Open-5FD3A3?style=for-the-badge" alt="Open the web dashboard"></a>
+  <a href="https://fakeen.go.ro/djmitica/selfhost.html"><img src="https://img.shields.io/badge/Self--hosted%20Fluxer-Add%20the%20bot-8E99B2?style=for-the-badge" alt="Add Dj Mitica to your self-hosted Fluxer instance"></a>
 </p>
 
 <p align="center">
@@ -172,7 +173,20 @@ Don't want to host it yourself? Add the public Dj Mitica (running on **fluxer.ap
 - **[➕ Invite Dj Mitica to your server](https://web.fluxer.app/oauth2/authorize?client_id=1559846142420725760&scope=bot&permissions=3271744)** — you need the *Manage Server* permission on that server.
 - **[🎛️ Open the web dashboard](https://fakeen.go.ro/djmitica/)** — click **Login with Fluxer** and control the bot on the servers you manage: player, queue, search and that server's settings.
 
-The public bot works on servers hosted on fluxer.app. If you run your own Fluxer instance, host your own copy instead — see [Self-Hosting](#self-hosting-the-bot).
+### Running your own Fluxer instance?
+
+The public bot also works on **self-hosted Fluxer instances**, and you don't have to host anything:
+
+1. On your instance, create a bot application and copy its **bot token** (use a new bot that isn't running anywhere else).
+2. Open **[🏠 fakeen.go.ro/djmitica/selfhost.html](https://fakeen.go.ro/djmitica/selfhost.html)** and enter your instance address and the token.
+3. You get an **invite link for your instance** right away. Add the bot to your servers and use it like on fluxer.app.
+
+Good to know:
+- The token is stored encrypted and used only to run your bot. You can remove it anytime from the same page, or just reset the token on your instance.
+- Your instance needs voice (LiveKit) enabled and must be reachable from the internet over https.
+- Unused servers are left after 7 days (as on fluxer.app), and an instance whose bot is in no server for 7 days is removed automatically. You can add it again anytime.
+
+Prefer to run everything yourself? Host your own copy instead, see [Self-Hosting](#self-hosting-the-bot) and [Self-Hosted Fluxer Instance](#self-hosted-fluxer-instance).
 
 ---
 
@@ -580,7 +594,9 @@ Notes:
 
 ### Self-Hosted Fluxer Instance
 
-To use the bot on your own Fluxer instance, add an `instance` block to `fluxer.js` in `config.json` (replace the domain):
+> Just want the bot on your instance, without hosting it? Use the public bot: **[fakeen.go.ro/djmitica/selfhost.html](https://fakeen.go.ro/djmitica/selfhost.html)** (see [Use the Public Bot](#running-your-own-fluxer-instance)).
+
+To run your own copy of the bot on your own Fluxer instance, add an `instance` block to `fluxer.js` in `config.json` (replace the domain):
 
 ```json
 "fluxer.js": {

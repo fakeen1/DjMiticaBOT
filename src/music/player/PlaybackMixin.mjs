@@ -171,7 +171,8 @@ const PlaybackMixin = {
     this._paused          = false;
     this._pausedAt        = null;
     this._queueEndedSent  = false;
-    this._consecutiveErrors = 0;
+    // _consecutiveErrors is reset only once a track really starts (below), otherwise
+    // a run of failing tracks (e.g. autoplay with a dead voice connection) never stops.
     this._radioReconnects   = 0;
 
     if (songData.type !== "radio" || !this._radioAnnounced) {
@@ -213,6 +214,7 @@ const PlaybackMixin = {
       } else {
         await this._playTrackViaBridge(songData, { seekSeconds: seekSec });
       }
+      this._consecutiveErrors = 0;
 
       if (trackOptMatch && trackOptMatch.endMs > 0) {
         const elapsedMs = Date.now() - this.startedPlaying;
@@ -224,6 +226,16 @@ const PlaybackMixin = {
       }
     } catch (err) {
       logger.error("[Player] Play error:", err.message);
+      // Voice connection is gone (bot kicked / disconnected / left): stop here instead of
+      // advancing through the queue or autoplay and posting an error for every track.
+      const voiceGone = !this._voiceConn || /not connected|no voice connection/i.test(String(err?.message ?? ""));
+      if (voiceGone && !this._skipping) {
+        logger.warn(`[Player:${this._guildId}] Voice connection lost, stopping playback (no auto-advance).`);
+        this._consecutiveErrors = 0;
+        this.emit("stopplay");
+        if (!this._is247Enabled()) this._startInactivityTimer();
+        return;
+      }
       if (!this._skipping && !this.leaving && !this._paused && songData.type !== "radio") {
         this.emit("message", { embeds: [new EmbedBuilder().setColor(getGlobalColor()).setDescription(this._t("responses._common.errorStreaming", { title: songData.title }))] });
       }
