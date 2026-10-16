@@ -563,7 +563,7 @@ class Player extends EventEmitter {
           this._assertSelfDeaf(vm, channelId);
         });
 
-        voiceConn.on("serverLeave", () => {
+        const onSessionLost = () => {
           if (this.leaving || this._destroyed) return;
           logger.player(`[Player] serverLeave received — Fluxer/LiveKit terminated session`);
           this._voiceConn = null;
@@ -582,11 +582,21 @@ class Player extends EventEmitter {
             logger.player("[Player] Unexpected serverLeave");
             this.emit("autoleave");
           }
-        });
+        };
+        voiceConn.on("serverLeave", onSessionLost);
 
         voiceConn.on("disconnect", () => {
           if (this.leaving || this._destroyed) return;
           logger.player(`[Player] Voice connection disconnected`);
+          // The voice library often reconnects by itself within a few seconds. If it
+          // doesn't, the player must not keep a dead connection (songs would fail one
+          // after another): handle it like a server-side leave.
+          setTimeout(() => {
+            if (this.leaving || this._destroyed || this._voiceConn !== voiceConn) return;
+            if (voiceConn.room?.isConnected) return;
+            logger.warn("[Player] Voice connection did not come back after 15 s, treating it as a leave.");
+            onSessionLost();
+          }, 15_000).unref?.();
         });
       }
 

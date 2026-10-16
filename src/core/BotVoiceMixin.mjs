@@ -10,6 +10,7 @@
  */
 
 import { EmbedBuilder } from "@fluxerjs/core";
+import { guildIconUrl } from "../utils/Media.mjs";
 import { getVoiceManager } from "@fluxerjs/voice";
 import { getGlobalColor, PageBuilder } from "../ui/index.mjs";
 import { cleanId } from "../utils/Utils.mjs";
@@ -646,9 +647,7 @@ const BotVoiceMixin = {
       shared.push({
         name:   guild.name,
         id:     guild.id,
-        icon:   guild.icon
-            ? `https://cdn.fluxer.app/icons/${guild.id}/${guild.icon}.webp`
-            : null,
+        icon:   guildIconUrl(this.config, guild),
         description: guild.description ?? null,
         ownerId: guild.ownerId ?? null,
         channels: allChannels,

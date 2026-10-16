@@ -34,6 +34,8 @@ import { PROVIDERS, PROVIDER_NAMES } from "../music/providers.mjs";
 import { configView, validateChanges, applyToConfig, applyLive, panelLanguage } from "./ConfigSchema.mjs";
 import { buildInviteUrl } from "../utils/Invite.mjs";
 import { getDonateUrl } from "../utils/Donate.mjs";
+import { iterateVoiceStates, resolveIsBotUser } from "../voice/VoiceStateResolver.mjs";
+import { mediaBase } from "../utils/Media.mjs";
 import { PermissionFlags } from "@fluxerjs/core";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -728,8 +730,7 @@ export class WebServer {
   /* ---------------------------------------------------------------- state */
 
   _mediaBase() {
-    const inst = this.djmitica.config?.["fluxer.js"]?.instance;
-    return (inst?.media ?? "").replace(/\/+$/, "") || null;
+    return mediaBase(this.djmitica.config); // instance media, or cdn.fluxer.app for the official Fluxer
   }
 
   _avatar(user) {
@@ -739,9 +740,54 @@ export class WebServer {
     return null;
   }
 
+  /**
+   * People (not bots) in a voice channel. The voice-state cache can miss someone
+   * (joined while the bot was restarting, a lost gateway event), so it is merged with
+   * the guild's own voice states and, when the bot is in that channel, the LiveKit
+   * room participants.
+   */
+  _listenerIds(guild, channelId) {
+    const gid = cleanId(String(guild?.id ?? "")), cid = cleanId(String(channelId ?? ""));
+    if (!gid || !cid) return [];
+    const botId = String(this.client.user?.id ?? "");
+    const ids = new Set(this.djmitica.voiceCache?.getHumansInChannel?.(gid, cid) ?? []);
+    try {
+      // fluxer.js versions differ: voice_states or voiceStates
+      const src = guild?.voice_states ? guild : guild?.voiceStates ? { ...guild, voice_states: guild.voiceStates, members: guild.members } : null;
+      for (const vs of iterateVoiceStates(src, { client: this.client, botId })) {
+        if (cleanId(vs.channelId) === cid && !vs.isBot) ids.add(cleanId(vs.userId));
+      }
+    } catch (_) {}
+    try {
+      const room = this._findPlayer(cid)?.connection?.room;
+      if (room?.isConnected && room.remoteParticipants) {
+        for (const [, part] of room.remoteParticipants) {
+          const uid = String(part?.identity ?? "").match(/\d{15,22}/)?.[0] ?? "";
+          if (uid && uid !== botId && !resolveIsBotUser({ userId: uid, guild, client: this.client, botId })) ids.add(uid);
+        }
+      }
+    } catch (_) {}
+    ids.delete(botId);
+    ids.delete("");
+    return [...ids];
+  }
+
   _userInfo(guild, userId) {
     const member = guild?.members?.get?.(userId);
-    const user = member?.user ?? this.client.users?.get?.(userId);
+    let user = member?.user ?? this.client.users?.get?.(userId);
+    if (!user) {
+      // Not in the cache (e.g. joined while the bot was restarting): fetch it once in the
+      // background; the name shows up with the next panel update.
+      this._fetchedUsers ??= new Map();
+      const hit = this._fetchedUsers.get(String(userId));
+      if (hit && hit !== "pending") user = hit;
+      else if (!hit && typeof this.client.users?.fetch === "function") {
+        this._fetchedUsers.set(String(userId), "pending");
+        this.client.users.fetch(String(userId)).then((u) => { if (u) this._fetchedUsers.set(String(userId), u); })
+          .catch(() => setTimeout(() => this._fetchedUsers.delete(String(userId)), 60_000));
+        if (this._fetchedUsers.size > 2000) this._fetchedUsers.clear();
+      }
+    }
     return {
       id: String(userId),
       name: member?.nick ?? user?.globalName ?? user?.displayName ?? user?.username ?? this.t("user"),
@@ -775,7 +821,7 @@ export class WebServer {
     const data = p.queue?.data ?? [];
     let remaining = 0;
     for (const t of data) remaining += trackDurationMs(t);
-    const humans = this.djmitica.voiceCache?.getHumansInChannel?.(guildId, channelId) ?? [];
+    const humans = this._listenerIds(guild, channelId);
     const text = p.textChannel?.channel ?? p.textChannel;
     return {
       channelId,
@@ -812,7 +858,7 @@ export class WebServer {
         voiceChannels: voice.map((c) => ({
           id: String(c.id),
           name: c.name ?? "voice",
-          listeners: (this.djmitica.voiceCache?.getHumansInChannel?.(cleanId(g.id), cleanId(c.id)) ?? []).map((id) => this._userInfo(g, id)),
+          listeners: this._listenerIds(g, c.id).map((id) => this._userInfo(g, id)),
         })),
         textChannels: textCh.map((c) => ({ id: String(c.id), name: c.name ?? "text" })),
       });

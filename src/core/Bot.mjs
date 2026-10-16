@@ -35,6 +35,7 @@ import BotVoiceMixin from "./BotVoiceMixin.mjs";
 import { VoiceCommands } from "../voice/VoiceCommands.mjs";
 import { WebServer } from "../web/WebServer.mjs";
 import { History } from "../web/History.mjs";
+import { guildIconUrl } from "../utils/Media.mjs";
 
 /**
  * Create a Map-like view object that proxies bot voice-state lookups through
@@ -218,9 +219,7 @@ class DjMitica {
           ),
           false,
           {
-            icon_url: msg.channel.channel.guild?.icon
-                ? `https://cdn.fluxer.app/icons/${msg.channel.channel.guild.id}/${msg.channel.channel.guild.icon}.webp`
-                : null,
+            icon_url: guildIconUrl(this.config, msg.channel.channel.guild),
             title:    msg.channel.channel.guild?.name        ?? null,
           }
       );
@@ -351,11 +350,14 @@ class DjMitica {
     }
 
     const __dirname = import.meta.dirname;
+    // The Docker image has no .git folder: don't try (and don't log an error every start).
+    const hasGit = fs.existsSync(path.join(__dirname, "..", "..", ".git"));
     try {
+      if (!hasGit) throw Object.assign(new Error("no git checkout"), { quiet: true });
       this.comHash     = childProcess.execSync("git rev-parse --short HEAD", { cwd: __dirname, timeout: 3000 }).toString().trim();
       this.comHashLong = childProcess.execSync("git rev-parse HEAD",         { cwd: __dirname, timeout: 3000 }).toString().trim();
     } catch (e) {
-      logger.warn("[Git] comhash error:", e?.message);
+      if (!e?.quiet) logger.warn("[Git] comhash error:", e?.message);
       this.comHash     = "Newest";
       this.comHashLong = null;
     }

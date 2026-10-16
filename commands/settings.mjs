@@ -7,6 +7,7 @@
 
 
 import { CommandBuilder } from "../src/commands/index.mjs";
+import { guildIconUrl } from "../src/utils/Media.mjs";
 import { getMessageGuildId } from "../src/ui/index.mjs";
 import { logger } from "../src/core/Logger.mjs";
 import {
@@ -190,9 +191,7 @@ export async function run(message, data) {
     const d         = set.getAll();
     const guildName = getGuildName(message);
     const rawGuild  = message.message?.guild;
-    const iconUrl   = rawGuild?.icon
-        ? "https://cdn.fluxer.app/icons/" + rawGuild.id + "/" + rawGuild.icon + ".webp"
-        : null;
+    const iconUrl   = guildIconUrl(this.config, rawGuild);
 
     const channels = get247Channels(set);
     const lines = this.settingsMgr.getPublicKeys()

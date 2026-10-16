@@ -257,7 +257,20 @@ export function installCrossfade(conn) {
     m.running = true;
     try {
       while (m.voices.length) {
-        if (!m.source || !conn.room?.isConnected || m.room !== conn.room) break;
+        if (!m.source || !conn.room?.isConnected || m.room !== conn.room) {
+          // The voice connection dropped or moved to a new room (reconnect): wait for it
+          // and publish the output track again, instead of leaving the song stuck silent.
+          let ok = false;
+          for (let waited = 0; waited < 15_000 && m.voices.length; waited += 250) {
+            if (conn.room?.isConnected) {
+              try { ok = await ensureOutput(); } catch (e) { ok = false; logger.warn("[Crossfade] republish after reconnect:", e?.message); }
+              if (ok) break;
+            }
+            await sleep(250);
+          }
+          if (!ok) { hardStop(); break; } // gave up: drop the songs instead of keeping them in memory
+          logger.player("[Crossfade] voice reconnected, output track published again");
+        }
         const mix = new Float32Array(FRAME);
         const vol = (conn._volume ?? 100) / 100;
         let any = false;
@@ -277,10 +290,13 @@ export function installCrossfade(conn) {
           out[i] = s > 32767 ? 32767 : s < -32768 ? -32768 : s;
         }
         const frame = new deps.AudioFrame(out, SAMPLE_RATE, CHANNELS, FRAME);
+        const src = m.source; // can be closed / replaced while we wait below
         try {
-          if (m.source.queuedDuration > 500) await m.source.waitForPlayout();
-          await m.source.captureFrame(frame);
+          if (src.queuedDuration > 500) await src.waitForPlayout();
+          if (src !== m.source) continue;
+          await src.captureFrame(frame);
         } catch (e) {
+          if (src !== m.source) continue; // output was replaced (reconnect / leave): not an error
           logger.warn("[Crossfade] captureFrame:", e?.message);
           await sleep(FRAME_MS);
         }
